@@ -1,2 +1,8 @@
 # HA_RFPlayer
-RFPlayer plugin for Home assistant
+
+RFPlayer custom component for Home assistant
+
+## Installation
+
+Copy the `custom_component/rfplayer` folder in your config directory.
+
