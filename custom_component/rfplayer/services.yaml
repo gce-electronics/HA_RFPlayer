@@ -1,0 +1,17 @@
+send_command:
+  description: Send device command through RFPlayer.
+  fields:
+    command:
+      name: Command
+      description: The command to be sent.
+      required: true
+      example: "on or 1"
+      selector:
+        text:
+    device_id:
+      name: Device ID
+      description: RFLink device ID.
+      required: true
+      example: chacon_935364736_cmd
+      selector:
+        text:
