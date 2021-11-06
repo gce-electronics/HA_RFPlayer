@@ -4,7 +4,6 @@ from collections import defaultdict
 import copy
 import logging
 
-
 import async_timeout
 from serial import SerialException
 import voluptuous as vol
@@ -17,7 +16,6 @@ from homeassistant.const import (
     EVENT_HOMEASSISTANT_STOP,
     STATE_ON,
 )
-from .const import *
 from homeassistant.core import CoreState, callback
 from homeassistant.exceptions import HomeAssistantError
 import homeassistant.helpers.config_validation as cv
@@ -28,7 +26,7 @@ from homeassistant.helpers.dispatcher import (
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import DOMAIN, PLATFORMS
+from .const import *
 from .rflib.rfpprotocol import create_rfplayer_connection
 
 _LOGGER = logging.getLogger(__name__)
@@ -52,7 +50,7 @@ def identify_event_type(event):
 
 
 async def async_setup_entry(hass, entry):
-    """Set up GCE RFPlayer from a config entry."""
+    """Set up GE RFPlayer from a config entry."""
     config = entry.data
 
     # Allow entities to register themselves by device_id to be looked up when

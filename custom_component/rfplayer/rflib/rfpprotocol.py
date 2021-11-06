@@ -2,10 +2,10 @@
 
 import asyncio
 import concurrent
-import logging
 from datetime import timedelta
 from fnmatch import fnmatchcase
 from functools import partial
+import logging
 from typing import (
     Any,
     Callable,
@@ -23,11 +23,10 @@ from serial_asyncio import create_serial_connection
 from .rfpparser import (
     PacketType,
     decode_packet,
+    deserialize_packet_id,
     encode_packet,
     packet_events,
     valid_packet,
-    serialize_packet_id,
-    deserialize_packet_id,
 )
 
 log = logging.getLogger(__name__)

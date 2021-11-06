@@ -1,8 +1,9 @@
 """Support for Rfplayer sensors."""
 import logging
 
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.const import CONF_DEVICES
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
+
 from . import (
     DATA_DEVICE_REGISTER,
     DATA_ENTITY_LOOKUP,

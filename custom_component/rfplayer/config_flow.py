@@ -9,10 +9,10 @@ from homeassistant.const import CONF_DEVICE, CONF_DEVICES
 
 from .const import (
     CONF_AUTOMATIC_ADD,
-    DEFAULT_RECONNECT_INTERVAL,
-    DOMAIN,
     CONF_RECONNECT_INTERVAL,
     CONF_WAIT_FOR_ACK,
+    DEFAULT_RECONNECT_INTERVAL,
+    DOMAIN,
 )
 
 

@@ -109,12 +109,11 @@ def encode_packet(packet: PacketType) -> str:
 
 def serialize_packet_id(packet: PacketType) -> str:
     """Serialize packet identifiers into one reversible string."""
-
     return PACKET_ID_SEP.join(
         filter(
             None,
             [
-                packet.get("protocol", None),  #  "rfplayer"),
+                packet.get("protocol", None),
                 packet.get("id", None),
                 packet.get("switch", None),
             ],
