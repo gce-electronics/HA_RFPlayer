@@ -1,0 +1,33 @@
+{
+    "config": {
+      "step": {
+        "user": {
+          "title": "GCE RFPlayer",
+          "description": "Configurer l'intégration RFPlayer",
+          "data": {
+            "device": "Appareil USB RFPlayer",
+            "automatic_add": "Ajouter les appareil automatiquement lorsqu'un signal est reçu",
+            "reconnect_interval": "Interval de reconnexion"
+          }
+        }
+      },
+      "error": {
+        "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]"
+      },
+      "abort": {
+        "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
+        "already_in_progress": "[%key:common::config_flow::abort::already_in_progress%]",
+        "unknown": "[%key:common::config_flow::error::unknown%]"
+      }
+    },
+    "options": {
+      "step": {
+        "init": {
+          "title": "Options GCE RFPlayer",
+          "data": {
+            "automatic_add":"Ajouter les appareil automatiquement lorsqu'un signal est reçu"
+          }
+        }
+      }
+    }
+  }

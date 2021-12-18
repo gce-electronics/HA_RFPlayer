@@ -1,22 +1,11 @@
 """Asyncio protocol implementation of RFplayer."""
 
 import asyncio
-import concurrent
 from datetime import timedelta
 from fnmatch import fnmatchcase
 from functools import partial
 import logging
-from typing import (
-    Any,
-    Callable,
-    Coroutine,
-    Generator,
-    Optional,
-    Sequence,
-    Tuple,
-    Type,
-    cast,
-)
+from typing import Any, Callable, Coroutine, Optional, Sequence, Tuple, Type
 
 from serial_asyncio import create_serial_connection
 
@@ -78,7 +67,6 @@ class ProtocolBase(asyncio.Protocol):
 
     def handle_lines(self) -> None:
         """Assemble incoming data into per-line packets."""
-        # rflink: "\r\n"
         while "\n\r" in self.buffer:
             line, self.buffer = self.buffer.split("\n\r", 1)
             if valid_packet(line):
@@ -93,10 +81,8 @@ class ProtocolBase(asyncio.Protocol):
     def send_raw_packet(self, packet: str) -> None:
         """Encode and put packet string onto write buffer."""
         data = bytes(packet + "\n\r", "utf-8")
-        # rflink : data = packet + "\r\n"
         log.debug("writing data: %s", repr(data))
-        self.transport.write(data)
-        # rflink : self.transport.write(data.encode())  # type: ignore
+        self.transport.write(data)  # type: ignore
 
     def connection_lost(self, exc: Optional[Exception]) -> None:
         """Log when connection is closed, if needed call callback."""
@@ -129,7 +115,6 @@ class PacketHandling(ProtocolBase):
 
     def handle_raw_packet(self, raw_packet: str) -> None:
         """Parse raw packet string into packet dict."""
-        log.debug("got packet: %s", raw_packet)
         packet = None  # type: Optional[PacketType]
         try:
             packet = decode_packet(raw_packet)
@@ -162,14 +147,23 @@ class PacketHandling(ProtocolBase):
 
     def send_packet(self, fields: PacketType) -> None:
         """Concat fields and send packet to gateway."""
-        self.send_raw_packet(encode_packet(fields))
+        encoded_packet = encode_packet(fields)
+        self.send_raw_packet(encoded_packet)
 
-    def send_command(self, device_id: str, action: str) -> None:
+    def send_command(
+        self,
+        protocol: str,
+        command: str,
+        device_address: str = None,
+        device_id: str = None,
+    ) -> None:
         """Send device command to rfplayer gateway."""
-        command = deserialize_packet_id(device_id)
-        command["command"] = action
-        log.debug("sending command: %s", command)
-        self.send_packet(command)
+        if device_id is not None:
+            self.send_raw_packet(f"ZIA++{command} {protocol} ID {device_id}")
+        elif device_address is not None:
+            self.send_raw_packet(f"ZIA++{command} {protocol} {device_address}")
+        else:
+            raise KeyError("device_address or device_id must be specified")
 
 
 class CommandSerialization(PacketHandling):
@@ -186,43 +180,28 @@ class CommandSerialization(PacketHandling):
         super().__init__(*args, **kwargs)
         if packet_callback:
             self.packet_callback = packet_callback
-        self._command_ack = asyncio.Event(loop=self.loop)
-        self._ready_to_send = asyncio.Lock(loop=self.loop)
+        self._event = asyncio.Event(loop=self.loop)
+        self._lock = asyncio.Lock(loop=self.loop)
 
     def handle_response_packet(self, packet: PacketType) -> None:
         """Handle response packet."""
         log.debug("handle_response_packet")
         self._last_ack = packet
-        self._command_ack.set()
+        self._event.set()
 
-    @asyncio.coroutine
-    def send_command_ack(
-        self, device_id: str, action: str
-    ) -> Generator[Any, None, Optional[bool]]:
-        """Send command, wait for gateway to repond with acknowledgment."""
-        # serialize commands
-        yield from self._ready_to_send.acquire()
-        acknowledgement = None
-        try:
-            self._command_ack.clear()
-            self.send_command(device_id, action)
-
-            log.debug("waiting for acknowledgement")
-            try:
-                yield from asyncio.wait_for(
-                    self._command_ack.wait(), TIMEOUT.seconds, loop=self.loop
-                )
-                log.debug("packet acknowledged")
-            except concurrent.futures._base.TimeoutError:
-                acknowledgement = False
-                log.warning("acknowledge timeout")
-            else:
-                acknowledgement = cast(bool, self._last_ack.get("ok", False))
-        finally:
-            # allow next command
-            self._ready_to_send.release()
-
-        return acknowledgement
+    async def send_command_ack(
+        self,
+        protocol: str,
+        command: str,
+        device_address: str = None,
+        device_id: str = None,
+    ) -> bool:
+        """Send command, wait for gateway to repond."""
+        async with self._lock:
+            self.send_command(protocol, command, device_address, device_id)
+            self._event.clear()
+            # await self._event.wait()
+        return True
 
 
 class EventHandling(PacketHandling):
@@ -256,13 +235,7 @@ class EventHandling(PacketHandling):
             self.ignore = []
 
     def _handle_packet(self, packet: PacketType) -> None:
-        """Event specific packet handling logic.
-
-        Break packet into events and fires configured event callback or
-        nicely prints events for console.
-        """
-
-        log.debug("_handle_packet")
+        """Event specific packet handling logic."""
         events = packet_events(packet)
 
         for event in events:
@@ -294,7 +267,6 @@ class EventHandling(PacketHandling):
 
     def handle_packet(self, packet: PacketType) -> None:
         """Apply event specific handling and pass on to packet handling."""
-        log.debug("handle_packet")
         self._handle_packet(packet)
         super().handle_packet(packet)
 

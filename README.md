@@ -2,9 +2,6 @@
 
 RFPlayer custom component for Home assistant
 
-_/!\ ALPHA VERSION /!\\_
-Not really tested.
-
 ## Installation
 
 Copy the `custom_component/rfplayer` folder in your config directory.
@@ -15,9 +12,9 @@ Select the USB device in the list and valid.
 
 ## Usage
 
-Sensor are created automatically
+Sensor are created automatically if you enable it during the installation or on the option button (Integration menu)
 
-You can use the service `rfplayer.send_command` to send commands to your devices.
+You can use the service `rfplayer.send_command` to send commands to your devices, and add the device as a new entity.
 
 ## Credits
 

@@ -4,9 +4,9 @@
   "documentation": "https://github.com/gce-electronics/HA_RFPlayer",
   "issue_tracker": "https://github.com/gce-electronics/HA_RFPlayer/issues",
   "config_flow": true,
-  "dependencies": [],
-  "codeowners": ["@Aohzan"],
   "requirements": ["pyserial==3.5", "pyserial-asyncio==0.5"],
-  "version": "0.1.0",
-  "iot_class": "assumed_state"
+  "codeowners": ["@Aohzan"],
+  "dependencies": [],
+  "iot_class": "assumed_state",
+  "version": "0.2.0"
 }

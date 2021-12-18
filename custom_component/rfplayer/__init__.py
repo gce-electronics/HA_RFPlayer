@@ -10,30 +10,56 @@ import voluptuous as vol
 
 from homeassistant.const import (
     ATTR_ENTITY_ID,
+    ATTR_STATE,
     CONF_COMMAND,
     CONF_DEVICE,
+    CONF_DEVICE_ID,
     CONF_DEVICES,
+    CONF_PROTOCOL,
     EVENT_HOMEASSISTANT_STOP,
-    STATE_ON,
 )
 from homeassistant.core import CoreState, callback
-from homeassistant.exceptions import HomeAssistantError
 import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.device_registry import async_get_registry
 from homeassistant.helpers.dispatcher import (
     async_dispatcher_connect,
     async_dispatcher_send,
 )
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.restore_state import RestoreEntity
 
-from .const import *
+from .const import (
+    CONF_AUTOMATIC_ADD,
+    CONF_DEVICE_ADDRESS,
+    CONF_RECONNECT_INTERVAL,
+    CONNECTION_TIMEOUT,
+    DATA_DEVICE_REGISTER,
+    DATA_ENTITY_LOOKUP,
+    DOMAIN,
+    EVENT_BUTTON_PRESSED,
+    EVENT_KEY_COMMAND,
+    EVENT_KEY_ID,
+    EVENT_KEY_SENSOR,
+    PLATFORMS,
+    RFPLAYER_PROTOCOL,
+    SERVICE_SEND_COMMAND,
+    SIGNAL_AVAILABILITY,
+    SIGNAL_EVENT,
+    SIGNAL_HANDLE_EVENT,
+)
 from .rflib.rfpprotocol import create_rfplayer_connection
 
 _LOGGER = logging.getLogger(__name__)
 
 
 SEND_COMMAND_SCHEMA = vol.Schema(
-    {vol.Required(CONF_DEVICE_ID): cv.string, vol.Required(CONF_COMMAND): cv.string}
+    {
+        vol.Required(CONF_PROTOCOL): cv.string,
+        vol.Required(CONF_COMMAND): cv.string,
+        vol.Optional(CONF_DEVICE_ADDRESS): cv.string,
+        vol.Optional(CONF_DEVICE_ID): cv.string,
+        vol.Required(CONF_AUTOMATIC_ADD, default=False): cv.boolean,
+    }
 )
 
 
@@ -50,38 +76,37 @@ def identify_event_type(event):
 
 
 async def async_setup_entry(hass, entry):
-    """Set up GE RFPlayer from a config entry."""
+    """Set up GCE RFPlayer from a config entry."""
     config = entry.data
-
-    # Allow entities to register themselves by device_id to be looked up when
-    # new rfplayer events arrive to be handled
-    hass.data[DATA_ENTITY_LOOKUP] = {
-        EVENT_KEY_COMMAND: defaultdict(list),
-        EVENT_KEY_SENSOR: defaultdict(list),
-    }
-    hass.data[DATA_ENTITY_GROUP_LOOKUP] = {EVENT_KEY_COMMAND: defaultdict(list)}
-
-    # Allow platform to specify function to register new unknown devices
-    hass.data[DATA_DEVICE_REGISTER] = {}
+    options = entry.options
 
     async def async_send_command(call):
         """Send Rfplayer command."""
-        _LOGGER.debug("Rfplayer command for %s", str(call.data))
-        if not (
-            await RfplayerCommand.send_command(
-                call.data.get(CONF_DEVICE_ID), call.data.get(CONF_COMMAND)
-            )
+        _LOGGER.debug("Rfplayer send command for %s", str(call.data))
+        if not await hass.data[DOMAIN][RFPLAYER_PROTOCOL].send_command_ack(
+            call.data[CONF_PROTOCOL],
+            call.data[CONF_COMMAND],
+            device_address=call.data.get(CONF_DEVICE_ADDRESS),
+            device_id=call.data.get(CONF_DEVICE_ID),
         ):
-            _LOGGER.error("Failed Rfplayer command for %s", str(call.data))
-        else:
-            async_dispatcher_send(
-                hass,
-                SIGNAL_EVENT,
-                {
-                    EVENT_KEY_ID: call.data.get(CONF_DEVICE_ID),
-                    EVENT_KEY_COMMAND: call.data.get(CONF_COMMAND),
-                },
+            _LOGGER.error("Failed Rfplayer command")
+        if call.data[CONF_AUTOMATIC_ADD] is True:
+            _LOGGER.debug("Add device for %s", str(call.data))
+            event_id = "_".join(
+                [
+                    call.data[CONF_PROTOCOL],
+                    call.data.get(CONF_DEVICE_ID) or call.data.get(CONF_DEVICE_ADDRESS),
+                ]
             )
+            device = {
+                CONF_PROTOCOL: call.data[CONF_PROTOCOL],
+                CONF_DEVICE_ADDRESS: call.data.get(CONF_DEVICE_ADDRESS),
+                CONF_DEVICE_ID: call.data.get(CONF_DEVICE_ID),
+                EVENT_KEY_COMMAND: True,
+                EVENT_KEY_ID: event_id,
+            }
+            await hass.data[DOMAIN][DATA_DEVICE_REGISTER][EVENT_KEY_COMMAND](device)
+            _add_device_to_base_config(device, event_id)
 
     hass.services.async_register(
         DOMAIN, SERVICE_SEND_COMMAND, async_send_command, schema=SEND_COMMAND_SCHEMA
@@ -99,50 +124,33 @@ async def async_setup_entry(hass, entry):
         _LOGGER.debug("event of type %s: %s", event_type, event)
 
         # Don't propagate non entity events (eg: version string, ack response)
-        if event_type not in hass.data[DATA_ENTITY_LOOKUP]:
+        if event_type not in hass.data[DOMAIN][DATA_ENTITY_LOOKUP]:
             _LOGGER.debug("unhandled event of type: %s", event_type)
             return
 
         # Lookup entities who registered this device id as device id or alias
         event_id = event.get(EVENT_KEY_ID)
 
-        is_group_event = (
-            event_type == EVENT_KEY_COMMAND
-            and event[EVENT_KEY_COMMAND] in RFPLAYER_GROUP_COMMANDS
-        )
-        if is_group_event:
-            entity_ids = hass.data[DATA_ENTITY_GROUP_LOOKUP][event_type].get(
-                event_id, []
-            )
-        else:
-            entity_ids = hass.data[DATA_ENTITY_LOOKUP][event_type][event_id]
+        entity_id = hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type][event_id]
 
-        _LOGGER.debug("entity_ids: %s", entity_ids)
-        if entity_ids:
+        if entity_id:
             # Propagate event to every entity matching the device id
-            for entity in entity_ids:
-                _LOGGER.debug("passing event to %s", entity)
-                async_dispatcher_send(hass, SIGNAL_HANDLE_EVENT.format(entity), event)
-        elif not is_group_event:
+            _LOGGER.debug("passing event to %s", entity_id)
+            async_dispatcher_send(hass, SIGNAL_HANDLE_EVENT.format(entity_id), event)
+        else:
             # If device is not yet known, register with platform (if loaded)
-            if event_type in hass.data[DATA_DEVICE_REGISTER]:
+            if event_type in hass.data[DOMAIN][DATA_DEVICE_REGISTER]:
                 _LOGGER.debug("device_id not known, adding new device")
-                # Add bogus event_id first to avoid race if we get another
-                # event before the device is created
-                # Any additional events received before the device has been
-                # created will thus be ignored.
-                hass.data[DATA_ENTITY_LOOKUP][event_type][event_id].append(
-                    TMP_ENTITY.format(event_id)
-                )
-                _add_device(event, event_id)
+                hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type][event_id] = event
+                _add_device_to_base_config(event, event_id)
                 hass.async_create_task(
-                    hass.data[DATA_DEVICE_REGISTER][event_type](event)
+                    hass.data[DOMAIN][DATA_DEVICE_REGISTER][event_type](event)
                 )
             else:
                 _LOGGER.debug("device_id not known and automatic add disabled")
 
     @callback
-    def _add_device(event, event_id):
+    def _add_device_to_base_config(event, event_id):
         """Add a device to config entry."""
         data = entry.data.copy()
         data[CONF_DEVICES] = copy.deepcopy(entry.data[CONF_DEVICES])
@@ -153,7 +161,7 @@ async def async_setup_entry(hass, entry):
     def reconnect(exc=None):
         """Schedule reconnect after connection has been unexpectedly lost."""
         # Reset protocol binding before starting reconnect
-        RfplayerCommand.set_rfplayer_protocol(None)
+        hass.data[DOMAIN][RFPLAYER_PROTOCOL] = None
 
         async_dispatcher_send(hass, SIGNAL_AVAILABILITY, False)
 
@@ -170,7 +178,6 @@ async def async_setup_entry(hass, entry):
             event_callback=event_callback,
             disconnect_callback=reconnect,
             loop=hass.loop,
-            ignore=config.get(CONF_IGNORE_DEVICES),
         )
 
         try:
@@ -196,8 +203,19 @@ async def async_setup_entry(hass, entry):
         # mark entities as available
         async_dispatcher_send(hass, SIGNAL_AVAILABILITY, True)
 
-        # Bind protocol to command class to allow entities to send commands
-        RfplayerCommand.set_rfplayer_protocol(protocol, config[CONF_WAIT_FOR_ACK])
+        hass.data[DOMAIN] = {
+            RFPLAYER_PROTOCOL: protocol,
+            CONF_DEVICE: config[CONF_DEVICE],
+            DATA_ENTITY_LOOKUP: {
+                EVENT_KEY_COMMAND: defaultdict(list),
+                EVENT_KEY_SENSOR: defaultdict(list),
+            },
+            DATA_DEVICE_REGISTER: {},
+        }
+
+        if options.get(CONF_AUTOMATIC_ADD, config[CONF_AUTOMATIC_ADD]) is True:
+            for device_type in "sensor", "command":
+                hass.data[DOMAIN][DATA_DEVICE_REGISTER][device_type] = {}
 
         # handle shutdown of Rfplayer asyncio transport
         hass.bus.async_listen_once(
@@ -207,6 +225,7 @@ async def async_setup_entry(hass, entry):
         _LOGGER.info("Connected to Rfplayer")
 
     hass.async_create_task(connect())
+
     async_dispatcher_connect(hass, SIGNAL_EVENT, event_callback)
 
     hass.config_entries.async_setup_platforms(entry, PLATFORMS)
@@ -214,7 +233,7 @@ async def async_setup_entry(hass, entry):
     return True
 
 
-class RfplayerDevice(Entity):
+class RfplayerDevice(RestoreEntity):
     """Representation of a Rfplayer device.
 
     Contains the common logic for Rfplayer entities.
@@ -226,31 +245,37 @@ class RfplayerDevice(Entity):
 
     def __init__(
         self,
-        device_id,
+        protocol,
+        device_address=None,
+        device_id=None,
         initial_event=None,
         name=None,
-        aliases=None,
-        group=True,
-        group_aliases=None,
-        nogroup_aliases=None,
-        fire_event=False,
-        signal_repetitions=DEFAULT_SIGNAL_REPETITIONS,
     ):
         """Initialize the device."""
         # Rflink specific attributes for every component type
         self._initial_event = initial_event
+        self._protocol = protocol
         self._device_id = device_id
+        self._device_address = device_address
+        self._event = None
+        self._state: bool = None
+        self._attr_assumed_state = True
+        self._attr_unique_id = "_".join(
+            [self._protocol, self._device_address or self._device_id]
+        )
         if name:
-            self._name = name
+            self._attr_name = name
         else:
-            self._name = device_id
+            self._attr_name = f"{protocol} {device_address or device_id}"
 
-        self._aliases = aliases
-        self._group = group
-        self._group_aliases = group_aliases
-        self._nogroup_aliases = nogroup_aliases
-        self._should_fire_event = fire_event
-        self._signal_repetitions = signal_repetitions
+    async def _async_send_command(self, command, *args):
+        rfplayer = self.hass.data[DOMAIN][RFPLAYER_PROTOCOL]
+        await rfplayer.send_command_ack(
+            command=command,
+            protocol=self._protocol,
+            device_id=self._device_id,
+            device_address=self._device_address,
+        )
 
     @callback
     def handle_event_callback(self, event):
@@ -262,7 +287,7 @@ class RfplayerDevice(Entity):
         self.async_write_ha_state()
 
         # Put command onto bus for user to subscribe to
-        if self._should_fire_event and identify_event_type(event) == EVENT_KEY_COMMAND:
+        if identify_event_type(event) == EVENT_KEY_COMMAND:
             self.hass.bus.async_fire(
                 EVENT_BUTTON_PRESSED,
                 {ATTR_ENTITY_ID: self.entity_id, ATTR_STATE: event[EVENT_KEY_COMMAND]},
@@ -281,26 +306,26 @@ class RfplayerDevice(Entity):
         return False
 
     @property
-    def name(self):
-        """Return a name for the device."""
-        return self._name
-
-    @property
-    def is_on(self):
-        """Return true if device is on."""
-        if self.assumed_state:
-            return False
-        return self._state
-
-    @property
-    def assumed_state(self):
-        """Assume device state until first device event sets state."""
-        return self._state is None
+    def device_info(self) -> DeviceInfo:
+        """Return device registry information for this entity."""
+        return DeviceInfo(
+            identifiers={
+                (
+                    DOMAIN,
+                    self.hass.data[DOMAIN][
+                        CONF_DEVICE
+                    ],  # + "_" + self._attr_unique_id,
+                )
+            },
+            manufacturer="GCE",
+            model="RFPlayer",
+            name="RFPlayer",
+        )
 
     @property
     def available(self):
         """Return True if entity is available."""
-        return self._available
+        return bool(self._protocol)
 
     @callback
     def _availability_callback(self, availability):
@@ -311,45 +336,6 @@ class RfplayerDevice(Entity):
     async def async_added_to_hass(self):
         """Register update callback."""
         await super().async_added_to_hass()
-        # Remove temporary bogus entity_id if added
-        tmp_entity = TMP_ENTITY.format(self._device_id)
-        if (
-            tmp_entity
-            in self.hass.data[DATA_ENTITY_LOOKUP][EVENT_KEY_COMMAND][self._device_id]
-        ):
-            self.hass.data[DATA_ENTITY_LOOKUP][EVENT_KEY_COMMAND][
-                self._device_id
-            ].remove(tmp_entity)
-
-        # Register id and aliases
-        self.hass.data[DATA_ENTITY_LOOKUP][EVENT_KEY_COMMAND][self._device_id].append(
-            self.entity_id
-        )
-        if self._group:
-            self.hass.data[DATA_ENTITY_GROUP_LOOKUP][EVENT_KEY_COMMAND][
-                self._device_id
-            ].append(self.entity_id)
-        # aliases respond to both normal and group commands (allon/alloff)
-        if self._aliases:
-            for _id in self._aliases:
-                self.hass.data[DATA_ENTITY_LOOKUP][EVENT_KEY_COMMAND][_id].append(
-                    self.entity_id
-                )
-                self.hass.data[DATA_ENTITY_GROUP_LOOKUP][EVENT_KEY_COMMAND][_id].append(
-                    self.entity_id
-                )
-        # group_aliases only respond to group commands (allon/alloff)
-        if self._group_aliases:
-            for _id in self._group_aliases:
-                self.hass.data[DATA_ENTITY_GROUP_LOOKUP][EVENT_KEY_COMMAND][_id].append(
-                    self.entity_id
-                )
-        # nogroup_aliases only respond to normal commands
-        if self._nogroup_aliases:
-            for _id in self._nogroup_aliases:
-                self.hass.data[DATA_ENTITY_LOOKUP][EVENT_KEY_COMMAND][_id].append(
-                    self.entity_id
-                )
         self.async_on_remove(
             async_dispatcher_connect(
                 self.hass, SIGNAL_AVAILABILITY, self._availability_callback
@@ -367,143 +353,12 @@ class RfplayerDevice(Entity):
         if self._initial_event:
             self.handle_event_callback(self._initial_event)
 
-
-class RfplayerCommand(RfplayerDevice):
-    """Singleton class to make Rflink command interface available to entities.
-
-    This class is to be inherited by every Entity class that is actionable
-    (switches/lights). It exposes the Rflink command interface for these
-    entities.
-
-    The Rflink interface is managed as a class level and set during setup (and
-    reset on reconnect).
-    """
-
-    # Keep repetition tasks to cancel if state is changed before repetitions
-    # are sent
-    _repetition_task = None
-
-    _protocol = None
-
-    @classmethod
-    def set_rfplayer_protocol(cls, protocol, wait_ack=None):
-        """Set the Rflink asyncio protocol as a class variable."""
-        cls._protocol = protocol
-        if wait_ack is not None:
-            cls._wait_ack = wait_ack
-
-    @classmethod
-    def is_connected(cls):
-        """Return connection status."""
-        return bool(cls._protocol)
-
-    @classmethod
-    async def send_command(cls, device_id, action):
-        """Send device command to Rflink and wait for acknowledgement."""
-        return await cls._protocol.send_command_ack(device_id, action)
-
-    async def _async_handle_command(self, command, *args):
-        """Do bookkeeping for command, send it to rflink and update state."""
-        self.cancel_queued_send_commands()
-
-        if command == "turn_on":
-            cmd = "on"
-            self._state = True
-
-        elif command == "turn_off":
-            cmd = "off"
-            self._state = False
-
-        elif command == "dim":
-            # convert brightness to rflink dim level
-            # cmd = str(brightness_to_rfplayer(args[0])) TODO
-            self._state = True
-
-        elif command == "toggle":
-            cmd = "on"
-            # if the state is unknown or false, it gets set as true
-            # if the state is true, it gets set as false
-            self._state = self._state in [None, False]
-
-        # Cover options for RFlink
-        elif command == "close_cover":
-            cmd = "DOWN"
-            self._state = False
-
-        elif command == "open_cover":
-            cmd = "UP"
-            self._state = True
-
-        elif command == "stop_cover":
-            cmd = "STOP"
-            self._state = True
-
-        # Send initial command and queue repetitions.
-        # This allows the entity state to be updated quickly and not having to
-        # wait for all repetitions to be sent
-        await self._async_send_command(cmd, self._signal_repetitions)
-
-        # Update state of entity
-        self.async_write_ha_state()
-
-    def cancel_queued_send_commands(self):
-        """Cancel queued signal repetition commands.
-
-        For example when user changed state while repetitions are still
-        queued for broadcast. Or when an incoming Rflink command (remote
-        switch) changes the state.
-        """
-        # cancel any outstanding tasks from the previous state change
-        if self._repetition_task:
-            self._repetition_task.cancel()
-
-    async def _async_send_command(self, cmd, repetitions):
-        """Send a command for device to Rflink gateway."""
-        _LOGGER.debug("Sending command: %s to Rflink device: %s", cmd, self._device_id)
-
-        if not self.is_connected():
-            raise HomeAssistantError("Cannot send command, not connected!")
-
-        if self._wait_ack:
-            # Puts command on outgoing buffer then waits for Rflink to confirm
-            # the command has been sent out.
-            await self._protocol.send_command_ack(self._device_id, cmd)
-        else:
-            # Puts command on outgoing buffer and returns straight away.
-            # Rflink protocol/transport handles asynchronous writing of buffer
-            # to serial/tcp device. Does not wait for command send
-            # confirmation.
-            self._protocol.send_command(self._device_id, cmd)
-
-        if repetitions > 1:
-            self._repetition_task = self.hass.async_create_task(
-                self._async_send_command(cmd, repetitions - 1)
-            )
-
-
-class SwitchableRfplayerDevice(RfplayerCommand, RestoreEntity):
-    """Rflink entity which can switch on/off (eg: light, switch)."""
-
-    async def async_added_to_hass(self):
-        """Restore RFLink device state (ON/OFF)."""
-        await super().async_added_to_hass()
-        if (old_state := await self.async_get_last_state()) is not None:
-            self._state = old_state.state == STATE_ON
-
-    def _handle_event(self, event):
-        """Adjust state if Rflink picks up a remote command for this device."""
-        self.cancel_queued_send_commands()
-
-        command = event["command"]
-        if command in ["on", "allon"]:
-            self._state = True
-        elif command in ["off", "alloff"]:
-            self._state = False
-
-    async def async_turn_on(self, **kwargs):
-        """Turn the device on."""
-        await self._async_handle_command("turn_on")
-
-    async def async_turn_off(self, **kwargs):
-        """Turn the device off."""
-        await self._async_handle_command("turn_off")
+    async def async_will_remove_from_hass(self):
+        """Clean when entity removed."""
+        await super().async_will_remove_from_hass()
+        device_registry = await async_get_registry(self.hass)
+        device = device_registry.async_get_device(
+            (DOMAIN, self.hass.data[DOMAIN][CONF_DEVICE] + "_" + self._attr_unique_id)
+        )
+        if device:
+            device_registry.async_remove_device(device)

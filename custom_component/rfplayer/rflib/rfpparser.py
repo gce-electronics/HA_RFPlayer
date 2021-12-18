@@ -94,17 +94,13 @@ def decode_packet(packet: str) -> PacketType:
 
 def encode_packet(packet: PacketType) -> str:
     """Construct packet string from packet dictionary."""
-    # TODO testing for rfplayer
-    if packet["protocol"] == "rfdebug":
-        return "10;RFDEBUG=%s;" % packet["command"]
-    elif packet["protocol"] == "rfudebug":
-        return "10;RFUDEBUG=%s;" % packet["command"]
-    elif packet["protocol"] == "qrfdebug":
-        return "10;QRFDEBUG=%s;" % packet["command"]
-    else:
-        return "{node};{protocol};{id};{switch};{command};".format(
-            node=PacketHeader.master.value, **packet
-        )
+    command = str(packet["command"]).upper()
+    protocol = str(packet["protocol"]).upper()
+    if "id" in packet:
+        return f"ZIA++{command} {protocol} ID {packet['id']}"
+    if "address" in packet:
+        return f"ZIA++{command} {protocol} {packet['address']}"
+    raise Exception("No ID or Address found")
 
 
 def serialize_packet_id(packet: PacketType) -> str:
@@ -129,23 +125,28 @@ def deserialize_packet_id(packet_id: str) -> Dict[str, str]:
     if packet_id == "ZIA":
         return {"protocol": "ZIA++"}
 
+    if packet_id.lower().startswith("chacon"):
+        return {
+            "protocol": "chacon",
+            "address": packet_id.split(PACKET_ID_SEP)[1],
+        }
+
     if packet_id.startswith("dooya_v4"):
-        protocol = "dooya_v4"
-        id_switch = packet_id.replace("dooya_v4_", "").split(PACKET_ID_SEP)
-    else:
-        protocol, *id_switch = packet_id.split(PACKET_ID_SEP)
+        return {
+            "protocol": "dooya_v4",
+            "id": packet_id.replace("dooya_v4_", "").split(PACKET_ID_SEP)[0],
+            "switch": packet_id.replace("dooya_v4_", "").split(PACKET_ID_SEP)[0],
+        }
 
-    assert len(id_switch) < 3
-
-    packet_identifiers = {
-        "protocol": protocol,
+    packet_id_splited = packet_id.split(PACKET_ID_SEP)
+    packet = {
+        "protocol": packet_id_splited[0],
+        "id": packet_id_splited[1],
     }
-    if id_switch:
-        packet_identifiers["id"] = id_switch[0]
-    if len(id_switch) > 1:
-        packet_identifiers["switch"] = id_switch[1]
+    if len(packet_id_splited) > 2:
+        packet["switch"] = packet_id_splited[2]
 
-    return packet_identifiers
+    return packet
 
 
 def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
