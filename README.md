@@ -1,6 +1,6 @@
 # HA_RFPlayer
 
-RFPlayer custom component for Home assistant
+RFPlayer custom component/integration for Home assistant
 
 ## Installation
 
@@ -14,7 +14,7 @@ Select the USB device in the list and valid.
 
 Sensor are created automatically if you enable it during the installation or on the option button (Integration menu)
 
-You can use the service `rfplayer.send_command` to send commands to your devices, and add the device as a new entity.
+You can use the service `rfplayer.send_command` to send commands to your devices, and add the device as a new switch entity.
 
 ## Credits
 
