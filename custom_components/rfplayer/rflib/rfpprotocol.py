@@ -12,7 +12,6 @@ from serial_asyncio import create_serial_connection
 from .rfpparser import (
     PacketType,
     decode_packet,
-    deserialize_packet_id,
     encode_packet,
     packet_events,
     valid_packet,
@@ -115,21 +114,21 @@ class PacketHandling(ProtocolBase):
 
     def handle_raw_packet(self, raw_packet: str) -> None:
         """Parse raw packet string into packet dict."""
-        packet = None  # type: Optional[PacketType]
+        packets = []
         try:
-            packet = decode_packet(raw_packet)
+            packets = decode_packet(raw_packet)
         except BaseException:
             log.exception("failed to parse packet data: %s", raw_packet)
 
-        log.debug("decoded packet: %s", packet)
-
-        if packet:
-            if "ok" in packet:
-                # handle response packets internally
-                log.debug("command response: %s", packet)
-                self.handle_response_packet(packet)
-            else:
-                self.handle_packet(packet)
+        if packets:
+            for packet in packets:
+                log.debug("decoded packet: %s", packet)
+                if "ok" in packet:
+                    # handle response packets internally
+                    log.debug("command response: %s", packet)
+                    self.handle_response_packet(packet)
+                else:
+                    self.handle_packet(packet)
         else:
             log.warning("no valid packet")
 

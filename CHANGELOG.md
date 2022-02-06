@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.3.0
+
+- Handle Oregon protocol
+
 ## 0.2.1
 
 - Rename custom_component dir according to best practices

@@ -68,14 +68,15 @@ def valid_packet(packet: str) -> bool:
     return bool(packet_header_re.match(packet))
 
 
-def decode_packet(packet: str) -> PacketType:
+def decode_packet(packet: str) -> list:
     """Decode packet."""
+    packets_found = []
     data = cast(PacketType, {"node": PacketHeader.gateway.name})
 
     # Welcome messages directly send
     if packet.startswith("ZIA--"):
         data["message"] = packet.replace("ZIA--", "")
-        return data
+        return [data]
 
     # Protocols
     message = json.loads(packet.replace("ZIA33", ""))["frame"]
@@ -85,11 +86,23 @@ def decode_packet(packet: str) -> PacketType:
         data["id"] = message["infos"]["id"]
         data["command"] = message["infos"]["subType"]
         data["state"] = message["infos"]["subTypeMeaning"]
+        packets_found.append(data)
+    elif data["protocol"] in ["OREGON"]:
+        data["id"] = message["infos"]["id_PHY"]
+        data["hardware"] = message["infos"]["id_PHYMeaning"]
+        for measure in message["infos"]["measures"]:
+            measure_data = data.copy()
+            measure_data["command"] = measure["value"]
+            measure_data["state"] = measure["value"]
+            measure_data["unit"] = measure["unit"]
+            measure_data["type"] = measure["type"]
+            packets_found.append(measure_data)
     else:
         data["id"] = message["infos"].get("id")
         data["command"] = message["infos"].get("subType")
+        packets_found.append(data)
 
-    return data
+    return packets_found
 
 
 def encode_packet(packet: PacketType) -> str:
