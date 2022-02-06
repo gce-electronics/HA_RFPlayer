@@ -97,6 +97,11 @@ def decode_packet(packet: str) -> list:
             measure_data["unit"] = measure["unit"]
             measure_data["type"] = measure["type"]
             packets_found.append(measure_data)
+    elif data["protocol"] in ["EDISIO"]:
+        data["id"] = message["infos"]["id"]
+        data["hardware"] = message["infos"]["infoMeaning"]
+        data["command"] = message["infos"]["subType"]
+        data["state"] = message["infos"]["subType"]
     else:
         data["id"] = message["infos"].get("id")
         data["command"] = message["infos"].get("subType")

@@ -2,7 +2,7 @@
 
 ## 0.3.0
 
-- Handle Oregon protocol
+- Handle Oregon and Edisio protocols
 
 ## 0.2.1
 
