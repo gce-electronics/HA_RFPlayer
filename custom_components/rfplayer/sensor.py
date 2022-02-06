@@ -2,6 +2,7 @@
 import logging
 
 from homeassistant.const import CONF_DEVICES
+from homeassistant.helpers.entity import EntityCategory
 
 from . import RfplayerDevice
 from .const import (
@@ -40,9 +41,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     options = entry.options
 
     # add jamming entity
-    async_add_entities(
-        [RfplayerSensor(protocol="JAMMING", name="Jamming detection")]
-    )
+    async_add_entities([RfplayerJammingSensor()])
 
     async def add_new_device(device_info):
         """Check if device is known, otherwise create device entity."""
@@ -97,6 +96,26 @@ class RfplayerSensor(RfplayerDevice):
             self.hass.data[DOMAIN][DATA_ENTITY_LOOKUP][EVENT_KEY_SENSOR][
                 self._initial_event[EVENT_KEY_ID]
             ] = self.entity_id
+
+    def _handle_event(self, event):
+        """Domain specific event handler."""
+        self._state = event["value"]
+
+    @property
+    def state(self):
+        """Return value."""
+        return self._state
+
+
+class RfplayerJammingSensor(RfplayerDevice):
+    """Representation of a Jamming Rfplayer sensor."""
+
+    def __init__(self):
+        """Handle sensor specific args and super init."""
+        self._attr_entity_category = EntityCategory.DIAGNOSTIC
+        super().__init__(
+            "JAMMING", device_id=0, name="Jamming detection"
+        )
 
     def _handle_event(self, event):
         """Domain specific event handler."""
