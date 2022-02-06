@@ -39,6 +39,11 @@ async def async_setup_entry(hass, entry, async_add_entities):
     config = entry.data
     options = entry.options
 
+    # add jamming entity
+    async_add_entities(
+        [RfplayerSensor(protocol="JAMMING", device_id=0, name="Jamming detection")]
+    )
+
     async def add_new_device(device_info):
         """Check if device is known, otherwise create device entity."""
         device_id = device_info[EVENT_KEY_ID]
@@ -66,11 +71,18 @@ class RfplayerSensor(RfplayerDevice):
     """Representation of a Rfplayer sensor."""
 
     def __init__(
-        self, protocol, device_id, unit_of_measurement, initial_event=None, **kwargs
+        self,
+        protocol,
+        device_id,
+        unit_of_measurement=None,
+        initial_event=None,
+        name=None,
+        **kwargs,
     ):
         """Handle sensor specific args and super init."""
         self._protocol = protocol
         self._device_id = device_id
+        self._attr_name = name
         self._attr_unit_of_measurement = unit_of_measurement
         super().__init__(
             protocol, device_id=device_id, initial_event=initial_event, **kwargs

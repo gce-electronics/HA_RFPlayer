@@ -162,7 +162,7 @@ class PacketHandling(ProtocolBase):
         elif device_address is not None:
             self.send_raw_packet(f"ZIA++{command} {protocol} {device_address}")
         else:
-            raise KeyError("device_address or device_id must be specified")
+            self.send_raw_packet(f"ZIA++{protocol} {command}")
 
 
 class CommandSerialization(PacketHandling):

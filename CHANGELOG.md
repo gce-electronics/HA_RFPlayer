@@ -3,6 +3,7 @@
 ## 0.3.0
 
 - Handle Oregon and Edisio protocols
+- Add Jamming entities
 
 ## 0.2.1
 

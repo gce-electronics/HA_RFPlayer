@@ -82,7 +82,7 @@ def decode_packet(packet: str) -> list:
     message = json.loads(packet.replace("ZIA33", ""))["frame"]
     data["protocol"] = message["header"]["protocolMeaning"]
 
-    if data["protocol"] in ["BLYSS", "CHACON"]:
+    if data["protocol"] in ["BLYSS", "CHACON", "JAMMING"]:
         data["id"] = message["infos"]["id"]
         data["command"] = message["infos"]["subType"]
         data["state"] = message["infos"]["subTypeMeaning"]
