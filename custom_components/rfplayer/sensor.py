@@ -41,7 +41,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     # add jamming entity
     async_add_entities(
-        [RfplayerSensor(protocol="JAMMING", device_id=0, name="Jamming detection")]
+        [RfplayerSensor(protocol="JAMMING", name="Jamming detection")]
     )
 
     async def add_new_device(device_info):
@@ -73,7 +73,7 @@ class RfplayerSensor(RfplayerDevice):
     def __init__(
         self,
         protocol,
-        device_id,
+        device_id=None,
         unit_of_measurement=None,
         initial_event=None,
         name=None,
@@ -85,7 +85,7 @@ class RfplayerSensor(RfplayerDevice):
         self._attr_name = name
         self._attr_unit_of_measurement = unit_of_measurement
         super().__init__(
-            protocol, device_id=device_id, initial_event=initial_event, **kwargs
+            protocol, device_id=device_id, initial_event=initial_event, name=name
         )
 
     async def async_added_to_hass(self):
@@ -93,9 +93,10 @@ class RfplayerSensor(RfplayerDevice):
         # Register id and aliases
         await super().async_added_to_hass()
 
-        self.hass.data[DOMAIN][DATA_ENTITY_LOOKUP][EVENT_KEY_SENSOR][
-            self._initial_event[EVENT_KEY_ID]
-        ] = self.entity_id
+        if self._initial_event:
+            self.hass.data[DOMAIN][DATA_ENTITY_LOOKUP][EVENT_KEY_SENSOR][
+                self._initial_event[EVENT_KEY_ID]
+            ] = self.entity_id
 
     def _handle_event(self, event):
         """Domain specific event handler."""
