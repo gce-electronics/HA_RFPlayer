@@ -46,7 +46,7 @@ UNITS = {
     "sta": None,
     "tmp": "°C",
     "temperature": "°C",
-#####
+
 }
 
 DTC_STATUS_LOOKUP = {
@@ -56,12 +56,6 @@ DTC_STATUS_LOOKUP = {
     "16": "assoc",
     "18": "test",
 
-#    Pour intégration future EDISIO
-    # "9": "open",
-    # "96": "off",
-    # "97": "hors_gel",
-    # "98": "eco",
-    # "99": "confort",
 }
 
 VALUE_TRANSLATION = cast(
@@ -121,9 +115,6 @@ def decode_packet(packet: str) -> list:
         data["state"] = message["infos"]["subTypeMeaning"]
         packets_found.append(data)
 
-#    """Decode packet X2D ajout @jaroslawp."""
-#   Voir https://github.com/gce-electronics/HA_RFPlayer/pull/12
-
     elif data["protocol"] in ["X2D"]:
         data["id"] = message["infos"]["id"]
         if message["infos"]["subTypeMeaning"] == 'Detector/Sensor':
@@ -133,8 +124,7 @@ def decode_packet(packet: str) -> list:
         else:
           data["command"] = message["infos"]["subTypeMeaning"]
           data["state"] = message["infos"]["qualifier"]
-        packets_found.append(data)
-#        
+        packets_found.append(data)        
 
     elif data["protocol"] in ["OREGON", "OWL"]:
         data["id"] = message["infos"]["adr_channel"]
@@ -181,6 +171,8 @@ def decode_packet(packet: str) -> list:
             data["command"] = "Assoc"
         elif data["command"] == ['Tamper','Alarm','LowBatt']:
             data["command"] = "Tamper, Alarm, LowBatt"
+        elif data["command"] == ['Tamper', 'LowBatt', 'Supervisor/Alive']:
+            data["command"] = "Tamper, LowBatt, Supervisor/Alive"
         elif data["command"] == ['Tamper','Alarm','LowBatt','Supervisor/Alive']:
             data["command"] = "Tamper, Alarm, LowBatt, Supervisor/Alive"
         elif data["command"] == ['LowBatt','Supervisor/Alive']:
@@ -195,7 +187,6 @@ def decode_packet(packet: str) -> list:
         packets_found.append(data)
 
     return packets_found
-
 
 def encode_packet(packet: PacketType) -> str:
     """Construct packet string from packet dictionary."""
