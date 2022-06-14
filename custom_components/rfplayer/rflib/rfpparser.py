@@ -30,6 +30,7 @@ DTC_STATUS_LOOKUP = {
     "2": "open",
     "8": "alive",
     "16": "assoc",
+    "18": "test",
 }
 
 VALUE_TRANSLATION = cast(
@@ -87,6 +88,16 @@ def decode_packet(packet: str) -> list:
         data["command"] = message["infos"]["subType"]
         data["state"] = message["infos"]["subTypeMeaning"]
         packets_found.append(data)
+    elif data["protocol"] in ["X2D"]:
+        data["id"] = message["infos"]["id"]
+        if message["infos"]["subTypeMeaning"] == 'Detector/Sensor':
+          value = VALUE_TRANSLATION['detector'](message["infos"]["qualifier"]) 
+          data["command"] = value
+          data["state"] = value
+        else:
+          data["command"] = message["infos"]["subTypeMeaning"]
+          data["state"] = message["infos"]["qualifier"]
+        packets_found.append(data)           
     elif data["protocol"] in ["OREGON"]:
         data["id"] = message["infos"]["id_PHY"]
         data["hardware"] = message["infos"]["id_PHYMeaning"]
