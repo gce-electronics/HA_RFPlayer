@@ -158,9 +158,14 @@ class PacketHandling(ProtocolBase):
     ) -> None:
         """Send device command to rfplayer gateway."""
         if device_id is not None:
-            self.send_raw_packet(f"ZIA++{command} {protocol} ID {device_id}")
+            if protocol == "EDISIOFRAME" :
+                self.send_raw_packet(f"ZIA++{protocol} {device_id}")
+            else :
+                self.send_raw_packet(f"ZIA++{command} {protocol} ID {device_id}")
         elif device_address is not None:
             self.send_raw_packet(f"ZIA++{command} {protocol} {device_address}")
+        elif protocol == "EDISIOFRAME":
+            self.send_raw_packet(f"ZIA++{command}")
         else:
             self.send_raw_packet(f"ZIA++{protocol} {command}")
 
