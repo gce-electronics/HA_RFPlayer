@@ -96,14 +96,15 @@ def decode_packet(packet: str) -> list:
     """Decode packet."""
     packets_found = []
     data = cast(PacketType, {"node": PacketHeader.gateway.name})
-    data["protocol"] = message["header"]["protocolMeaning"]
-    
+
+    # Welcome messages directly send
     if packet.startswith("ZIA--"):
         data["message"] = packet.replace("ZIA--", "")
         return [data]
 
-    if packet.startswith("ZIA33"):
-        message = json.loads(packet.replace("ZIA33", ""))["frame"]
+    # Protocols
+    message = json.loads(packet.replace("ZIA33", ""))["frame"]
+    data["protocol"] = message["header"]["protocolMeaning"]
 
     if data["protocol"] in ["BLYSS", "CHACON", "JAMMING"]:
         data["id"] = message["infos"]["id"]
