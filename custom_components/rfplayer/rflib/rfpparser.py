@@ -188,6 +188,7 @@ def decode_packet(packet: str) -> list:
 
     return packets_found
 
+
 def encode_packet(packet: PacketType) -> str:
     """Construct packet string from packet dictionary."""
     command = str(packet["command"]).upper()
