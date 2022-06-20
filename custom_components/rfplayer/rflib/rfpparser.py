@@ -311,34 +311,3 @@ def deserialize_packet_id(packet_id: str) -> Dict[str, str]:
         packet["switch"] = packet_id_splited[2]
 
     return packet
-
-
-def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
-    """Handle packet events."""
-    field_abbrev = {
-        v: k
-        for k, v in sorted(
-            PACKET_FIELDS.items(), key=lambda x: (x[1], x[0]), reverse=True
-        )
-    }
-
-    packet_id = serialize_packet_id(packet)
-    events = {f: v for f, v in packet.items() if f in field_abbrev}
-    for f, v in packet.items():
-        log.debug("f:%s,v:%s", f, v)
-    for s, v in events.items():
-        log.debug("event: %s -> %s", s, v)
-
-    # try:
-    #   packet["message"]
-    #   yield { "id": packet_id, "message": packet["message"] }
-    # except KeyError:
-    for sensor, value in events.items():
-        log.debug("packet_events, sensor:%s,value:%s", sensor, value)
-        unit = packet.get(sensor + "_unit", None)
-        yield {
-            "id": packet_id + PACKET_ID_SEP + field_abbrev[sensor],
-            "sensor": sensor,
-            "value": value,
-            "unit": unit,
-        }
