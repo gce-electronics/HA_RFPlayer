@@ -311,3 +311,4 @@ def deserialize_packet_id(packet_id: str) -> Dict[str, str]:
         packet["switch"] = packet_id_splited[2]
 
     return packet
+
