@@ -277,34 +277,3 @@ def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
             "value": value,
             "unit": unit,
         }
-
-def deserialize_packet_id(packet_id: str) -> Dict[str, str]:
-    """Deserialize packet id."""
-    if packet_id == "rfplayer":
-        return {"protocol": "unknown"}
-
-    if packet_id == "ZIA":
-        return {"protocol": "ZIA++"}
-
-    if packet_id.lower().startswith("chacon"):
-        return {
-            "protocol": "chacon",
-            "address": packet_id.split(PACKET_ID_SEP)[1],
-        }
-
-    if packet_id.startswith("dooya_v4"):
-        return {
-            "protocol": "dooya_v4",
-            "id": packet_id.replace("dooya_v4_", "").split(PACKET_ID_SEP)[0],
-            "switch": packet_id.replace("dooya_v4_", "").split(PACKET_ID_SEP)[0],
-        }
-
-    packet_id_splited = packet_id.split(PACKET_ID_SEP)
-    packet = {
-        "protocol": packet_id_splited[0],
-        "id": packet_id_splited[1],
-    }
-    if len(packet_id_splited) > 2:
-        packet["switch"] = packet_id_splited[2]
-
-    return packet
