@@ -46,7 +46,6 @@ UNITS = {
     "sta": None,
     "tmp": "°C",
     "temperature": "°C",
-
 }
 
 DTC_STATUS_LOOKUP = {
@@ -55,7 +54,6 @@ DTC_STATUS_LOOKUP = {
     "8": "alive",
     "16": "assoc",
     "18": "test",
-
 }
 
 VALUE_TRANSLATION = cast(
@@ -98,16 +96,14 @@ def decode_packet(packet: str) -> list:
     """Decode packet."""
     packets_found = []
     data = cast(PacketType, {"node": PacketHeader.gateway.name})
-
-    # Welcome messages directly send
+    data["protocol"] = message["header"]["protocolMeaning"]
+    
     if packet.startswith("ZIA--"):
         data["message"] = packet.replace("ZIA--", "")
         return [data]
 
- 
     if packet.startswith("ZIA33"):
         message = json.loads(packet.replace("ZIA33", ""))["frame"]
-    data["protocol"] = message["header"]["protocolMeaning"]
 
     if data["protocol"] in ["BLYSS", "CHACON", "JAMMING"]:
         data["id"] = message["infos"]["id"]
@@ -160,7 +156,7 @@ def decode_packet(packet: str) -> list:
         data["id"] = message["infos"]["id"]
         data["state"] = message["infos"]["subTypeMeaning"]
         data["command"] = message["infos"]["qualifierMeaning"]["flags"]
-#    """Modification retour, voir pour supprimer [] ou se servir du qualifier et de translation 'detector'."""  
+        # Modification retour, voir pour supprimer [] ou se servir du qualifier et de translation 'detector'.
         if data["command"] == ['Down/Off']:
             data["command"] = "Down/Off"
         elif data["command"] == ['My']:
@@ -263,12 +259,12 @@ def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
     events = {f: v for f, v in packet.items() if f in field_abbrev}
     for f, v in packet.items():
         log.debug("f:%s,v:%s", f, v)
-#   Voir pour récup unité et type
+        # Voir pour récup unité et type
         if f == "unit":
             unit = v
         if f == "type":
             type = v
-###
+
     for s, v in events.items():
         log.debug("event: %s -> %s", s, v)
 
@@ -312,4 +308,3 @@ def deserialize_packet_id(packet_id: str) -> Dict[str, str]:
         packet["switch"] = packet_id_splited[2]
 
     return packet
-
