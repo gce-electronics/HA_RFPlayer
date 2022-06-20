@@ -169,7 +169,6 @@ class PacketHandling(ProtocolBase):
         else:
             self.send_raw_packet(f"ZIA++{protocol} {command}")
 
-
 class CommandSerialization(PacketHandling):
     """Logic for ensuring asynchronous commands are sent in order."""
 
