@@ -166,16 +166,6 @@ def decode_packet(packet: str) -> list:
             data["command"] = "Up/On"
         elif data["command"] == ['Assoc']:
             data["command"] = "Assoc"
-        elif data["command"] == ['Tamper','Alarm','LowBatt']:
-            data["command"] = "Tamper, Alarm, LowBatt"
-        elif data["command"] == ['Tamper', 'LowBatt', 'Supervisor/Alive']:
-            data["command"] = "Tamper, LowBatt, Supervisor/Alive"
-        elif data["command"] == ['Tamper','Alarm','LowBatt','Supervisor/Alive']:
-            data["command"] = "Tamper, Alarm, LowBatt, Supervisor/Alive"
-        elif data["command"] == ['LowBatt','Supervisor/Alive']:
-            data["command"] = "LowBatt, Supervisor/Alive"
-        elif data["command"] == ['button/command']:
-            data["command"] = "button/command"
         packets_found.append(data)
 
     else:
