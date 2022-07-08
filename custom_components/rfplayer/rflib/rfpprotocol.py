@@ -183,8 +183,8 @@ class CommandSerialization(PacketHandling):
         super().__init__(*args, **kwargs)
         if packet_callback:
             self.packet_callback = packet_callback
-        self._event = asyncio.Event(loop=self.loop)
-        self._lock = asyncio.Lock(loop=self.loop)
+        self._event = asyncio.Event()
+        self._lock = asyncio.Lock()
 
     def handle_response_packet(self, packet: PacketType) -> None:
         """Handle response packet."""
