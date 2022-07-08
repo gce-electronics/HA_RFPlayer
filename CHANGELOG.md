@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.4.0
+
+- Fix 2022.07 error
+
 ## 0.3.0
 
 - Handle Oregon and Edisio protocols
