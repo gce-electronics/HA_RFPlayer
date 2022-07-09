@@ -16,13 +16,36 @@ PACKET_FIELDS = {
     "dtc": "detector",
     "sta": "status",
     "sen": "sensor",
+    "tmp": "temperature",
+    "temp": "SET_TEMPERATURE",
+    "hyg": "hygrometry",
+    "nrj": "energy",
+    "pow": "power",
+    "pw1": "P1",
+    "pw2": "P2",
+    "pw3": "P3",
 }
 
 UNITS = {
     "bat": None,
     "cmd": None,
-    "detector": None,
+    "dtc": None,
+    "hyg": "%",
+    "hygrometry": "%",
+    "nrj": "Wh",
+    "energy": "Wh",
+    "pow": "W",
+    "power": "W",
+    "pw1": "W",
+    "p1": "W",
+    "pw2": "W",
+    "p2": "W",
+    "pw3": "W",    
+    "p3": "W", 
+    "sen": None,
     "sta": None,
+    "tmp": "°C",
+    "temperature": "°C",
 }
 
 DTC_STATUS_LOOKUP = {
@@ -88,6 +111,7 @@ def decode_packet(packet: str) -> list:
         data["command"] = message["infos"]["subType"]
         data["state"] = message["infos"]["subTypeMeaning"]
         packets_found.append(data)
+
     elif data["protocol"] in ["X2D"]:
         data["id"] = message["infos"]["id"]
         if message["infos"]["subTypeMeaning"] == 'Detector/Sensor':
@@ -97,9 +121,10 @@ def decode_packet(packet: str) -> list:
         else:
           data["command"] = message["infos"]["subTypeMeaning"]
           data["state"] = message["infos"]["qualifier"]
-        packets_found.append(data)           
-    elif data["protocol"] in ["OREGON"]:
-        data["id"] = message["infos"]["id_PHY"]
+        packets_found.append(data)        
+
+    elif data["protocol"] in ["OREGON", "OWL"]:
+        data["id"] = message["infos"]["adr_channel"]
         data["hardware"] = message["infos"]["id_PHYMeaning"]
         for measure in message["infos"]["measures"]:
             measure_data = data.copy()
@@ -107,12 +132,42 @@ def decode_packet(packet: str) -> list:
             measure_data["state"] = measure["value"]
             measure_data["unit"] = measure["unit"]
             measure_data["type"] = measure["type"]
+            measure_data["id"]  = message["infos"]["adr_channel"]
+            measure_data["id"] += measure_data["type"]
             packets_found.append(measure_data)
+
     elif data["protocol"] in ["EDISIO"]:
         data["id"] = message["infos"]["id"]
         data["hardware"] = message["infos"]["infoMeaning"]
-        data["command"] = message["infos"]["subType"]
-        data["state"] = message["infos"]["subType"]
+        data["state"] = message["infos"]["subTypeMeaning"]
+        data["type"] = message["infos"]["subTypeMeaning"]
+        if data["state"] in ["SET_TEMPERATURE"]:
+            data["command"] = message["infos"]["add0"]
+            data["unit"] = "°C"
+        elif data["state"] in ["TOGGLE"]:
+            data["command"] = message["infos"]["qualifier"]
+        elif data["state"] in ["DIM-A"]:
+            data["command"] = message["infos"]["qualifier"]
+        else:
+            data["command"] = message["infos"]["subType"]
+            data["state"] = True #ajout pour state vide
+        packets_found.append(data)
+
+    elif data["protocol"] in ["RTS", "VISONIC"]:
+        data["id"] = message["infos"]["id"]
+        data["state"] = message["infos"]["subTypeMeaning"]
+        data["command"] = message["infos"]["qualifierMeaning"]["flags"]
+        # Modification retour, voir pour supprimer [] ou se servir du qualifier et de translation 'detector'.
+        if data["command"] == ['Down/Off']:
+            data["command"] = "Down/Off"
+        elif data["command"] == ['My']:
+            data["command"] = "MY"
+        elif data["command"] == ['Up/On']:
+            data["command"] = "Up/On"
+        elif data["command"] == ['Assoc']:
+            data["command"] = "Assoc"
+        packets_found.append(data)
+
     else:
         data["id"] = message["infos"].get("id")
         data["command"] = message["infos"].get("subType")
@@ -129,6 +184,8 @@ def encode_packet(packet: PacketType) -> str:
         return f"ZIA++{command} {protocol} ID {packet['id']}"
     if "address" in packet:
         return f"ZIA++{command} {protocol} {packet['address']}"
+    else:
+        return f"ZIA++{command} {protocol}"
     raise Exception("No ID or Address found")
 
 
@@ -188,19 +245,23 @@ def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
     }
 
     packet_id = serialize_packet_id(packet)
+    # pour récup unit remise à none
+    unit = None
     events = {f: v for f, v in packet.items() if f in field_abbrev}
     for f, v in packet.items():
         log.debug("f:%s,v:%s", f, v)
+        # Voir pour récup unité et type
+        if f == "unit":
+            unit = v
+        if f == "type":
+            type = v
+
     for s, v in events.items():
         log.debug("event: %s -> %s", s, v)
 
-    # try:
-    #   packet["message"]
-    #   yield { "id": packet_id, "message": packet["message"] }
-    # except KeyError:
     for sensor, value in events.items():
         log.debug("packet_events, sensor:%s,value:%s", sensor, value)
-        unit = packet.get(sensor + "_unit", None)
+    
         yield {
             "id": packet_id + PACKET_ID_SEP + field_abbrev[sensor],
             "sensor": sensor,
