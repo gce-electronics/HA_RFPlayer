@@ -22,10 +22,10 @@ class RfplayerJammingNumber(RfplayerDevice, NumberEntity):
 
     def __init__(self):
         """Init the number rfplayer entity."""
-        self._attr_min_value = 0
-        self._attr_max_value = 10
-        self._attr_mode = "slider"
-        self._attr_entity_category = EntityCategory.CONFIG
+        self._attr_native_min_value = 0
+        self._attr_native_max_value = 10
+        self._attr_native_mode = "slider"
+        self._attr_native_entity_category = EntityCategory.CONFIG
         super().__init__("JAMMING", device_id=0, name="Jamming detection level")
 
     async def async_added_to_hass(self):
@@ -41,11 +41,11 @@ class RfplayerJammingNumber(RfplayerDevice, NumberEntity):
         self._state = int(event["value"])
 
     @property
-    def value(self):
+    def native_value(self):
         """Return the current setting."""
         return self._state
 
-    async def async_set_value(self, value) -> None:
+    async def async_set_native_value(self, value) -> None:
         """Update the current value."""
         rfplayer = self.hass.data[DOMAIN][RFPLAYER_PROTOCOL]
         await rfplayer.send_command_ack(command=int(value), protocol=self._protocol)
