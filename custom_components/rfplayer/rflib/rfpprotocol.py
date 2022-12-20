@@ -163,7 +163,10 @@ class PacketHandling(ProtocolBase):
             else :
                 self.send_raw_packet(f"ZIA++{command} {protocol} ID {device_id}")
         elif device_address is not None:
-            self.send_raw_packet(f"ZIA++{command} {protocol} {device_address}")
+            DIM_ADDON=""
+            if command == "DIM" :
+                DIM_ADDON="%50"
+            self.send_raw_packet(f"ZIA++{command} {protocol} {device_address} {DIM_ADDON}")
         elif protocol == "EDISIOFRAME":
             self.send_raw_packet(f"ZIA++{command}")
         else:

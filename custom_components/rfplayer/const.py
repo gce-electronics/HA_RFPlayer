@@ -8,7 +8,7 @@ CONF_RECONNECT_INTERVAL = "reconnect_interval"
 DEFAULT_RECONNECT_INTERVAL = 10
 DEFAULT_SIGNAL_REPETITIONS = 1
 
-PLATFORMS = ["sensor", "switch", "number"]
+PLATFORMS = ["sensor", "switch", "number","cover"]
 
 ATTR_EVENT = "event"
 
@@ -18,6 +18,8 @@ CONF_DEVICE_ADDRESS = "device_address"
 CONF_FIRE_EVENT = "fire_event"
 CONF_IGNORE_DEVICES = "ignore_devices"
 CONF_SIGNAL_REPETITIONS = "signal_repetitions"
+CONF_ENTITY_TYPE = "entity_type"
+CONF_ID = "id"
 
 DATA_DEVICE_REGISTER = "device_register"
 DATA_ENTITY_LOOKUP = "entity_lookup"
@@ -33,6 +35,7 @@ EVENT_KEY_UNIT = "unit"
 RFPLAYER_GROUP_COMMANDS = ["allon", "alloff"]
 
 SERVICE_SEND_COMMAND = "send_command"
+SERVICE_DELETE = "delete"
 
 SIGNAL_AVAILABILITY = "rfplayer_device_available"
 SIGNAL_HANDLE_EVENT = "rfplayer_handle_event_{}"
@@ -40,3 +43,4 @@ SIGNAL_EVENT = "rfplayer_event"
 
 COMMAND_ON = "ON"
 COMMAND_OFF = "OFF"
+COMMAND_DIM = "DIM"

@@ -36,3 +36,10 @@ send_command:
       default: false
       selector:
         boolean:
+    entity_type:
+      name: Entity type
+      description: Type of entity created
+      required: false
+      default: switch
+      selector:
+        text:

@@ -33,6 +33,8 @@ from .const import (
     CONF_AUTOMATIC_ADD,
     CONF_DEVICE_ADDRESS,
     CONF_RECONNECT_INTERVAL,
+    CONF_ENTITY_TYPE,
+    CONF_ID,
     CONNECTION_TIMEOUT,
     DATA_DEVICE_REGISTER,
     DATA_ENTITY_LOOKUP,
@@ -44,6 +46,7 @@ from .const import (
     PLATFORMS,
     RFPLAYER_PROTOCOL,
     SERVICE_SEND_COMMAND,
+    SERVICE_DELETE,
     SIGNAL_AVAILABILITY,
     SIGNAL_EVENT,
     SIGNAL_HANDLE_EVENT,
@@ -60,6 +63,13 @@ SEND_COMMAND_SCHEMA = vol.Schema(
         vol.Optional(CONF_DEVICE_ADDRESS): cv.string,
         vol.Optional(CONF_DEVICE_ID): cv.string,
         vol.Required(CONF_AUTOMATIC_ADD, default=False): cv.boolean,
+        vol.Optional(CONF_ENTITY_TYPE): cv.string,
+    }
+)
+
+DELETE_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_ID): cv.string,
     }
 )
 
@@ -98,6 +108,7 @@ async def async_setup_entry(hass, entry):
                     call.data[CONF_PROTOCOL],
                     call.data.get(CONF_DEVICE_ID) or call.data.get(
                         CONF_DEVICE_ADDRESS),
+                    call.data[CONF_ENTITY_TYPE],
                 ]
             )
             device = {
