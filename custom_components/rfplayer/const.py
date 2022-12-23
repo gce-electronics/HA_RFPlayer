@@ -44,3 +44,8 @@ SIGNAL_EVENT = "rfplayer_event"
 COMMAND_ON = "ON"
 COMMAND_OFF = "OFF"
 COMMAND_DIM = "DIM"
+
+ENTITY_TYPE_SWITCH = "switch"
+ENTITY_TYPE_COVER = "cover"
+ENTITY_TYPE_SENSOR = "sensor"
+ENTITY_TYPE_NUMBER = "number"

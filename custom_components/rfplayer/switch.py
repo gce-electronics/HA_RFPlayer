@@ -11,9 +11,11 @@ from .const import (
     COMMAND_ON,
     CONF_AUTOMATIC_ADD,
     CONF_DEVICE_ADDRESS,
+    CONF_ENTITY_TYPE,
     DATA_ENTITY_LOOKUP,
     DOMAIN,
     EVENT_KEY_ID,
+    ENTITY_TYPE_SWITCH
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -25,7 +27,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
     options = entry.options
 
     async def add_new_device(device_info):
+        #if device_info.get(CONF_ENTITY_TYPE) == ENTITY_TYPE_SWITCH or device_info.get(CONF_ENTITY_TYPE) == "":
         """Check if device is known, otherwise create device entity."""
+        _LOGGER.debug("Add switch entity %s", device_info)
         # create entity
         device = RfplayerSwitch(
             protocol=device_info[CONF_PROTOCOL],
@@ -33,7 +37,6 @@ async def async_setup_entry(hass, entry, async_add_entities):
             device_id=device_info.get(CONF_DEVICE_ID),
             initial_event=device_info,
         )
-        _LOGGER.debug("Add switch entity %s", device_info)
         async_add_entities([device])
 
     if CONF_DEVICES in config:

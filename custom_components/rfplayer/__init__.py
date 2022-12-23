@@ -76,9 +76,10 @@ DELETE_SCHEMA = vol.Schema(
 
 def identify_event_type(event):
     """Look at event to determine type of device.
-
+    
     Async friendly.
     """
+    _LOGGER.debug("Event fired %s", str(event))
     if EVENT_KEY_COMMAND in event:
         return EVENT_KEY_COMMAND
     if EVENT_KEY_SENSOR in event:
@@ -115,6 +116,7 @@ async def async_setup_entry(hass, entry):
                 CONF_PROTOCOL: call.data[CONF_PROTOCOL],
                 CONF_DEVICE_ADDRESS: call.data.get(CONF_DEVICE_ADDRESS),
                 CONF_DEVICE_ID: call.data.get(CONF_DEVICE_ID),
+                CONF_ENTITY_TYPE: call.data.get(CONF_ENTITY_TYPE),
                 EVENT_KEY_COMMAND: True,
                 EVENT_KEY_ID: event_id,
             }

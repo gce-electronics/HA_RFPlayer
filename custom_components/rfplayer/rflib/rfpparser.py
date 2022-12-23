@@ -16,6 +16,7 @@ PACKET_FIELDS = {
     "dtc": "detector",
     "sta": "status",
     "sen": "sensor",
+    "shu": "shutter"
 }
 
 UNITS = {
@@ -113,6 +114,13 @@ def decode_packet(packet: str) -> list:
         data["hardware"] = message["infos"]["infoMeaning"]
         data["command"] = message["infos"]["subType"]
         data["state"] = message["infos"]["subType"]
+        packets_found.append(data)
+    elif data["protocol"] in ["RTS"]:
+        data["id"] = message["infos"]["id"]
+        data["hardware"] = message["infos"]["subType"]
+        data["command"] = message["infos"]["subTypeMeaning"]
+        data["state"] = message["infos"]["qualifierMeaning"]["flags"]
+        packets_found.append(data)
     else:
         data["id"] = message["infos"].get("id")
         data["command"] = message["infos"].get("subType")
@@ -179,6 +187,7 @@ def deserialize_packet_id(packet_id: str) -> Dict[str, str]:
 
 
 def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
+    log.debug("packet:%s", str(packet))
     """Handle packet events."""
     field_abbrev = {
         v: k

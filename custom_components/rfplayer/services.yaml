@@ -42,4 +42,10 @@ send_command:
       required: false
       default: switch
       selector:
-        text:
+        select:
+          options:
+              - "cover"
+              - "number"
+              - "sensor"
+              - "switch"
+          mode: dropdown
