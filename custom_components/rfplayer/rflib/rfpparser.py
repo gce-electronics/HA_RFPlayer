@@ -16,7 +16,12 @@ PACKET_FIELDS = {
     "dtc": "detector",
     "sta": "status",
     "sen": "sensor",
-    "shu": "shutter"
+    "cov": "cover",
+}
+
+RTS_ELEM = {
+    "0": "shu",
+    "1": "por",
 }
 
 UNITS = {
@@ -34,10 +39,22 @@ DTC_STATUS_LOOKUP = {
     "18": "test",
 }
 
+RTS_STATUS_LOOKUP = {
+    "1" : "DOWN", #Down /OFF
+    "4" : "MY", #My
+    "7" : "UP", #Up /ON
+    "13" : "ASSOC",
+    
+    "5" : "LEFT", #Left button
+    "6" : "RIGHT", #Right button
+}
+
 VALUE_TRANSLATION = cast(
     Dict[str, Callable[[str], str]],
     {
         "detector": lambda x: DTC_STATUS_LOOKUP.get(x, "unknown"),
+        "rts_status": lambda x: RTS_STATUS_LOOKUP.get(x, "unknown"),
+        "rts_elem": lambda x: RTS_ELEM.get(x, "unknown"),
     },
 )
 
@@ -117,9 +134,9 @@ def decode_packet(packet: str) -> list:
         packets_found.append(data)
     elif data["protocol"] in ["RTS"]:
         data["id"] = message["infos"]["id"]
-        data["hardware"] = message["infos"]["subType"]
-        data["command"] = message["infos"]["subTypeMeaning"]
-        data["state"] = message["infos"]["qualifierMeaning"]["flags"]
+        #data["hardware"] = message["infos"]["subTypeMeaning"]
+        value = VALUE_TRANSLATION['rts_status'](message["infos"]["qualifier"]) 
+        data["cover"] = value
         packets_found.append(data)
     else:
         data["id"] = message["infos"].get("id")
@@ -212,7 +229,7 @@ def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
         unit = packet.get(sensor + "_unit", None)
         yield {
             "id": packet_id + PACKET_ID_SEP + field_abbrev[sensor],
-            "sensor": sensor,
+            sensor: sensor,
             "value": value,
             "unit": unit,
         }

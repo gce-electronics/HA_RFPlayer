@@ -29,6 +29,9 @@ from .const import (
     COMMAND_OFF,
     COMMAND_ON,
     COMMAND_DIM,
+    COMMAND_UP,
+    COMMAND_MY,
+    COMMAND_DOWN,
     CONF_AUTOMATIC_ADD,
     CONF_DEVICE_ADDRESS,
     CONF_ENTITY_TYPE,
@@ -54,13 +57,16 @@ async def async_setup_entry(hass, entry, async_add_entities):
         _LOGGER.debug("Add cover entity %s", str(device_info))
         """Check if device is known, otherwise create device entity."""
         # create entity
-        device = RfplayerCover(
-            protocol=device_info[CONF_PROTOCOL],
-            device_address=device_info.get(CONF_DEVICE_ADDRESS),
-            device_id=device_info.get(CONF_DEVICE_ID),
-            initial_event=device_info,
-        )
-        async_add_entities([device])
+        try:
+            device = RfplayerCover(
+                protocol=device_info[CONF_PROTOCOL],
+                device_address=device_info.get(CONF_DEVICE_ADDRESS),
+                device_id=device_info.get(CONF_DEVICE_ID),
+                initial_event=device_info,
+            )
+            async_add_entities([device])
+        except :
+            _LOGGER.error("Cover %s creation error",device_info.get(CONF_DEVICE_ID))
 
     if CONF_DEVICES in config:
         for device_id, device_info in config[CONF_DEVICES].items():
@@ -90,11 +96,11 @@ class RfplayerCover(RfplayerDevice, CoverEntity):
     @callback
     def _handle_event(self, event):
         command = event["command"]
-        if command in [COMMAND_ON, "ALLON"]:
+        if command in [COMMAND_ON, COMMAND_UP, "ALLON"]:
             self._state = STATE_OPEN
-        elif command in [COMMAND_OFF, "ALLOFF"]:
+        elif command in [COMMAND_OFF, COMMAND_DOWN, "ALLOFF"]:
             self._state = STATE_CLOSED
-        elif command in [COMMAND_DIM, "ALLDIM"]:
+        elif command in [COMMAND_DIM, COMMAND_MY, "ALLDIM"]:
             self._state = STATE_CLOSED
 
     @property

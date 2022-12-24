@@ -30,6 +30,7 @@ EVENT_BUTTON_PRESSED = "button_pressed"
 EVENT_KEY_COMMAND = "command"
 EVENT_KEY_ID = "id"
 EVENT_KEY_SENSOR = "sensor"
+EVENT_KEY_COVER = "cover"
 EVENT_KEY_UNIT = "unit"
 
 RFPLAYER_GROUP_COMMANDS = ["allon", "alloff"]
@@ -44,6 +45,9 @@ SIGNAL_EVENT = "rfplayer_event"
 COMMAND_ON = "ON"
 COMMAND_OFF = "OFF"
 COMMAND_DIM = "DIM"
+COMMAND_DOWN = "DOWN"
+COMMAND_UP = "UP"
+COMMAND_MY = "MY"
 
 ENTITY_TYPE_SWITCH = "switch"
 ENTITY_TYPE_COVER = "cover"

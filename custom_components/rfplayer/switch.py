@@ -31,13 +31,16 @@ async def async_setup_entry(hass, entry, async_add_entities):
         """Check if device is known, otherwise create device entity."""
         _LOGGER.debug("Add switch entity %s", device_info)
         # create entity
-        device = RfplayerSwitch(
-            protocol=device_info[CONF_PROTOCOL],
-            device_address=device_info.get(CONF_DEVICE_ADDRESS),
-            device_id=device_info.get(CONF_DEVICE_ID),
-            initial_event=device_info,
-        )
-        async_add_entities([device])
+        try:
+            device = RfplayerSwitch(
+                protocol=device_info[CONF_PROTOCOL],
+                device_address=device_info.get(CONF_DEVICE_ADDRESS),
+                device_id=device_info.get(CONF_DEVICE_ID),
+                initial_event=device_info,
+            )
+            async_add_entities([device])
+        except :
+            _LOGGER.error("Switch %s creation error",device_info.get(CONF_DEVICE_ID))
 
     if CONF_DEVICES in config:
         for device_id, device_info in config[CONF_DEVICES].items():

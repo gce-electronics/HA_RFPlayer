@@ -260,6 +260,8 @@ class EventHandling(PacketHandling):
         string = "{id:<32} "
         if "command" in event:
             string += "{command}"
+        if "cover" in event:
+            string += "{cover}"
         elif "version" in event:
             if "hardware" in event:
                 string += "{hardware} {firmware} "

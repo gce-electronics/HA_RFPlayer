@@ -43,6 +43,7 @@ from .const import (
     EVENT_KEY_COMMAND,
     EVENT_KEY_ID,
     EVENT_KEY_SENSOR,
+    EVENT_KEY_COVER,
     PLATFORMS,
     RFPLAYER_PROTOCOL,
     SERVICE_SEND_COMMAND,
@@ -84,6 +85,8 @@ def identify_event_type(event):
         return EVENT_KEY_COMMAND
     if EVENT_KEY_SENSOR in event:
         return EVENT_KEY_SENSOR
+    if EVENT_KEY_COVER in event:
+        return EVENT_KEY_COVER
     return "unknown"
 
 
@@ -225,12 +228,13 @@ async def async_setup_entry(hass, entry):
             DATA_ENTITY_LOOKUP: {
                 EVENT_KEY_COMMAND: defaultdict(list),
                 EVENT_KEY_SENSOR: defaultdict(list),
+                EVENT_KEY_COVER: defaultdict(list),
             },
             DATA_DEVICE_REGISTER: {},
         }
 
         if options.get(CONF_AUTOMATIC_ADD, config[CONF_AUTOMATIC_ADD]) is True:
-            for device_type in "sensor", "command":
+            for device_type in "sensor", "command", "cover":
                 hass.data[DOMAIN][DATA_DEVICE_REGISTER][device_type] = {}
 
         # handle shutdown of Rfplayer asyncio transport
