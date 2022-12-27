@@ -20,6 +20,7 @@ CONF_IGNORE_DEVICES = "ignore_devices"
 CONF_SIGNAL_REPETITIONS = "signal_repetitions"
 CONF_ENTITY_TYPE = "entity_type"
 CONF_ID = "id"
+CONF_PLATFORM = "platform"
 
 DATA_DEVICE_REGISTER = "device_register"
 DATA_ENTITY_LOOKUP = "entity_lookup"

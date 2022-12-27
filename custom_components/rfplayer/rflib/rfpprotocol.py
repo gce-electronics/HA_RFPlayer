@@ -262,6 +262,8 @@ class EventHandling(PacketHandling):
             string += "{command}"
         if "cover" in event:
             string += "{cover}"
+        if "platform" in event:
+            string += "{platform}"
         elif "version" in event:
             if "hardware" in event:
                 string += "{hardware} {firmware} "

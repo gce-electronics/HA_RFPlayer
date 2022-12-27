@@ -35,6 +35,7 @@ from .const import (
     CONF_RECONNECT_INTERVAL,
     CONF_ENTITY_TYPE,
     CONF_ID,
+    CONF_PLATFORM,
     CONNECTION_TIMEOUT,
     DATA_DEVICE_REGISTER,
     DATA_ENTITY_LOOKUP,
@@ -73,6 +74,8 @@ DELETE_SCHEMA = vol.Schema(
         vol.Required(CONF_ID): cv.string,
     }
 )
+
+TMP_ENTITY = "tmp.{}"
 
 
 def identify_event_type(event):
@@ -115,15 +118,28 @@ async def async_setup_entry(hass, entry):
                     call.data[CONF_ENTITY_TYPE],
                 ]
             )
-            device = {
-                CONF_PROTOCOL: call.data[CONF_PROTOCOL],
-                CONF_DEVICE_ADDRESS: call.data.get(CONF_DEVICE_ADDRESS),
-                CONF_DEVICE_ID: call.data.get(CONF_DEVICE_ID),
-                CONF_ENTITY_TYPE: call.data.get(CONF_ENTITY_TYPE),
-                EVENT_KEY_COMMAND: True,
-                EVENT_KEY_ID: event_id,
-            }
-            await hass.data[DOMAIN][DATA_DEVICE_REGISTER][EVENT_KEY_COMMAND](device)
+            if call.data.get(CONF_ENTITY_TYPE) == "cover":
+                device = {
+                    CONF_PROTOCOL: call.data[CONF_PROTOCOL],
+                    CONF_DEVICE_ADDRESS: call.data.get(CONF_DEVICE_ADDRESS),
+                    CONF_DEVICE_ID: call.data.get(CONF_DEVICE_ID),
+                    CONF_ENTITY_TYPE: call.data.get(CONF_ENTITY_TYPE),
+                    EVENT_KEY_COVER: "DOWN",
+                    EVENT_KEY_ID: event_id,
+                }
+                await hass.data[DOMAIN][DATA_DEVICE_REGISTER][EVENT_KEY_COVER](device)
+            else:
+                device = {
+                    CONF_PROTOCOL: call.data[CONF_PROTOCOL],
+                    CONF_DEVICE_ADDRESS: call.data.get(CONF_DEVICE_ADDRESS),
+                    CONF_DEVICE_ID: call.data.get(CONF_DEVICE_ID),
+                    CONF_ENTITY_TYPE: call.data.get(CONF_ENTITY_TYPE),
+                    EVENT_KEY_COMMAND: True,
+                    EVENT_KEY_ID: event_id,
+                }
+                await hass.data[DOMAIN][DATA_DEVICE_REGISTER][EVENT_KEY_COMMAND](device)
+            
+            
             _add_device_to_base_config(device, event_id)
 
     hass.services.async_register(
@@ -160,6 +176,12 @@ async def async_setup_entry(hass, entry):
             # If device is not yet known, register with platform (if loaded)
             if event_type in hass.data[DOMAIN][DATA_DEVICE_REGISTER]:
                 _LOGGER.debug("device_id not known, adding new device")
+                _LOGGER.debug("event_type: %s",str(event_type))
+                _LOGGER.debug("event_id: %s",str(event_id))
+                _LOGGER.debug("event: %s",str(event))
+                _LOGGER.debug("device_id not known, adding new device")
+                _LOGGER.debug(str(hass.data[DOMAIN][DATA_DEVICE_REGISTER]))
+                _LOGGER.debug(str(hass.data[DOMAIN][DATA_DEVICE_REGISTER][event_type]))
                 hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type][event_id] = event
                 _add_device_to_base_config(event, event_id)
                 hass.async_create_task(
@@ -356,6 +378,19 @@ class RfplayerDevice(RestoreEntity):
     async def async_added_to_hass(self):
         """Register update callback."""
         await super().async_added_to_hass()
+
+        # Remove temporary bogus entity_id if added
+        """
+        tmp_entity = TMP_ENTITY.format(self._device_id)
+        if (
+            tmp_entity
+            in self.hass.data[DATA_ENTITY_LOOKUP][EVENT_KEY_COMMAND][self._device_id]
+        ):
+            self.hass.data[DATA_ENTITY_LOOKUP][EVENT_KEY_COMMAND][
+                self._device_id
+            ].remove(tmp_entity)
+        """
+        
         self.async_on_remove(
             async_dispatcher_connect(
                 self.hass, SIGNAL_AVAILABILITY, self._availability_callback

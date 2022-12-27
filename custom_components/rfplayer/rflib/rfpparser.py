@@ -16,7 +16,7 @@ PACKET_FIELDS = {
     "dtc": "detector",
     "sta": "status",
     "sen": "sensor",
-    "cov": "cover",
+    "cov": "cover"
 }
 
 RTS_ELEM = {
@@ -134,8 +134,9 @@ def decode_packet(packet: str) -> list:
         packets_found.append(data)
     elif data["protocol"] in ["RTS"]:
         data["id"] = message["infos"]["id"]
-        #data["hardware"] = message["infos"]["subTypeMeaning"]
+        data["platform"] = "cover"
         value = VALUE_TRANSLATION['rts_status'](message["infos"]["qualifier"]) 
+        #data["platform"] = "cover"
         data["cover"] = value
         packets_found.append(data)
     else:
@@ -204,6 +205,7 @@ def deserialize_packet_id(packet_id: str) -> Dict[str, str]:
 
 
 def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
+    platform=None
     log.debug("packet:%s", str(packet))
     """Handle packet events."""
     field_abbrev = {
@@ -217,6 +219,10 @@ def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
     events = {f: v for f, v in packet.items() if f in field_abbrev}
     for f, v in packet.items():
         log.debug("f:%s,v:%s", f, v)
+        if f == "platform":
+            platform=v
+        if f == "protocol":
+            protocol=v
     for s, v in events.items():
         log.debug("event: %s -> %s", s, v)
 
@@ -232,4 +238,6 @@ def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
             sensor: sensor,
             "value": value,
             "unit": unit,
+            "platform": platform,
+            "protocol": protocol
         }
