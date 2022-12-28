@@ -39,8 +39,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 initial_event=device_info,
             )
             async_add_entities([device])
-        except :
-            _LOGGER.error("Switch %s creation error",device_info.get(CONF_DEVICE_ID))
+        except Exception as err:
+            _LOGGER.error("Switch %s creation error: %s",device_info.get(CONF_DEVICE_ID),str(err))
 
     if CONF_DEVICES in config:
         for device_id, device_info in config[CONF_DEVICES].items():

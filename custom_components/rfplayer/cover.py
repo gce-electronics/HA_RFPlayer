@@ -62,18 +62,36 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async def add_new_device(device_info):
         #if device_info.get(CONF_ENTITY_TYPE) == ENTITY_TYPE_COVER or device_info.get(CONF_ENTITY_TYPE) == "":
         _LOGGER.debug("Add cover entity %s", str(device_info))
+        
         """Check if device is known, otherwise create device entity."""
         # create entity
         if not CONF_PROTOCOL in device_info:
             device_info[CONF_PROTOCOL]=None
             _LOGGER.debug("No protocol found")
+        _LOGGER.debug("Add cover entity - protocol %s", str(device_info[CONF_PROTOCOL]))
+        _LOGGER.debug("Add cover entity - device_address %s", str(device_info.get(CONF_DEVICE_ADDRESS)))
+        _LOGGER.debug("Add cover entity - device_id %s", str(device_info.get(CONF_DEVICE_ID)))
+        _LOGGER.debug("Add cover entity - initial_event %s", str(device_info))
+
         try:
-            device = RfplayerCover(
-                protocol=device_info[CONF_PROTOCOL],
-                device_address=device_info.get(CONF_DEVICE_ADDRESS),
-                device_id=device_info.get(CONF_DEVICE_ID),
-                initial_event=device_info,
-            )
+            if (device_info.get(CONF_DEVICE_ADDRESS) != None
+            or device_info.get(CONF_DEVICE_ID) != None) :
+                _LOGGER.debug("Create from service")
+                device = RfplayerCover(
+                    protocol=device_info[CONF_PROTOCOL],
+                    device_address=device_info.get(CONF_DEVICE_ADDRESS),
+                    device_id=device_info.get(CONF_DEVICE_ID),
+                    initial_event=device_info,
+                )
+            else:
+                _LOGGER.debug("Create from event")
+                device_id = device_info[EVENT_KEY_ID]
+                device = RfplayerCover(
+                    protocol=device_id.split("_")[0],
+                    device_address=device_info.get(CONF_DEVICE_ADDRESS),
+                    device_id=device_id.split("_")[1],
+                    initial_event=device_info,
+                )
             async_add_entities([device])
         except :
             _LOGGER.error("Cover creation error : ",str(device_info))
@@ -101,17 +119,22 @@ class RfplayerCover(RfplayerDevice, CoverEntity):
         if self._event is None:
             old_state = await self.async_get_last_state()
             if old_state is not None:
-                self._state = old_state.state == COMMAND_UP
+                self._state = old_state.state
     
     @callback
     def _handle_event(self, event):
-        command = event["cover"]
+        _LOGGER.debug("Event : %s", str(event))
+        if "value" in event:
+            command = event["value"]
+        else:
+            command = event["cover"]
         if command in [COMMAND_UP]:
-            self._state = STATE_OPEN
+            self._attr_state = STATE_OPEN
         elif command in [COMMAND_DOWN]:
-            self._state = STATE_CLOSED
+            self._attr_state = STATE_CLOSED
         elif command in [COMMAND_MY]:
-            self._state = STATE_OPEN
+            self._attr_state = STATE_OPEN
+        self.schedule_update_ha_state()
 
     """@property
     def should_poll(self):

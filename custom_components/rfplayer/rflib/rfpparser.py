@@ -101,51 +101,71 @@ def decode_packet(packet: str) -> list:
     message = json.loads(packet.replace("ZIA33", ""))["frame"]
     data["protocol"] = message["header"]["protocolMeaning"]
 
-    if data["protocol"] in ["BLYSS", "CHACON", "JAMMING"]:
-        data["id"] = message["infos"]["id"]
-        data["command"] = message["infos"]["subType"]
-        data["state"] = message["infos"]["subTypeMeaning"]
-        packets_found.append(data)
-    elif data["protocol"] in ["X2D"]:
-        data["id"] = message["infos"]["id"]
-        if message["infos"]["subTypeMeaning"] == 'Detector/Sensor':
-          value = VALUE_TRANSLATION['detector'](message["infos"]["qualifier"]) 
-          data["command"] = value
-          data["state"] = value
+    NewMotor=False
+
+    try:
+        packets_found.append(globals()["_".join([data["protocol"],"decode"])](data,message))
+        NewMotor=True
+    except:
+        log.debug("Protocol %s not implemented", str(data["protocol"]))
+
+    if not NewMotor:
+        if data["protocol"] in ["BLYSS", "CHACON", "JAMMING"]:
+            data["id"] = message["infos"]["id"]
+            data["command"] = message["infos"]["subType"]
+            data["state"] = message["infos"]["subTypeMeaning"]
+            packets_found.append(data)
+        elif data["protocol"] in ["X2D"]:
+            data["id"] = message["infos"]["id"]
+            if message["infos"]["subTypeMeaning"] == 'Detector/Sensor':
+                value = VALUE_TRANSLATION['detector'](message["infos"]["qualifier"]) 
+                data["command"] = value
+                data["state"] = value
+            else:
+                data["command"] = message["infos"]["subTypeMeaning"]
+                data["state"] = message["infos"]["qualifier"]
+                packets_found.append(data)           
+        elif data["protocol"] in ["OREGON"]:
+            data["id"] = message["infos"]["id_PHY"]
+            data["hardware"] = message["infos"]["id_PHYMeaning"]
+            for measure in message["infos"]["measures"]:
+                measure_data = data.copy()
+                measure_data["command"] = measure["value"]
+                measure_data["state"] = measure["value"]
+                measure_data["unit"] = measure["unit"]
+                measure_data["type"] = measure["type"]
+                packets_found.append(measure_data)
+        elif data["protocol"] in ["EDISIO"]:
+            data["id"] = message["infos"]["id"]
+            data["hardware"] = message["infos"]["infoMeaning"]
+            data["command"] = message["infos"]["subType"]
+            data["state"] = message["infos"]["subType"]
+            packets_found.append(data)
+        elif data["protocol"] in ["RTS"]:
+            data["id"] = message["infos"]["id"]
+            data["platform"] = "cover"
+            value = VALUE_TRANSLATION['rts_status'](message["infos"]["qualifier"]) 
+            #data["platform"] = "cover"
+            data["cover"] = value
+            packets_found.append(data)
         else:
-          data["command"] = message["infos"]["subTypeMeaning"]
-          data["state"] = message["infos"]["qualifier"]
-        packets_found.append(data)           
-    elif data["protocol"] in ["OREGON"]:
-        data["id"] = message["infos"]["id_PHY"]
-        data["hardware"] = message["infos"]["id_PHYMeaning"]
-        for measure in message["infos"]["measures"]:
-            measure_data = data.copy()
-            measure_data["command"] = measure["value"]
-            measure_data["state"] = measure["value"]
-            measure_data["unit"] = measure["unit"]
-            measure_data["type"] = measure["type"]
-            packets_found.append(measure_data)
-    elif data["protocol"] in ["EDISIO"]:
-        data["id"] = message["infos"]["id"]
-        data["hardware"] = message["infos"]["infoMeaning"]
-        data["command"] = message["infos"]["subType"]
-        data["state"] = message["infos"]["subType"]
-        packets_found.append(data)
-    elif data["protocol"] in ["RTS"]:
-        data["id"] = message["infos"]["id"]
-        data["platform"] = "cover"
-        value = VALUE_TRANSLATION['rts_status'](message["infos"]["qualifier"]) 
-        #data["platform"] = "cover"
-        data["cover"] = value
-        packets_found.append(data)
-    else:
-        data["id"] = message["infos"].get("id")
-        data["command"] = message["infos"].get("subType")
-        packets_found.append(data)
+            data["id"] = message["infos"].get("id")
+            data["command"] = message["infos"].get("subType")
+            packets_found.append(data)
 
     return packets_found
 
+def RTS_decode(data:list,message:list) -> list:
+    log.debug("Decode RTS")
+    decoded_items = cast(PacketType, {"node": PacketHeader.gateway.name})
+    #decoded_items = []
+    decoded_items["protocol"]=data["protocol"]
+    decoded_items["id"] = message["infos"]["id"]
+    decoded_items["platform"] = "cover"
+    value = VALUE_TRANSLATION['rts_status'](message["infos"]["qualifier"]) 
+    #data["platform"] = "cover"
+    decoded_items["cover"] = value
+    return decoded_items
 
 def encode_packet(packet: PacketType) -> str:
     """Construct packet string from packet dictionary."""
@@ -231,12 +251,11 @@ def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
     #   yield { "id": packet_id, "message": packet["message"] }
     # except KeyError:
     for sensor, value in events.items():
-        log.debug("packet_events, sensor:%s,value:%s", sensor, value)
+        #log.debug("packet_events, sensor:%s,value:%s", sensor, value)
         unit = packet.get(sensor + "_unit", None)
         yield {
             "id": packet_id + PACKET_ID_SEP + field_abbrev[sensor],
-            sensor: sensor,
-            "value": value,
+            sensor: value,
             "unit": unit,
             "platform": platform,
             "protocol": protocol

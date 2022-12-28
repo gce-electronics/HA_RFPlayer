@@ -83,13 +83,13 @@ def identify_event_type(event):
     
     Async friendly.
     """
-    _LOGGER.debug("Event fired %s", str(event))
+    #_LOGGER.debug("Event fired %s", str(event))
     if EVENT_KEY_COMMAND in event:
-        return EVENT_KEY_COMMAND
+        return EVENT_KEY_COMMAND #switch.py
     if EVENT_KEY_SENSOR in event:
-        return EVENT_KEY_SENSOR
-    if EVENT_KEY_COVER in event:
-        return EVENT_KEY_COVER
+        return EVENT_KEY_SENSOR #sensor.py
+    if EVENT_KEY_COVER in event: 
+        return EVENT_KEY_COVER #cover.py
     return "unknown"
 
 
@@ -155,7 +155,7 @@ async def async_setup_entry(hass, entry):
         accordingly.
         """
         event_type = identify_event_type(event)
-        _LOGGER.debug("event of type %s: %s", event_type, event)
+        #_LOGGER.debug("event of type %s: %s", event_type, event)
 
         # Don't propagate non entity events (eg: version string, ack response)
         if event_type not in hass.data[DOMAIN][DATA_ENTITY_LOOKUP]:
@@ -164,7 +164,7 @@ async def async_setup_entry(hass, entry):
 
         # Lookup entities who registered this device id as device id or alias
         event_id = event.get(EVENT_KEY_ID)
-
+        #_LOGGER.debug("List of entities : %s",str(hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type]))
         entity_id = hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type][event_id]
 
         if entity_id:
@@ -175,6 +175,7 @@ async def async_setup_entry(hass, entry):
         else:
             # If device is not yet known, register with platform (if loaded)
             if event_type in hass.data[DOMAIN][DATA_DEVICE_REGISTER]:
+                """
                 _LOGGER.debug("device_id not known, adding new device")
                 _LOGGER.debug("event_type: %s",str(event_type))
                 _LOGGER.debug("event_id: %s",str(event_id))
@@ -182,6 +183,7 @@ async def async_setup_entry(hass, entry):
                 _LOGGER.debug("device_id not known, adding new device")
                 _LOGGER.debug(str(hass.data[DOMAIN][DATA_DEVICE_REGISTER]))
                 _LOGGER.debug(str(hass.data[DOMAIN][DATA_DEVICE_REGISTER][event_type]))
+                """
                 hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type][event_id] = event
                 _add_device_to_base_config(event, event_id)
                 hass.async_create_task(
@@ -378,18 +380,6 @@ class RfplayerDevice(RestoreEntity):
     async def async_added_to_hass(self):
         """Register update callback."""
         await super().async_added_to_hass()
-
-        # Remove temporary bogus entity_id if added
-        """
-        tmp_entity = TMP_ENTITY.format(self._device_id)
-        if (
-            tmp_entity
-            in self.hass.data[DATA_ENTITY_LOOKUP][EVENT_KEY_COMMAND][self._device_id]
-        ):
-            self.hass.data[DATA_ENTITY_LOOKUP][EVENT_KEY_COMMAND][
-                self._device_id
-            ].remove(tmp_entity)
-        """
         
         self.async_on_remove(
             async_dispatcher_connect(
