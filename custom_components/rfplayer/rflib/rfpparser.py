@@ -49,6 +49,7 @@ RTS_STATUS_LOOKUP = {
     "6" : "RIGHT", #Right button
 }
 
+
 VALUE_TRANSLATION = cast(
     Dict[str, Callable[[str], str]],
     {
@@ -155,18 +156,6 @@ def decode_packet(packet: str) -> list:
 
     return packets_found
 
-def RTS_decode(data:list,message:list) -> list:
-    log.debug("Decode RTS")
-    decoded_items = cast(PacketType, {"node": PacketHeader.gateway.name})
-    #decoded_items = []
-    decoded_items["protocol"]=data["protocol"]
-    decoded_items["id"] = message["infos"]["id"]
-    decoded_items["platform"] = "cover"
-    value = VALUE_TRANSLATION['rts_status'](message["infos"]["qualifier"]) 
-    #data["platform"] = "cover"
-    decoded_items["cover"] = value
-    return decoded_items
-
 def encode_packet(packet: PacketType) -> str:
     """Construct packet string from packet dictionary."""
     command = str(packet["command"]).upper()
@@ -260,3 +249,153 @@ def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
             "platform": platform,
             "protocol": protocol
         }
+
+
+"""
+    New version of Decode - crazymikefra
+"""
+"""
+Level 1 - Protocol decode functions
+"""
+def RTS_decode(data:list,message:list) -> list:
+    log.debug("Decode RTS")
+    decoded_items = cast(PacketType, {"node": PacketHeader.gateway.name})
+    decoded_items["protocol"]=data["protocol"]
+    decoded_items.append(globals()["_".join("infotype",[data["infoType"],"decode"])](message))
+    decoded_items["platform"] = "cover"
+    value = VALUE_TRANSLATION['rts_status'](message["infos"]["qualifier"]) 
+    decoded_items["cover"] = value
+    return decoded_items
+
+"""
+Level 2 - InfoType decode functions
+"""
+def infoType_0_decode(message:list) -> list:
+    log.debug("Decode InfoType 0")
+    fields_found = []
+    match message["subtype"]:
+        case 0 :
+            fields_found["subtype"]="OFF"
+        case 1 :
+            fields_found["subtype"]="ON"
+        case 2 :
+            fields_found["subtype"]="BRIGHT"
+        case 3 :
+            fields_found["subtype"]="DIM"
+        case 4 :
+            fields_found["subtype"]="ALL_OFF"
+        case 5 :
+            fields_found["subtype"]="ALL_ON"
+    fields_found["id"]=message["id"]
+    return fields_found
+
+def infoType_1_decode(message:list) -> list:
+    log.debug("Decode InfoType 1")
+    fields_found = []
+    match message["subtype"]:
+        case 0 :
+            fields_found["subtype"]="OFF"
+        case 1 :
+            fields_found["subtype"]="ON"
+        case 4 :
+            fields_found["subtype"]="ALL_OFF"
+        case 5 :
+            fields_found["subtype"]="ALL_ON"
+    #fields_found["id_lsb"]=message["id_lsb"]
+    #fields_found["id_msb"]=message["id_msb"]
+    #fields_found["id"]=message["id_lsb"]+(message["id_lsb"] << 8)
+    fields_found["id"]=message["id"]
+    return fields_found
+
+def infoType_2_decode(message:list) -> list:
+    log.debug("Decode InfoType 2")
+    fields_found = []
+    binQualifier=bin(message["qualifier"])
+    match message["subtype"]:
+        case 0 :
+            fields_found["subtype"]="SENSOR"
+            fields_found["Tamper"]=int(binQualifier[-1])
+            fields_found["Alarm"]=int(binQualifier[-2])
+            fields_found["LowBatt"]=int(binQualifier[-3])
+            fields_found["Supervisor"]=int(binQualifier[-4])
+        case 1 :
+            fields_found["subtype"]="REMOTE"
+            fields_found["button1"]=int(binQualifier)==0x08
+            fields_found["button2"]=int(binQualifier)==0x10
+            fields_found["button3"]=int(binQualifier)==0x20
+            fields_found["button4"]=int(binQualifier)==0x40
+    fields_found["id"]=message["id"]
+    return fields_found
+
+def infoType_3_decode(message:list) -> list:
+    log.debug("Decode InfoType 3")
+    fields_found = []
+    match message["subtype"]:
+        case 0 :
+            fields_found["subtype"]="SHUTTER"
+        case 1 : 
+            fields_found["subtype"]="PORTAL"
+    match message["qualifier"]:
+        case 1 :
+            fields_found["qualifier"]="OFF"
+        case 4 : 
+            fields_found["qualifier"]="MY"
+        case 7 : 
+            fields_found["qualifier"]="ON"
+        case 13 : 
+            fields_found["qualifier"]="ASSOC"
+        case 5 : 
+            fields_found["qualifier"]="LBUTTON"
+        case 6 : 
+            fields_found["qualifier"]="RBUTTON"
+
+    fields_found["id"]=message["id"]
+    return fields_found
+
+def infoType_4_decode(message:list) -> list:
+    log.debug("Decode InfoType 3")
+    fields_found = []
+    match message["subtype"]:
+        case 0 :
+            fields_found["subtype"]="SENSOR"
+    match int(message["id_PHY"]):
+        case 0x0 :
+            fields_found["id_PHY"]="OREGONV1"
+        case 0x1A2D :
+            fields_found["id_PHY"]="THGR228"
+        case 0xCA2C :
+            fields_found["id_PHY"]="THGR328"
+        case 0x0ACC :
+            fields_found["id_PHY"]="RTGR328"
+        case 0xEA4C :
+            fields_found["id_PHY"]="THWR288"
+        case 0x1A3D :
+            fields_found["id_PHY"]="THGR918"
+        case 0x5A6D :
+            fields_found["id_PHY"]="THGR918N"
+        case 0x1A89 :
+            fields_found["id_PHY"]="WGR800"
+        case 0xCA48 :
+            fields_found["id_PHY"]="THWR800"
+        case 0xFA28 :
+            fields_found["id_PHY"]="THGR810"
+        case 0x2A19 :
+            fields_found["id_PHY"]="PCR800"
+        case 0xDA78 :
+            fields_found["id_PHY"]="UVN800"
+    match message["qualifier"]:
+        case 1 :
+            fields_found["qualifier"]="OFF"
+        case 4 : 
+            fields_found["qualifier"]="MY"
+        case 7 : 
+            fields_found["qualifier"]="ON"
+        case 13 : 
+            fields_found["qualifier"]="ASSOC"
+        case 5 : 
+            fields_found["qualifier"]="LBUTTON"
+        case 6 : 
+            fields_found["qualifier"]="RBUTTON"
+
+    fields_found["id"]=message["id"]
+    return fields_found
