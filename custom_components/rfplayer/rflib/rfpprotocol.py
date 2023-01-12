@@ -49,7 +49,16 @@ class ProtocolBase(asyncio.Protocol):
         log.debug("connected")
         self.send_raw_packet("ZIA++HELLO")
         self.send_raw_packet("ZIA++RECEIVER + *")
+        self.send_raw_packet("ZIA++SELECTIVITY L 0")
+        self.send_raw_packet("ZIA++SELECTIVITY H 0")
+        self.send_raw_packet("ZIA++SELECTIVITY L 8")
+        self.send_raw_packet("ZIA++SELECTIVITY H 6")
+        self.send_raw_packet("ZIA++RFLINK 1")
+        self.send_raw_packet("ZIA++RFLINKTRIGGER L 12")
+        self.send_raw_packet("ZIA++RFLINKTRIGGER H 10")
+        self.send_raw_packet("ZIA++LBT 16")
         self.send_raw_packet("ZIA++FORMAT JSON")
+        self.send_raw_packet("ZIA++STATUS")
         log.debug("initialized")
 
     def data_received(self, data: bytes) -> None:
