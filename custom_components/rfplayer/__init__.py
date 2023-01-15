@@ -45,6 +45,7 @@ from .const import (
     EVENT_KEY_ID,
     EVENT_KEY_SENSOR,
     EVENT_KEY_COVER,
+    EVENT_KEY_PLATFORM,
     PLATFORMS,
     RFPLAYER_PROTOCOL,
     SERVICE_SEND_COMMAND,
@@ -90,6 +91,8 @@ def identify_event_type(event):
         return EVENT_KEY_SENSOR #sensor.py
     if EVENT_KEY_COVER in event: 
         return EVENT_KEY_COVER #cover.py
+    if EVENT_KEY_PLATFORM in event: 
+        return event[EVENT_KEY_PLATFORM]
     return "unknown"
 
 
@@ -155,7 +158,7 @@ async def async_setup_entry(hass, entry):
         accordingly.
         """
         event_type = identify_event_type(event)
-        #_LOGGER.debug("event of type %s: %s", event_type, event)
+        _LOGGER.debug("event of type %s: %s", event_type, event)
 
         # Don't propagate non entity events (eg: version string, ack response)
         if event_type not in hass.data[DOMAIN][DATA_ENTITY_LOOKUP]:

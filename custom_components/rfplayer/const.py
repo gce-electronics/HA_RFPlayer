@@ -33,6 +33,7 @@ EVENT_KEY_ID = "id"
 EVENT_KEY_SENSOR = "sensor"
 EVENT_KEY_COVER = "cover"
 EVENT_KEY_UNIT = "unit"
+EVENT_KEY_PLATFORM = "platform"
 
 RFPLAYER_GROUP_COMMANDS = ["allon", "alloff"]
 

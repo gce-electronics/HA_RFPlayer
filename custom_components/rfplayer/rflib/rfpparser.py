@@ -17,7 +17,10 @@ PACKET_FIELDS = {
     "dtc": "detector",
     "sta": "status",
     "sen": "sensor",
-    "cov": "cover"
+    "cov": "cover",
+    "swi":"switch",
+    "tem":"temperature",
+    "hyg":"hygrometry"
 }
 
 RTS_ELEM = {
@@ -107,9 +110,10 @@ def decode_packet(packet: str) -> list:
 
     #try:
     packets_found.append(globals()["_".join([data["protocol"],"decode"])](data,message,PacketHeader.gateway.name))
+    #log.debug("Packets foud new method : %s",str(packets_found))
     NewMotor=True
     #except Exception as e:
-        #log.debug("Protocol %s not implemented : %s", str(data["protocol"]),str(e))
+    #    log.debug("Protocol %s not implemented : %s", str(data["protocol"]),str(e))
 
     if not NewMotor:
         if data["protocol"] in ["BLYSS", "CHACON", "JAMMING"]:
@@ -241,11 +245,12 @@ def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
     #   yield { "id": packet_id, "message": packet["message"] }
     # except KeyError:
     for sensor, value in events.items():
-        #log.debug("packet_events, sensor:%s,value:%s", sensor, value)
+        log.debug("packet_events, sensor:%s,value:%s", sensor, value)
         unit = packet.get(sensor + "_unit", None)
         yield {
-            "id": packet_id + PACKET_ID_SEP + field_abbrev[sensor],
+            "id": packet_id + field_abbrev[sensor] + PACKET_ID_SEP + field_abbrev[sensor],
             sensor: value,
+            "value":value,
             "unit": unit,
             "platform": platform,
             "protocol": protocol

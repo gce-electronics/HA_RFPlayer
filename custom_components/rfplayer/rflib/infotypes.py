@@ -1,5 +1,8 @@
 import logging
 
+#Debogage des infotypes
+infotypes_debug=False
+
 log = logging.getLogger(__name__)
 
 id_PHY_OREGON = {
@@ -17,9 +20,9 @@ id_PHY_OREGON = {
     0xDA78 : "UVN800",
 }
 
-def infoType_0_decode(message:list) -> list:
-    log.debug("Decode InfoType 0")
-    fields_found = []
+def infoType_0_decode(infos:list) -> list:
+    if infotypes_debug: log.debug("Decode InfoType 0")
+    fields_found = {}
     match message["subtype"]:
         case 0 :
             fields_found["subtype"]="OFF"
@@ -36,9 +39,9 @@ def infoType_0_decode(message:list) -> list:
     fields_found["id"]=message["id"]
     return fields_found
 
-def infoType_1_decode(message:list) -> list:
-    log.debug("Decode InfoType 1")
-    fields_found = []
+def infoType_1_decode(infos:list) -> list:
+    if infotypes_debug: log.debug("Decode InfoType 1")
+    fields_found = {}
     match message["subtype"]:
         case 0 :
             fields_found["subtype"]="OFF"
@@ -54,9 +57,9 @@ def infoType_1_decode(message:list) -> list:
     fields_found["id"]=message["id"]
     return fields_found
 
-def infoType_2_decode(message:list) -> list:
-    log.debug("Decode InfoType 2")
-    fields_found = []
+def infoType_2_decode(infos:list) -> list:
+    if infotypes_debug: og.debug("Decode InfoType 2")
+    fields_found = {}
     binQualifier=bin(message["qualifier"])
     match message["subtype"]:
         case 0 :
@@ -74,9 +77,9 @@ def infoType_2_decode(message:list) -> list:
     fields_found["id"]=message["id"]
     return fields_found
 
-def infoType_3_decode(message:list) -> list:
-    log.debug("Decode InfoType 3")
-    fields_found = []
+def infoType_3_decode(infos:list) -> list:
+    if infotypes_debug: log.debug("Decode InfoType 3")
+    fields_found = {}
     match message["subtype"]:
         case 0 :
             fields_found["subtype"]="SHUTTER"
@@ -99,61 +102,40 @@ def infoType_3_decode(message:list) -> list:
     fields_found["id"]=message["id"]
     return fields_found
 
-def infoType_4_decode(message:list) -> list:
-    log.debug("Decode InfoType 3")
-    fields_found = []
-    match message["subtype"]:
+def infoType_4_decode(infos:list) -> list:
+    #OK - 15/01/2023
+    if infotypes_debug: log.debug("Decode InfoType 4 : %s",str(infos))
+    fields_found = {}
+    match infos.get("subType"):
         case 0 :
-            fields_found["subtype"]="SENSOR"
-    fields_found["id_PHY"]= lambda x:id_PHY_OREGON.get(int(message["id_PHY"]),int(message["id_PHY"]))
-    """
-    match int(message["id_PHY"]):
-        case 0x0 :
-            fields_found["id_PHY"]="OREGONV1"
-        case 0x1A2D :
-            fields_found["id_PHY"]="THGR228"
-        case 0xCA2C :
-            fields_found["id_PHY"]="THGR328"
-        case 0x0ACC :
-            fields_found["id_PHY"]="RTGR328"
-        case 0xEA4C :
-            fields_found["id_PHY"]="THWR288"
-        case 0x1A3D :
-            fields_found["id_PHY"]="THGR918"
-        case 0x5A6D :
-            fields_found["id_PHY"]="THGR918N"
-        case 0x1A89 :
-            fields_found["id_PHY"]="WGR800"
-        case 0xCA48 :
-            fields_found["id_PHY"]="THWR800"
-        case 0xFA28 :
-            fields_found["id_PHY"]="THGR810"
-        case 0x2A19 :
-            fields_found["id_PHY"]="PCR800"
-        case 0xDA78 :
-            fields_found["id_PHY"]="UVN800"
-    """
-    fields_found["adr_channel"]=message["adr_channel"]
-    match message["qualifier"]:
-        case 1 :
-            fields_found["qualifier"]="OFF"
-        case 4 : 
-            fields_found["qualifier"]="MY"
-        case 7 : 
-            fields_found["qualifier"]="ON"
-        case 13 : 
-            fields_found["qualifier"]="ASSOC"
-        case 5 : 
-            fields_found["qualifier"]="LBUTTON"
-        case 6 : 
-            fields_found["qualifier"]="RBUTTON"
-
-    fields_found["id"]=message["id"]
-    return fields_found
+            fields_found["subType"]="SENSOR"
+    fields_found["id_PHY"]= infos["id_PHYMeaning"]
     
-def infoType_5_decode(message:list) -> list:
-    log.debug("Decode InfoType 3")
-    fields_found = []
+    fields_found["adr_channel"]=infos["adr_channel"]
+    fields_found["qualifier"]=infos["qualifier"]
+    match int(infos["qualifier"])>>4:
+        case 1 :
+            fields_found["oreg_protocol"]="V1"
+        case 2 : 
+            fields_found["oreg_protocol"]="V2"
+        case 3 : 
+            fields_found["oreg_protocol"]="V3"
+    elements=['temperature','hygrometry']
+    for measure in infos["measures"]:
+        if measure['type'] in elements:
+            fields_found[measure['type']]= measure['value']
+        
+
+
+    fields_found["id"]=infos["adr_channel"]
+    fields_found["platform"] = "sensor"
+
+    if fields_found["adr_channel"]!="0":
+        return fields_found
+    
+def infoType_5_decode(infos:list) -> list:
+    if infotypes_debug: log.debug("Decode InfoType 3")
+    fields_found = {}
     match message["subtype"]:
         case 0 :
             fields_found["subtype"]="SENSOR"
