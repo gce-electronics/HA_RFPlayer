@@ -170,6 +170,9 @@ async def async_setup_entry(hass, entry):
         #_LOGGER.debug("List of entities : %s",str(hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type]))
         entity_id = hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type][event_id]
 
+        _LOGGER.debug("Entity ID : %s",entity_id);
+        _LOGGER.debug("Event ID : %s",event_id);
+
         if entity_id:
             # Propagate event to every entity matching the device id
             _LOGGER.debug("passing event to %s", entity_id)
@@ -178,7 +181,7 @@ async def async_setup_entry(hass, entry):
         else:
             # If device is not yet known, register with platform (if loaded)
             if event_type in hass.data[DOMAIN][DATA_DEVICE_REGISTER]:
-                """
+                
                 _LOGGER.debug("device_id not known, adding new device")
                 _LOGGER.debug("event_type: %s",str(event_type))
                 _LOGGER.debug("event_id: %s",str(event_id))
@@ -186,7 +189,7 @@ async def async_setup_entry(hass, entry):
                 _LOGGER.debug("device_id not known, adding new device")
                 _LOGGER.debug(str(hass.data[DOMAIN][DATA_DEVICE_REGISTER]))
                 _LOGGER.debug(str(hass.data[DOMAIN][DATA_DEVICE_REGISTER][event_type]))
-                """
+                
                 hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type][event_id] = event
                 _add_device_to_base_config(event, event_id)
                 hass.async_create_task(

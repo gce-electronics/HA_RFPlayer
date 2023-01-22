@@ -36,6 +36,9 @@ class RfplayerJammingNumber(RfplayerDevice, NumberEntity):
             if old_state is not None:
                 self._state = old_state.state
 
+    async def async_will_remove_from_hass(self):
+        await super().async_will_remove_from_hass()
+
     @callback
     def _handle_event(self, event):
         self._state = int(event["value"])

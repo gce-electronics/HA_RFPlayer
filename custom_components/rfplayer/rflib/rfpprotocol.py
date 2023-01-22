@@ -46,11 +46,11 @@ class ProtocolBase(asyncio.Protocol):
     def connection_made(self, transport: asyncio.BaseTransport) -> None:
         """Just logging for now."""
         self.transport = transport
-        log.debug("connected")
+        #log.debug("connected")
         self.send_raw_packet("ZIA++HELLO")
         self.send_raw_packet("ZIA++RECEIVER + *")
-        self.send_raw_packet("ZIA++SELECTIVITY L 0")
-        self.send_raw_packet("ZIA++SELECTIVITY H 0")
+        self.send_raw_packet("ZIA++SENSITIVITY L 0")
+        self.send_raw_packet("ZIA++SENSITIVITY H 0")
         self.send_raw_packet("ZIA++SELECTIVITY L 8")
         self.send_raw_packet("ZIA++SELECTIVITY H 6")
         self.send_raw_packet("ZIA++RFLINK 1")
@@ -59,7 +59,7 @@ class ProtocolBase(asyncio.Protocol):
         self.send_raw_packet("ZIA++LBT 16")
         self.send_raw_packet("ZIA++FORMAT JSON")
         self.send_raw_packet("ZIA++STATUS")
-        log.debug("initialized")
+        #log.debug("initialized")
 
     def data_received(self, data: bytes) -> None:
         """Add incoming data to buffer."""
@@ -69,7 +69,7 @@ class ProtocolBase(asyncio.Protocol):
             invalid_data = data.decode(errors="replace")
             log.warning("Error during decode of data, invalid data: %s", invalid_data)
         else:
-            log.debug("received data: %s", decoded_data.strip())
+            #log.debug("received data: %s", decoded_data.strip())
             self.buffer += decoded_data
             self.handle_lines()
 
@@ -116,7 +116,7 @@ class PacketHandling(ProtocolBase):
         packet_callback: called with every complete/valid packet
         received.
         """
-        log.debug("PacketHandling")
+        #log.debug("PacketHandling")
         super().__init__(*args, **kwargs)
         if packet_callback:
             self.packet_callback = packet_callback
@@ -131,13 +131,14 @@ class PacketHandling(ProtocolBase):
 
         if packets:
             for packet in packets:
-                log.debug("decoded packet: %s", packet)
-                if "ok" in packet:
-                    # handle response packets internally
-                    log.debug("command response: %s", packet)
-                    self.handle_response_packet(packet)
-                else:
-                    self.handle_packet(packet)
+                if packet != None:
+                    log.debug("decoded packet: %s", packet)
+                    if "ok" in packet:
+                        # handle response packets internally
+                        log.debug("command response: %s", packet)
+                        self.handle_response_packet(packet)
+                    else:
+                        self.handle_packet(packet)
         else:
             log.warning("no valid packet")
 
@@ -146,8 +147,8 @@ class PacketHandling(ProtocolBase):
         if self.packet_callback:
             # forward to callback
             self.packet_callback(packet)
-        else:
-            print("packet", packet)
+        #else:
+        #    print("packet", packet)
 
     def handle_response_packet(self, packet: PacketType) -> None:
         """Handle response packet."""
@@ -191,7 +192,7 @@ class CommandSerialization(PacketHandling):
         **kwargs: Any,
     ) -> None:
         """Add packethandling specific initialization."""
-        log.debug("CommandSerialization")
+        #log.debug("CommandSerialization")
         super().__init__(*args, **kwargs)
         if packet_callback:
             self.packet_callback = packet_callback
@@ -200,7 +201,7 @@ class CommandSerialization(PacketHandling):
 
     def handle_response_packet(self, packet: PacketType) -> None:
         """Handle response packet."""
-        log.debug("handle_response_packet")
+        #log.debug("handle_response_packet")
         self._last_ack = packet
         self._event.set()
 
@@ -240,7 +241,7 @@ class EventHandling(PacketHandling):
         super().__init__(*args, **kwargs)
         self.event_callback = event_callback
         # suppress printing of packets
-        log.debug("EventHandling")
+        #log.debug("EventHandling")
         if not kwargs.get("packet_callback"):
             self.packet_callback = lambda x: None
         if ignore:
@@ -257,7 +258,7 @@ class EventHandling(PacketHandling):
             if self.ignore_event(event["id"]):
                 log.debug("ignoring event with id: %s", event)
                 continue
-            log.debug("got event: %s", event)
+            #log.debug("got event: %s", event)
             if self.event_callback:
                 self.event_callback(event)
             else:
@@ -265,7 +266,7 @@ class EventHandling(PacketHandling):
 
     def handle_event(self, event: PacketType) -> None:
         """Handle of incoming event (print)."""
-        log.debug("_handle_event")
+        #log.debug("_handle_event")
         string = "{id:<32} "
         if "command" in event:
             string += "{command}"
@@ -291,9 +292,9 @@ class EventHandling(PacketHandling):
 
     def ignore_event(self, event_id: str) -> bool:
         """Verify event id against list of events to ignore."""
-        log.debug("ignore_event")
         for ignore in self.ignore:
             if fnmatchcase(event_id, ignore):
+                log.debug("ignore_event")
                 return True
         return False
 

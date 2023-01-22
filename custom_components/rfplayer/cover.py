@@ -61,9 +61,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     async def add_new_device(device_info):
         #if device_info.get(CONF_ENTITY_TYPE) == ENTITY_TYPE_COVER or device_info.get(CONF_ENTITY_TYPE) == "":
-        _LOGGER.debug("Add cover entity %s", str(device_info))
-        
         """Check if device is known, otherwise create device entity."""
+        #if(((device_info.get("protocol")!=None) and ((device_info.get("device_id")!=None) or (device_info.get("device_address")!=None))) or True):
+        _LOGGER.debug("Add cover entity %s", str(device_info))
         # create entity
         if not CONF_PROTOCOL in device_info:
             device_info[CONF_PROTOCOL]=None
@@ -74,6 +74,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         _LOGGER.debug("Add cover entity - initial_event %s", str(device_info))
 
         try:
+            
             if (device_info.get(CONF_DEVICE_ADDRESS) != None
             or device_info.get(CONF_DEVICE_ID) != None) :
                 _LOGGER.debug("Create from service")
@@ -120,6 +121,9 @@ class RfplayerCover(RfplayerDevice, CoverEntity):
             old_state = await self.async_get_last_state()
             if old_state is not None:
                 self._state = old_state.state
+
+    async def async_will_remove_from_hass(self):
+        await super().async_will_remove_from_hass()
     
     @callback
     def _handle_event(self, event):

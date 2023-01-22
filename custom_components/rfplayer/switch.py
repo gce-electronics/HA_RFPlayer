@@ -29,18 +29,19 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async def add_new_device(device_info):
         #if device_info.get(CONF_ENTITY_TYPE) == ENTITY_TYPE_SWITCH or device_info.get(CONF_ENTITY_TYPE) == "":
         """Check if device is known, otherwise create device entity."""
-        _LOGGER.debug("Add switch entity %s", device_info)
-        # create entity
-        try:
-            device = RfplayerSwitch(
-                protocol=device_info[CONF_PROTOCOL],
-                device_address=device_info.get(CONF_DEVICE_ADDRESS),
-                device_id=device_info.get(CONF_DEVICE_ID),
-                initial_event=device_info,
-            )
-            async_add_entities([device])
-        except Exception as err:
-            _LOGGER.error("Switch %s creation error: %s",device_info.get(CONF_DEVICE_ID),str(err))
+        if(((device_info.get("protocol")!=None) and ((device_info.get("device_id")!=None) or (device_info.get("device_address")!=None))) or True):
+            _LOGGER.debug("Add switch entity %s", device_info)
+            # create entity
+            try:
+                device = RfplayerSwitch(
+                    protocol=device_info[CONF_PROTOCOL],
+                    device_address=device_info.get(CONF_DEVICE_ADDRESS),
+                    device_id=device_info.get(CONF_DEVICE_ID),
+                    initial_event=device_info,
+                )
+                async_add_entities([device])
+            except Exception as err:
+                _LOGGER.error("Switch %s creation error: %s",device_info.get(CONF_DEVICE_ID),str(err))
 
     if CONF_DEVICES in config:
         for device_id, device_info in config[CONF_DEVICES].items():
@@ -66,6 +67,9 @@ class RfplayerSwitch(RfplayerDevice, SwitchEntity):
             old_state = await self.async_get_last_state()
             if old_state is not None:
                 self._state = old_state.state == COMMAND_ON
+
+    async def async_will_remove_from_hass(self):
+        await super().async_will_remove_from_hass()
 
     @callback
     def _handle_event(self, event):

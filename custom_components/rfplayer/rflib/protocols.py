@@ -63,32 +63,89 @@ def header_decode(header:dict):
     headers_found['protocol']=header.get('protocolMeaning')
     return headers_found
 
-def RTS_decode(data:list,message:list,node) -> list:
-    """
-    RTS uses Infotypes 3
-    """
-    if protocols_debug: log.debug("Decode RTS")
+def X10_decode(data:list,message:list,node) -> list:
+    if protocols_debug: log.debug("Decode X10")
     if protocols_debug: log.debug("data:%s",str(data))
     if protocols_debug: log.debug("message:%s",str(message))
     decoded_items = cast(PacketType, {"node": node})
-    #decoded_items["protocol"]=data["protocol"]
-    decoded_items.append(header_decode(message['header']))
-    decoded_items.append(globals()["_".join(["infotype",data["infoType"],"decode"])](message['infos']))
-    #decoding=alldecode(message)
-    #for element,value in decoding:
-    #    log.debug("%s = %s", str(element),str(value))
-        #decoded_items[element]=value
-    match decoded_items["subtype"]:
-        case "SHUTTER":
-            decoded_items["platform"] = "cover"
-            value="shu"
-        case "PORTAL":
-            value="por"
-            decoded_items["platform"] = "cover"
-        case _:
-            value=""
-    decoded_items[decoded_items["platform"]] = value
-    return decoded_items
+    decoding=header_decode(message['header'])
+    if protocols_debug: log.debug("decoding: datas=%s",str(decoding))
+    for element,value in decoding.items():
+        decoded_items[element]=value
+    decoding=globals()["_".join(["infoType",decoded_items["infoType"],"decode"])](message['infos'])
+    if decoding != None:
+        if len(decoding)>0:
+            decoding["platform"] = "sensor"
+
+            for element,value in decoding.items():
+                decoded_items[element]=value
+            
+            return decoded_items
+
+    log.warn('Shadow Message, no id found !')
+
+def VISONIC_decode(data:list,message:list,node) -> list:
+    if protocols_debug: log.debug("Decode VISONIC")
+    if protocols_debug: log.debug("data:%s",str(data))
+    if protocols_debug: log.debug("message:%s",str(message))
+    decoded_items = cast(PacketType, {"node": node})
+    decoding=header_decode(message['header'])
+    if protocols_debug: log.debug("decoding: datas=%s",str(decoding))
+    for element,value in decoding.items():
+        decoded_items[element]=value
+    decoding=globals()["_".join(["infoType",decoded_items["infoType"],"decode"])](message['infos'])
+    if decoding != None:
+        if len(decoding)>0:
+            decoding["platform"] = "sensor"
+
+            for element,value in decoding.items():
+                decoded_items[element]=value
+            
+            return decoded_items
+    
+    log.warn('Shadow Message, no id found !')
+
+def BLYSS_decode(data:list,message:list,node) -> list:
+    if protocols_debug: log.debug("Decode BLYSS")
+    if protocols_debug: log.debug("data:%s",str(data))
+    if protocols_debug: log.debug("message:%s",str(message))
+    decoded_items = cast(PacketType, {"node": node})
+    decoding=header_decode(message['header'])
+    if protocols_debug: log.debug("decoding: datas=%s",str(decoding))
+    for element,value in decoding.items():
+        decoded_items[element]=value
+    decoding=globals()["_".join(["infoType",decoded_items["infoType"],"decode"])](message['infos'])
+    if decoding != None:
+        if len(decoding)>0:
+            decoding["platform"] = "sensor"
+
+            for element,value in decoding.items():
+                decoded_items[element]=value
+            
+            return decoded_items
+    
+    log.warn('Shadow Message, no id found !')
+
+def CHACON_decode(data:list,message:list,node) -> list:
+    if protocols_debug: log.debug("Decode CHACON")
+    if protocols_debug: log.debug("data:%s",str(data))
+    if protocols_debug: log.debug("message:%s",str(message))
+    decoded_items = cast(PacketType, {"node": node})
+    decoding=header_decode(message['header'])
+    if protocols_debug: log.debug("decoding: datas=%s",str(decoding))
+    for element,value in decoding.items():
+        decoded_items[element]=value
+    decoding=globals()["_".join(["infoType",decoded_items["infoType"],"decode"])](message['infos'])
+    if decoding != None:
+        if len(decoding)>0:
+            decoding["platform"] = "sensor"
+
+            for element,value in decoding.items():
+                decoded_items[element]=value
+            
+            return decoded_items
+    
+    log.warn('Shadow Message, no id found !')
 
 def OREGON_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode OREGON")
@@ -100,7 +157,233 @@ def OREGON_decode(data:list,message:list,node) -> list:
     for element,value in decoding.items():
         decoded_items[element]=value
     decoding=globals()["_".join(["infoType",decoded_items["infoType"],"decode"])](message['infos'])
+    if decoding != None:
+        if len(decoding)>0:
+            decoding["platform"] = "sensor"
+
+            for element,value in decoding.items():
+                decoded_items[element]=value
+            
+            return decoded_items
+    
+    log.warn('Shadow Message, no id found !')
+
+def DOMIA_decode(data:list,message:list,node) -> list:
+    if protocols_debug: log.debug("Decode DOMIA")
+    if protocols_debug: log.debug("data:%s",str(data))
+    if protocols_debug: log.debug("message:%s",str(message))
+    decoded_items = cast(PacketType, {"node": node})
+    decoding=header_decode(message['header'])
+    if protocols_debug: log.debug("decoding: datas=%s",str(decoding))
     for element,value in decoding.items():
         decoded_items[element]=value
+    decoding=globals()["_".join(["infoType",decoded_items["infoType"],"decode"])](message['infos'])
+    if decoding != None:
+        if len(decoding)>0:
+            decoding["platform"] = "sensor"
+
+            for element,value in decoding.items():
+                decoded_items[element]=value
+            
+            return decoded_items
     
-    return decoded_items
+    log.warn('Shadow Message, no id found !')
+
+def OWL_decode(data:list,message:list,node) -> list:
+    if protocols_debug: log.debug("Decode OWL")
+    if protocols_debug: log.debug("data:%s",str(data))
+    if protocols_debug: log.debug("message:%s",str(message))
+    decoded_items = cast(PacketType, {"node": node})
+    decoding=header_decode(message['header'])
+    if protocols_debug: log.debug("decoding: datas=%s",str(decoding))
+    for element,value in decoding.items():
+        decoded_items[element]=value
+    decoding=globals()["_".join(["infoType",decoded_items["infoType"],"decode"])](message['infos'])
+    if decoding != None:
+        if len(decoding)>0:
+            decoding["platform"] = "sensor"
+
+            for element,value in decoding.items():
+                decoded_items[element]=value
+            
+            return decoded_items
+    
+    log.warn('Shadow Message, no id found !')
+
+def X2D_decode(data:list,message:list,node) -> list:
+    if protocols_debug: log.debug("Decode X2D")
+    if protocols_debug: log.debug("data:%s",str(data))
+    if protocols_debug: log.debug("message:%s",str(message))
+    decoded_items = cast(PacketType, {"node": node})
+    decoding=header_decode(message['header'])
+    if protocols_debug: log.debug("decoding: datas=%s",str(decoding))
+    for element,value in decoding.items():
+        decoded_items[element]=value
+    decoding=globals()["_".join(["infoType",decoded_items["infoType"],"decode"])](message['infos'])
+    if decoding != None:
+        if len(decoding)>0:
+            decoding["platform"] = "sensor"
+
+            for element,value in decoding.items():
+                decoded_items[element]=value
+            
+            return decoded_items
+    
+    log.warn('Shadow Message, no id found !')
+
+def RTS_decode(data:list,message:list,node) -> list:
+    """
+    RTS uses Infotypes 3
+    """
+    if protocols_debug: log.debug("Decode RTS")
+    if protocols_debug: log.debug("data:%s",str(data))
+    if protocols_debug: log.debug("message:%s",str(message))
+    decoded_items = cast(PacketType, {"node": node})
+    decoding=header_decode(message['header'])
+    if protocols_debug: log.debug("decoding: datas=%s",str(decoding))
+    for element,value in decoding.items():
+        decoded_items[element]=value
+    decoding=globals()["_".join(["infoType",decoded_items["infoType"],"decode"])](message['infos'])
+
+    if decoding != None:
+        if len(decoding)>0:
+            match decoding["subType"]:
+                case "Shutter":
+                    decoding["platform"] = "cover"
+                case "Portal":
+                    decoding["platform"] = "cover"
+
+            decoding['cover']=decoding["qualifier"]
+
+            for element,value in decoding.items():
+                decoded_items[element]=value
+            
+            return decoded_items
+    
+    log.warn('Shadow Message, no address found !')
+
+def KD101_decode(data:list,message:list,node) -> list:
+    if protocols_debug: log.debug("Decode KD101")
+    if protocols_debug: log.debug("data:%s",str(data))
+    if protocols_debug: log.debug("message:%s",str(message))
+    decoded_items = cast(PacketType, {"node": node})
+    decoding=header_decode(message['header'])
+    if protocols_debug: log.debug("decoding: datas=%s",str(decoding))
+    for element,value in decoding.items():
+        decoded_items[element]=value
+    decoding=globals()["_".join(["infoType",decoded_items["infoType"],"decode"])](message['infos'])
+    if decoding != None:
+        if len(decoding)>0:
+            decoding["platform"] = "sensor"
+
+            for element,value in decoding.items():
+                decoded_items[element]=value
+            
+            return decoded_items
+    
+    log.warn('Shadow Message, no id found !')
+
+def PARROT_decode(data:list,message:list,node) -> list:
+    if protocols_debug: log.debug("Decode PARROT")
+    if protocols_debug: log.debug("data:%s",str(data))
+    if protocols_debug: log.debug("message:%s",str(message))
+    decoded_items = cast(PacketType, {"node": node})
+    decoding=header_decode(message['header'])
+    if protocols_debug: log.debug("decoding: datas=%s",str(decoding))
+    for element,value in decoding.items():
+        decoded_items[element]=value
+    decoding=globals()["_".join(["infoType",decoded_items["infoType"],"decode"])](message['infos'])
+    if decoding != None:
+        if len(decoding)>0:
+            decoding["platform"] = "sensor"
+
+            for element,value in decoding.items():
+                decoded_items[element]=value
+            
+            return decoded_items
+    
+    log.warn('Shadow Message, no id found !')
+
+def TIC_decode(data:list,message:list,node) -> list:
+    if protocols_debug: log.debug("Decode TIC")
+    if protocols_debug: log.debug("data:%s",str(data))
+    if protocols_debug: log.debug("message:%s",str(message))
+    decoded_items = cast(PacketType, {"node": node})
+    decoding=header_decode(message['header'])
+    if protocols_debug: log.debug("decoding: datas=%s",str(decoding))
+    for element,value in decoding.items():
+        decoded_items[element]=value
+    decoding=globals()["_".join(["infoType",decoded_items["infoType"],"decode"])](message['infos'])
+    if decoding != None:
+        if len(decoding)>0:
+            decoding["platform"] = "sensor"
+
+            for element,value in decoding.items():
+                decoded_items[element]=value
+            
+            return decoded_items
+    
+    log.warn('Shadow Message, no id found !')
+
+def FS20_decode(data:list,message:list,node) -> list:
+    if protocols_debug: log.debug("Decode FS20")
+    if protocols_debug: log.debug("data:%s",str(data))
+    if protocols_debug: log.debug("message:%s",str(message))
+    decoded_items = cast(PacketType, {"node": node})
+    decoding=header_decode(message['header'])
+    if protocols_debug: log.debug("decoding: datas=%s",str(decoding))
+    for element,value in decoding.items():
+        decoded_items[element]=value
+    decoding=globals()["_".join(["infoType",decoded_items["infoType"],"decode"])](message['infos'])
+    if decoding != None:
+        if len(decoding)>0:
+            decoding["platform"] = "sensor"
+
+            for element,value in decoding.items():
+                decoded_items[element]=value
+            
+            return decoded_items
+    
+    log.warn('Shadow Message, no id found !')
+
+def JAMMING_decode(data:list,message:list,node) -> list:
+    if protocols_debug: log.debug("Decode JAMMING")
+    if protocols_debug: log.debug("data:%s",str(data))
+    if protocols_debug: log.debug("message:%s",str(message))
+    decoded_items = cast(PacketType, {"node": node})
+    decoding=header_decode(message['header'])
+    if protocols_debug: log.debug("decoding: datas=%s",str(decoding))
+    for element,value in decoding.items():
+        decoded_items[element]=value
+    decoding=globals()["_".join(["infoType",decoded_items["infoType"],"decode"])](message['infos'])
+    if decoding != None:
+        if len(decoding)>0:
+            decoding["platform"] = "sensor"
+
+            for element,value in decoding.items():
+                decoded_items[element]=value
+            
+            return decoded_items
+    
+    log.warn('Shadow Message, no id found !')
+
+def EDISIO_decode(data:list,message:list,node) -> list:
+    if protocols_debug: log.debug("Decode EDISIO")
+    if protocols_debug: log.debug("data:%s",str(data))
+    if protocols_debug: log.debug("message:%s",str(message))
+    decoded_items = cast(PacketType, {"node": node})
+    decoding=header_decode(message['header'])
+    if protocols_debug: log.debug("decoding: datas=%s",str(decoding))
+    for element,value in decoding.items():
+        decoded_items[element]=value
+    decoding=globals()["_".join(["infoType",decoded_items["infoType"],"decode"])](message['infos'])
+    if decoding != None:
+        if len(decoding)>0:
+            decoding["platform"] = "sensor"
+
+            for element,value in decoding.items():
+                decoded_items[element]=value
+            
+            return decoded_items
+    
+    log.warn('Shadow Message, no id found !')

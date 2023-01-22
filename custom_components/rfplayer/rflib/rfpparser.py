@@ -6,6 +6,7 @@ import logging
 import re
 from typing import Any, Callable, Dict, Generator, cast
 from .protocols import *
+import traceback
 
 log = logging.getLogger(__name__)
 
@@ -108,14 +109,17 @@ def decode_packet(packet: str) -> list:
 
     NewMotor=False
 
-    #try:
-    packets_found.append(globals()["_".join([data["protocol"],"decode"])](data,message,PacketHeader.gateway.name))
-    #log.debug("Packets foud new method : %s",str(packets_found))
-    NewMotor=True
-    #except Exception as e:
-    #    log.debug("Protocol %s not implemented : %s", str(data["protocol"]),str(e))
+    try:
+        packets_found.append(globals()["_".join([data["protocol"],"decode"])](data,message,PacketHeader.gateway.name))
+        #log.debug("Packets foud new method : %s",str(packets_found))
+        NewMotor=True
+    except Exception as e:
+        log.error("Protocol %s not implemented : %s", str(data["protocol"]),str(e))
+        log.debug("Trace : %s",traceback.format_exc())
+        log.debug("Message : %s", str(message))
 
     if not NewMotor:
+        """
         if data["protocol"] in ["BLYSS", "CHACON", "JAMMING"]:
             data["id"] = message["infos"]["id"]
             data["command"] = message["infos"]["subType"]
@@ -158,6 +162,7 @@ def decode_packet(packet: str) -> list:
             data["id"] = message["infos"].get("id")
             data["command"] = message["infos"].get("subType")
             packets_found.append(data)
+        """
 
     return packets_found
 
@@ -220,7 +225,7 @@ def deserialize_packet_id(packet_id: str) -> Dict[str, str]:
 
 def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
     platform=None
-    log.debug("packet:%s", str(packet))
+    #log.debug("packet:%s", str(packet))
     """Handle packet events."""
     field_abbrev = {
         v: k
@@ -232,13 +237,13 @@ def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
     packet_id = serialize_packet_id(packet)
     events = {f: v for f, v in packet.items() if f in field_abbrev}
     for f, v in packet.items():
-        log.debug("f:%s,v:%s", f, v)
+        #log.debug("f:%s,v:%s", f, v)
         if f == "platform":
             platform=v
         if f == "protocol":
             protocol=v
-    for s, v in events.items():
-        log.debug("event: %s -> %s", s, v)
+    #for s, v in events.items():
+    #    log.debug("event: %s -> %s", s, v)
 
     # try:
     #   packet["message"]
