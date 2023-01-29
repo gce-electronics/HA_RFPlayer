@@ -50,7 +50,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         """Check if device is known, otherwise create device entity."""
         device_id = device_info[EVENT_KEY_ID]
 
-        if(((device_info.get("protocol")!=None) and ((device_info.get("device_id")!=None) or (device_info.get("device_address")!=None))) or True):
+        if((device_info.get("protocol")!=None) and (device_info.get("platform")!=None)):
             # create entity
             device = RfplayerSensor(
                 protocol=device_id.split("_")[0],
@@ -60,6 +60,9 @@ async def async_setup_entry(hass, entry, async_add_entities):
             )
             _LOGGER.debug("Add sensor entity %s", device_info)
             async_add_entities([device])
+        else :
+            _LOGGER.warning("Sensor entity not created %s", device_info)
+            await self.hass.config_entries.async_forward_entry_unload(self.config_entry, "light")
 
     if CONF_DEVICES in config:
         for device_id, device_info in config[CONF_DEVICES].items():
