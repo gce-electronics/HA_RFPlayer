@@ -29,7 +29,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async def add_new_device(device_info):
         #if device_info.get(CONF_ENTITY_TYPE) == ENTITY_TYPE_SWITCH or device_info.get(CONF_ENTITY_TYPE) == "":
         """Check if device is known, otherwise create device entity."""
-        if(((device_info.get("protocol")!=None) and ((device_info.get("device_id")!=None) or (device_info.get("device_address")!=None))) or True):
+        if((device_info.get("protocol")!=None) and (device_info.get("platform")!=None)):
             _LOGGER.debug("Add switch entity %s", device_info)
             # create entity
             try:
@@ -42,6 +42,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
                 async_add_entities([device])
             except Exception as err:
                 _LOGGER.error("Switch %s creation error: %s",device_info.get(CONF_DEVICE_ID),str(err))
+        else :
+            _LOGGER.warning("Switch entity not created %s", device_info)
 
     if CONF_DEVICES in config:
         for device_id, device_info in config[CONF_DEVICES].items():

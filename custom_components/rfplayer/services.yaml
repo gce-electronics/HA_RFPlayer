@@ -14,7 +14,24 @@ send_command:
       required: true
       example: CHACON
       selector:
-        text:
+        select:
+          options:
+              - "X10"
+              - "VISONIC"
+              - "BLYSS"
+              - "CHACON"
+              - "OREGON"
+              - "DOMIA"
+              - "OWL"
+              - "X2D"
+              - "RTS"
+              - "KD101"
+              - "PARROT"
+              - "TIC"
+              - "FS20"
+              - "JAMMING"
+              - "EDISIO"
+          mode: dropdown
     device_address:
       name: Device address
       description: Device address.
@@ -36,6 +53,34 @@ send_command:
       default: false
       selector:
         boolean:
+    entity_type:
+      name: Entity type
+      description: Type of entity created
+      required: false
+      default: switch
+      selector:
+        select:
+          options:
+              - "cover"
+              - "number"
+              - "sensor"
+              - "switch"
+          mode: dropdown
+
+set_device_address:
+  description: Set device adress for RFPlayer entity.
+  fields:
+    device_address:
+      name: Device address
+      description: Device address.
+      required: false
+      example: A1
+      selector:
+        text:
+
+set_device_platform:
+  description: Set device platform for RFPlayer entity.
+  fields:
     entity_type:
       name: Entity type
       description: Type of entity created

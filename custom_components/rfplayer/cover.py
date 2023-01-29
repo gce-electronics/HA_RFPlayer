@@ -30,6 +30,10 @@ except:# fallback (pre 2022.5)
         SUPPORT_SET_POSITION, SUPPORT_STOP,
     )
 
+from homeassistant.helpers import config_validation as cv, entity_platform, service
+from homeassistant.helpers.entity_component import EntityComponent
+import voluptuous as vol
+
 
 
 from . import DATA_DEVICE_REGISTER, EVENT_KEY_COVER, RfplayerDevice
@@ -38,6 +42,7 @@ from .const import (
     COMMAND_OFF,
     COMMAND_UP,
     COMMAND_MY,
+    COMMAND_DIM,
     COMMAND_DOWN,
     CONF_AUTOMATIC_ADD,
     CONF_DEVICE_ADDRESS,
@@ -59,43 +64,65 @@ async def async_setup_entry(hass, entry, async_add_entities):
     config = entry.data
     options = entry.options
 
+    platform = entity_platform.current_platform.get()
+    
+    platform.async_register_entity_service(
+        "set_device_address",
+        {
+            vol.Required("device_address"): cv.string,
+        },
+        "set_device_address",
+    )
+
+
+
     async def add_new_device(device_info):
         #if device_info.get(CONF_ENTITY_TYPE) == ENTITY_TYPE_COVER or device_info.get(CONF_ENTITY_TYPE) == "":
         """Check if device is known, otherwise create device entity."""
         #if(((device_info.get("protocol")!=None) and ((device_info.get("device_id")!=None) or (device_info.get("device_address")!=None))) or True):
-        _LOGGER.debug("Add cover entity %s", str(device_info))
+        
         # create entity
         if not CONF_PROTOCOL in device_info:
             device_info[CONF_PROTOCOL]=None
             _LOGGER.debug("No protocol found")
-        _LOGGER.debug("Add cover entity - protocol %s", str(device_info[CONF_PROTOCOL]))
-        _LOGGER.debug("Add cover entity - device_address %s", str(device_info.get(CONF_DEVICE_ADDRESS)))
-        _LOGGER.debug("Add cover entity - device_id %s", str(device_info.get(CONF_DEVICE_ID)))
-        _LOGGER.debug("Add cover entity - initial_event %s", str(device_info))
 
-        try:
-            
-            if (device_info.get(CONF_DEVICE_ADDRESS) != None
-            or device_info.get(CONF_DEVICE_ID) != None) :
-                _LOGGER.debug("Create from service")
-                device = RfplayerCover(
-                    protocol=device_info[CONF_PROTOCOL],
-                    device_address=device_info.get(CONF_DEVICE_ADDRESS),
-                    device_id=device_info.get(CONF_DEVICE_ID),
-                    initial_event=device_info,
-                )
-            else:
-                _LOGGER.debug("Create from event")
-                device_id = device_info[EVENT_KEY_ID]
-                device = RfplayerCover(
-                    protocol=device_id.split("_")[0],
-                    device_address=device_info.get(CONF_DEVICE_ADDRESS),
-                    device_id=device_id.split("_")[1],
-                    initial_event=device_info,
-                )
-            async_add_entities([device])
-        except :
-            _LOGGER.error("Cover creation error : ",str(device_info))
+        if device_info.get("entity_type"):
+                device_info["platform"]=device_info.get("entity_type")
+        
+        if device_info.get(CONF_PROTOCOL)!=None and device_info.get("platform")!=None:
+            _LOGGER.debug("Add cover entity %s", str(device_info))
+            _LOGGER.debug("Add cover entity - protocol %s", str(device_info[CONF_PROTOCOL]))
+            _LOGGER.debug("Add cover entity - device_address %s", str(device_info.get(CONF_DEVICE_ADDRESS)))
+            _LOGGER.debug("Add cover entity - device_id %s", str(device_info.get(CONF_DEVICE_ID)))
+            _LOGGER.debug("Add cover entity - initial_event %s", str(device_info))
+
+            try:
+                
+                if (device_info.get(CONF_DEVICE_ADDRESS) != None
+                or device_info.get(CONF_DEVICE_ID) != None) :
+                    _LOGGER.debug("Create from service")
+                    device = RfplayerCover(
+                        protocol=device_info[CONF_PROTOCOL],
+                        device_address=device_info.get(CONF_DEVICE_ADDRESS),
+                        device_id=device_info.get(CONF_DEVICE_ID),
+                        initial_event=device_info,
+                        #device_class=DEVICE_CLASS_SHUTTER
+                    )
+                else:
+                    _LOGGER.debug("Create from event")
+                    device_id = device_info[EVENT_KEY_ID]
+                    device = RfplayerCover(
+                        protocol=device_id.split("_")[0],
+                        device_address=device_info.get(CONF_DEVICE_ADDRESS),
+                        device_id=device_id.split("_")[1],
+                        initial_event=device_info,
+                        # device_class=DEVICE_CLASS_SHUTTER
+                    )
+                async_add_entities([device])
+            except :
+                _LOGGER.error("Cover creation error : ",str(device_info))
+        else :
+            _LOGGER.warning("Cover entity not created %s", device_info)
 
     if CONF_DEVICES in config:
         for device_id, device_info in config[CONF_DEVICES].items():
@@ -182,7 +209,7 @@ class RfplayerCover(RfplayerDevice, CoverEntity):
 
     async def async_stop_cover(self, **kwargs):
         _LOGGER.debug("Stop cover : %s", str(self))
-        await self._async_send_command(COMMAND_MY)
+        await self._async_send_command(COMMAND_DIM)
         self._attr_state=STATE_OPEN
         self.async_schedule_update_ha_state(False)
         

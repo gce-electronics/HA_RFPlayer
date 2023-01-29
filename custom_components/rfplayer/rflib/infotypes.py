@@ -1,7 +1,7 @@
 import logging
 
 #Debogage des infotypes
-infotypes_debug=False
+infotypes_debug=True
 
 log = logging.getLogger(__name__)
 
@@ -303,7 +303,7 @@ def infoType_10_decode(infos:list) -> list:
         return fields_found
 
 def infoType_11_decode(infos:list) -> list:
-    if infotypes_debug: log.debug("Decode InfoType 11")
+    if infotypes_debug: log.debug("Decode InfoType 11 : %d",infos)
     fields_found = {}
     
     fields_found["subType"]=infos.get("subTypeMeaning")
