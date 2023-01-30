@@ -40,6 +40,7 @@ def lookup_unit_for_sensor_type(sensor_type):
 
 async def async_setup_entry(hass, entry, async_add_entities):
     """Set up the Rfplayer platform."""
+
     config = entry.data
     options = entry.options
 
@@ -49,25 +50,30 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async def add_new_device(device_info):
         """Check if device is known, otherwise create device entity."""
         device_id = device_info[EVENT_KEY_ID]
-
-        if((device_info.get("protocol")!=None) and (device_info.get("platform")!=None)):
-            # create entity
-            device = RfplayerSensor(
-                protocol=device_id.split("_")[0],
-                device_id=device_id.split("_")[1],
-                unit_of_measurement=device_info[EVENT_KEY_UNIT],
-                initial_event=device_info,
-            )
-            _LOGGER.debug("Add sensor entity %s", device_info)
-            async_add_entities([device])
-        else :
-            _LOGGER.warning("Sensor entity not created %s", device_info)
-            await self.hass.config_entries.async_forward_entry_unload(self.config_entry, "light")
+        # create entity
+        device = RfplayerSensor(
+            protocol=device_id.split("_")[0],
+            device_id=device_id.split("_")[1],
+            unit_of_measurement=device_info[EVENT_KEY_UNIT],
+            initial_event=device_info,
+        )
+        _LOGGER.debug("Add sensor entity %s", device_info)
+        async_add_entities([device])
+        
 
     if CONF_DEVICES in config:
+        items_to_delete=[]
         for device_id, device_info in config[CONF_DEVICES].items():
             if EVENT_KEY_SENSOR in device_info:
-                await add_new_device(device_info)
+                if((device_info.get("protocol")!=None) and (device_info.get("platform")!=None)):
+                    await add_new_device(device_info)
+                else :
+                    _LOGGER.warning("Sensor entity not created %s - %s", device_id, device_info)
+                    items_to_delete.append(device_id)
+
+        for item in items_to_delete:
+            config[CONF_DEVICES].pop(item)
+                
 
     if options.get(CONF_AUTOMATIC_ADD, config[CONF_AUTOMATIC_ADD]):
         hass.data[DOMAIN][DATA_DEVICE_REGISTER][EVENT_KEY_SENSOR] = add_new_device

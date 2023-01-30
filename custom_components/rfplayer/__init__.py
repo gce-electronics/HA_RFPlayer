@@ -35,7 +35,6 @@ from .const import (
     CONF_RECONNECT_INTERVAL,
     CONF_ENTITY_TYPE,
     CONF_ID,
-    CONF_PLATFORM,
     CONNECTION_TIMEOUT,
     DATA_DEVICE_REGISTER,
     DATA_ENTITY_LOOKUP,
@@ -49,7 +48,6 @@ from .const import (
     PLATFORMS,
     RFPLAYER_PROTOCOL,
     SERVICE_SEND_COMMAND,
-    SERVICE_DELETE,
     SIGNAL_AVAILABILITY,
     SIGNAL_EVENT,
     SIGNAL_HANDLE_EVENT,
@@ -70,12 +68,6 @@ SEND_COMMAND_SCHEMA = vol.Schema(
     }
 )
 
-DELETE_SCHEMA = vol.Schema(
-    {
-        vol.Required(CONF_ID): cv.string,
-    }
-)
-
 TMP_ENTITY = "tmp.{}"
 
 
@@ -85,12 +77,14 @@ def identify_event_type(event):
     Async friendly.
     """
     #_LOGGER.debug("Event fired %s", str(event))
+    """
     if EVENT_KEY_COMMAND in event:
         return EVENT_KEY_COMMAND #switch.py
     if EVENT_KEY_SENSOR in event:
         return EVENT_KEY_SENSOR #sensor.py
     if EVENT_KEY_COVER in event: 
         return EVENT_KEY_COVER #cover.py
+    """
     if EVENT_KEY_PLATFORM in event: 
         return event[EVENT_KEY_PLATFORM]
     return "unknown"

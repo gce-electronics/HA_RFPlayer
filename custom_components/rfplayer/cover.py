@@ -82,52 +82,53 @@ async def async_setup_entry(hass, entry, async_add_entities):
         #if(((device_info.get("protocol")!=None) and ((device_info.get("device_id")!=None) or (device_info.get("device_address")!=None))) or True):
         
         # create entity
-        if not CONF_PROTOCOL in device_info:
-            device_info[CONF_PROTOCOL]=None
-            _LOGGER.debug("No protocol found")
-
-        if device_info.get("entity_type"):
-                device_info["platform"]=device_info.get("entity_type")
         
-        if device_info.get(CONF_PROTOCOL)!=None and device_info.get("platform")!=None:
-            _LOGGER.debug("Add cover entity %s", str(device_info))
-            _LOGGER.debug("Add cover entity - protocol %s", str(device_info[CONF_PROTOCOL]))
-            _LOGGER.debug("Add cover entity - device_address %s", str(device_info.get(CONF_DEVICE_ADDRESS)))
-            _LOGGER.debug("Add cover entity - device_id %s", str(device_info.get(CONF_DEVICE_ID)))
-            _LOGGER.debug("Add cover entity - initial_event %s", str(device_info))
+        _LOGGER.debug("Add cover entity %s", str(device_info))
+        #_LOGGER.debug("Add cover entity - protocol %s", str(device_info[CONF_PROTOCOL]))
+        #_LOGGER.debug("Add cover entity - device_address %s", str(device_info.get(CONF_DEVICE_ADDRESS)))
+        #_LOGGER.debug("Add cover entity - device_id %s", str(device_info.get(CONF_DEVICE_ID)))
+        #_LOGGER.debug("Add cover entity - initial_event %s", str(device_info))
 
-            try:
-                
-                if (device_info.get(CONF_DEVICE_ADDRESS) != None
-                or device_info.get(CONF_DEVICE_ID) != None) :
-                    _LOGGER.debug("Create from service")
-                    device = RfplayerCover(
-                        protocol=device_info[CONF_PROTOCOL],
-                        device_address=device_info.get(CONF_DEVICE_ADDRESS),
-                        device_id=device_info.get(CONF_DEVICE_ID),
-                        initial_event=device_info,
-                        #device_class=DEVICE_CLASS_SHUTTER
-                    )
-                else:
-                    _LOGGER.debug("Create from event")
-                    device_id = device_info[EVENT_KEY_ID]
-                    device = RfplayerCover(
-                        protocol=device_id.split("_")[0],
-                        device_address=device_info.get(CONF_DEVICE_ADDRESS),
-                        device_id=device_id.split("_")[1],
-                        initial_event=device_info,
-                        # device_class=DEVICE_CLASS_SHUTTER
-                    )
-                async_add_entities([device])
-            except :
-                _LOGGER.error("Cover creation error : ",str(device_info))
-        else :
-            _LOGGER.warning("Cover entity not created %s", device_info)
+        try:
+            
+            if (device_info.get(CONF_DEVICE_ADDRESS) != None
+            or device_info.get(CONF_DEVICE_ID) != None) :
+                _LOGGER.debug("Create from service")
+                device = RfplayerCover(
+                    protocol=device_info[CONF_PROTOCOL],
+                    device_address=device_info.get(CONF_DEVICE_ADDRESS),
+                    device_id=device_info.get(CONF_DEVICE_ID),
+                    initial_event=device_info,
+                    #device_class=DEVICE_CLASS_SHUTTER
+                )
+            else:
+                _LOGGER.debug("Create from event")
+                device_id = device_info[EVENT_KEY_ID]
+                device = RfplayerCover(
+                    protocol=device_id.split("_")[0],
+                    device_address=device_info.get(CONF_DEVICE_ADDRESS),
+                    device_id=device_id.split("_")[1],
+                    initial_event=device_info,
+                    # device_class=DEVICE_CLASS_SHUTTER
+                )
+            async_add_entities([device])
+        except :
+            _LOGGER.error("Cover creation error : ",str(device_info))
+        
 
     if CONF_DEVICES in config:
+        items_to_delete=[]
         for device_id, device_info in config[CONF_DEVICES].items():
             if EVENT_KEY_COVER in device_info:
-                await add_new_device(device_info)
+                if device_info.get("entity_type"):
+                    device_info["platform"]=device_info.get("entity_type")
+                if device_info.get(CONF_PROTOCOL)!=None and device_info.get("platform")!=None:
+                    await add_new_device(device_info)
+                else :
+                    _LOGGER.warning("Cover entity not created %s %s", device_id, device_info)
+                    items_to_delete.append(device_id)
+        for item in items_to_delete:
+            config[CONF_DEVICES].pop(item)
 
     if options.get(CONF_AUTOMATIC_ADD, config[CONF_AUTOMATIC_ADD]):
         hass.data[DOMAIN][DATA_DEVICE_REGISTER][EVENT_KEY_COVER] = add_new_device

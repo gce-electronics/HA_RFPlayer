@@ -29,26 +29,30 @@ async def async_setup_entry(hass, entry, async_add_entities):
     async def add_new_device(device_info):
         #if device_info.get(CONF_ENTITY_TYPE) == ENTITY_TYPE_SWITCH or device_info.get(CONF_ENTITY_TYPE) == "":
         """Check if device is known, otherwise create device entity."""
-        if((device_info.get("protocol")!=None) and (device_info.get("platform")!=None)):
-            _LOGGER.debug("Add switch entity %s", device_info)
-            # create entity
-            try:
-                device = RfplayerSwitch(
-                    protocol=device_info[CONF_PROTOCOL],
-                    device_address=device_info.get(CONF_DEVICE_ADDRESS),
-                    device_id=device_info.get(CONF_DEVICE_ID),
-                    initial_event=device_info,
-                )
-                async_add_entities([device])
-            except Exception as err:
-                _LOGGER.error("Switch %s creation error: %s",device_info.get(CONF_DEVICE_ID),str(err))
-        else :
-            _LOGGER.warning("Switch entity not created %s", device_info)
+        _LOGGER.debug("Add switch entity %s", device_info)
+        # create entity
+        try:
+            device = RfplayerSwitch(
+                protocol=device_info[CONF_PROTOCOL],
+                device_address=device_info.get(CONF_DEVICE_ADDRESS),
+                device_id=device_info.get(CONF_DEVICE_ID),
+                initial_event=device_info,
+            )
+            async_add_entities([device])
+        except Exception as err:
+            _LOGGER.error("Switch %s creation error: %s",device_info.get(CONF_DEVICE_ID),str(err))
 
     if CONF_DEVICES in config:
+        items_to_delete=[]
         for device_id, device_info in config[CONF_DEVICES].items():
             if EVENT_KEY_COMMAND in device_info:
-                await add_new_device(device_info)
+                if((device_info.get("protocol")!=None) and (device_info.get("platform")!=None)):
+                    await add_new_device(device_info)
+                else :
+                    _LOGGER.warning("Switch entity not created %s - %s", device_id, device_info)
+                    items_to_delete.append(device_id)
+        for item in items_to_delete:
+            config[CONF_DEVICES].pop(item)
 
     if options.get(CONF_AUTOMATIC_ADD, config[CONF_AUTOMATIC_ADD]):
         hass.data[DOMAIN][DATA_DEVICE_REGISTER][EVENT_KEY_COMMAND] = add_new_device
