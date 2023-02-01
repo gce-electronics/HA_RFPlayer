@@ -292,7 +292,7 @@ def infoType_10_decode(infos:list) -> list:
     fields_found["qualifier"]=infos["qualifier"]
    
     elements={'functionMeaning':'','stateMeaning':'','modeMeaning':'','d0':'','d1':'','d2':'','d3':''}
-    for measure,value in infos:
+    for measure,value in infos.items():
         if measure in elements:
             fields_found[measure] = value
             fields_found[measure+'_unit']= elements[measure]
@@ -311,7 +311,7 @@ def infoType_11_decode(infos:list) -> list:
     fields_found["qualifier"]=infos["qualifier"]
 
     elements={'functionMeaning':'','stateMeaning':'','modeMeaning':'','d0':'','d1':'','d2':'','d3':''}
-    for measure,value in infos:
+    for measure,value in infos.items():
         if measure in elements:
             fields_found[measure] = value
             fields_found[measure+'_unit']= elements[measure]

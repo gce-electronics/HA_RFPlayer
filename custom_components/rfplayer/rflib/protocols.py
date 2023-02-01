@@ -220,6 +220,7 @@ def X2D_decode(data:list,message:list,node) -> list:
     for element,value in decoding.items():
         decoded_items[element]=value
     decoding=globals()["_".join(["infoType",decoded_items["infoType"],"decode"])](message['infos'])
+    if protocols_debug: log.debug("decoding:%s",str(decoding))
     if decoding != None:
         if len(decoding)>0:
             decoding["platform"] = "sensor"

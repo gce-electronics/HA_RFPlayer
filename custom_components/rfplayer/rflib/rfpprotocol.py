@@ -138,6 +138,7 @@ class PacketHandling(ProtocolBase):
                         log.debug("command response: %s", packet)
                         self.handle_response_packet(packet)
                     else:
+                        log.debug("handle packet: %s", packet)
                         self.handle_packet(packet)
         else:
             log.warning("no valid packet")
@@ -147,8 +148,8 @@ class PacketHandling(ProtocolBase):
         if self.packet_callback:
             # forward to callback
             self.packet_callback(packet)
-        #else:
-        #    print("packet", packet)
+        else:
+            log.debug("packet %s", packet)
 
     def handle_response_packet(self, packet: PacketType) -> None:
         """Handle response packet."""
