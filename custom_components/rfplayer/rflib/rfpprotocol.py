@@ -69,7 +69,6 @@ class ProtocolBase(asyncio.Protocol):
             invalid_data = data.decode(errors="replace")
             log.warning("Error during decode of data, invalid data: %s", invalid_data)
         else:
-            #log.debug("received data: %s", decoded_data.strip())
             self.buffer += decoded_data
             self.handle_lines()
 
@@ -132,13 +131,13 @@ class PacketHandling(ProtocolBase):
         if packets:
             for packet in packets:
                 if packet != None:
-                    log.debug("decoded packet: %s", packet)
+                    #log.debug("decoded packet: %s", packet)
                     if "ok" in packet:
                         # handle response packets internally
                         log.debug("command response: %s", packet)
                         self.handle_response_packet(packet)
                     else:
-                        log.debug("handle packet: %s", packet)
+                        #log.debug("handle packet: %s", packet)
                         self.handle_packet(packet)
         else:
             log.warning("no valid packet")
@@ -147,9 +146,10 @@ class PacketHandling(ProtocolBase):
         """Process incoming packet dict and optionally call callback."""
         if self.packet_callback:
             # forward to callback
+            #log.debug("forwarding packet: %s to %s", packet,self.packet_callback.__code__)
             self.packet_callback(packet)
         else:
-            log.debug("packet %s", packet)
+            log.debug("packet with no callback %s", packet)
 
     def handle_response_packet(self, packet: PacketType) -> None:
         """Handle response packet."""
@@ -242,7 +242,7 @@ class EventHandling(PacketHandling):
         super().__init__(*args, **kwargs)
         self.event_callback = event_callback
         # suppress printing of packets
-        #log.debug("EventHandling")
+        log.debug("EventHandling")
         if not kwargs.get("packet_callback"):
             self.packet_callback = lambda x: None
         if ignore:
@@ -267,7 +267,7 @@ class EventHandling(PacketHandling):
 
     def handle_event(self, event: PacketType) -> None:
         """Handle of incoming event (print)."""
-        #log.debug("_handle_event")
+        log.debug("_handle_event")
         string = "{id:<32} "
         if "command" in event:
             string += "{command}"

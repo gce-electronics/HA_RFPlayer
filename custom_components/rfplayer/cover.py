@@ -160,20 +160,14 @@ class RfplayerCover(RfplayerDevice, CoverEntity):
             command = event["value"]
         else:
             command = event["cover"]
-        if command in [COMMAND_UP]:
+        if command in [COMMAND_UP,COMMAND_ON]:
             self._attr_state = STATE_OPEN
-        elif command in [COMMAND_DOWN]:
+        elif command in [COMMAND_DOWN,COMMAND_OFF]:
             self._attr_state = STATE_CLOSED
         elif command in [COMMAND_MY]:
             self._attr_state = STATE_OPEN
         self.schedule_update_ha_state()
 
-    """@property
-    def should_poll(self):
-        #No polling needed.
-        return True"""
-
-    
     @property
     def supported_features(self):
         return SUPPORT_OPEN | SUPPORT_CLOSE | SUPPORT_STOP

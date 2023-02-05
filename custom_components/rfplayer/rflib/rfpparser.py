@@ -21,7 +21,30 @@ PACKET_FIELDS = {
     "cov": "cover",
     "swi":"switch",
     "tem":"temperature",
-    "hyg":"hygrometry"
+    "hyg":"hygrometry",
+    "prs":"pressure",
+    "alm":"alarm",
+    "tmr":"tamper",
+    "bt1":"button1",
+    "bt2":"button2",
+    "bt3":"button3",
+    "bt4":"button4",
+    "spd":"speed",
+    "dir":"direction",
+    "uv":"uv",
+    "pow":"Power",
+    "P1":"P1",
+    "P2":"P2",
+    "P3":"P3",
+    "TRN":"TotalRain",
+    "Rai":"Rain",
+    "fnc":"functionMeaning",
+    "sta":"stateMeaning",
+    "mod":"modeMeaning",
+    "d0":"d0",
+    "d1":"d1",
+    "d2":"d2",
+    "d3":"d3",
 }
 
 RTS_ELEM = {
@@ -109,61 +132,18 @@ def decode_packet(packet: str) -> list:
 
     NewMotor=False
 
+
     try:
         packets_found.append(globals()["_".join([data["protocol"],"decode"])](data,message,PacketHeader.gateway.name))
-        #log.debug("Packets foud new method : %s",str(packets_found))
         NewMotor=True
     except Exception as e:
         log.error("Protocol %s not implemented : %s", str(data["protocol"]),str(e))
         log.debug("Trace : %s",traceback.format_exc())
-        log.debug("Message : %s", str(message))
+        #log.debug("Message : %s", str(message))
 
-    if not NewMotor:
-        """
-        if data["protocol"] in ["BLYSS", "CHACON", "JAMMING"]:
-            data["id"] = message["infos"]["id"]
-            data["command"] = message["infos"]["subType"]
-            data["state"] = message["infos"]["subTypeMeaning"]
-            packets_found.append(data)
-        elif data["protocol"] in ["X2D"]:
-            data["id"] = message["infos"]["id"]
-            if message["infos"]["subTypeMeaning"] == 'Detector/Sensor':
-                value = VALUE_TRANSLATION['detector'](message["infos"]["qualifier"]) 
-                data["command"] = value
-                data["state"] = value
-            else:
-                data["command"] = message["infos"]["subTypeMeaning"]
-                data["state"] = message["infos"]["qualifier"]
-                packets_found.append(data)           
-        elif data["protocol"] in ["OREGON"]:
-            data["id"] = message["infos"]["id_PHY"]
-            data["hardware"] = message["infos"]["id_PHYMeaning"]
-            for measure in message["infos"]["measures"]:
-                measure_data = data.copy()
-                measure_data["command"] = measure["value"]
-                measure_data["state"] = measure["value"]
-                measure_data["unit"] = measure["unit"]
-                measure_data["type"] = measure["type"]
-                packets_found.append(measure_data)
-        elif data["protocol"] in ["EDISIO"]:
-            data["id"] = message["infos"]["id"]
-            data["hardware"] = message["infos"]["infoMeaning"]
-            data["command"] = message["infos"]["subType"]
-            data["state"] = message["infos"]["subType"]
-            packets_found.append(data)
-        elif data["protocol"] in ["RTS"]:
-            data["id"] = message["infos"]["id"]
-            data["platform"] = "cover"
-            value = VALUE_TRANSLATION['rts_status'](message["infos"]["qualifier"]) 
-            #data["platform"] = "cover"
-            data["cover"] = value
-            packets_found.append(data)
-        else:
-            data["id"] = message["infos"].get("id")
-            data["command"] = message["infos"].get("subType")
-            packets_found.append(data)
-        """
-
+    #if packets_found==[None]:
+    #    log.error("No packets found in %s", str(message))
+    log.debug("Packets Found : %s", str(packets_found))
     return packets_found
 
 def encode_packet(packet: PacketType) -> str:
@@ -242,15 +222,8 @@ def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
             platform=v
         if f == "protocol":
             protocol=v
-    #for s, v in events.items():
-    #    log.debug("event: %s -> %s", s, v)
-
-    # try:
-    #   packet["message"]
-    #   yield { "id": packet_id, "message": packet["message"] }
-    # except KeyError:
     for sensor, value in events.items():
-        log.debug("packet_events, sensor:%s,value:%s", sensor, value)
+        #log.debug("packet_events, sensor:%s,value:%s", sensor, value)
         unit = packet.get(sensor + "_unit", None)
         yield {
             "id": packet_id + field_abbrev[sensor] + PACKET_ID_SEP + field_abbrev[sensor],

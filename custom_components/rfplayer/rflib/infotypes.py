@@ -1,7 +1,7 @@
 import logging
 
 #Debogage des infotypes
-infotypes_debug=True
+infotypes_debug=False
 
 log = logging.getLogger(__name__)
 
@@ -29,20 +29,22 @@ def check_bitR2L(byte, bit):
 def infoType_0_decode(infos:list) -> list:
     if infotypes_debug: log.debug("Decode InfoType 0")
     fields_found = {}
-    match infos["subtype"]:
+    match infos["subType"]:
         case 0 :
-            fields_found["subtype"]="OFF"
+            fields_found["subType"]="OFF"
         case 1 :
-            fields_found["subtype"]="ON"
+            fields_found["subType"]="ON"
         case 2 :
-            fields_found["subtype"]="BRIGHT"
+            fields_found["subType"]="BRIGHT"
         case 3 :
-            fields_found["subtype"]="DIM"
+            fields_found["subType"]="DIM"
         case 4 :
-            fields_found["subtype"]="ALL_OFF"
+            fields_found["subType"]="ALL_OFF"
         case 5 :
-            fields_found["subtype"]="ALL_ON"
+            fields_found["subType"]="ALL_ON"
+    
     fields_found["id"]=infos["id"]
+    fields_found["comamnd"]=infos["cmd"]
 
     if fields_found["id"]!="0":
         return fields_found
@@ -50,34 +52,35 @@ def infoType_0_decode(infos:list) -> list:
 def infoType_1_decode(infos:list) -> list:
     if infotypes_debug: log.debug("Decode InfoType 1")
     fields_found = {}
-    match infos["subtype"]:
+    match infos["subType"]:
         case 0 :
-            fields_found["subtype"]="OFF"
+            fields_found["subType"]="OFF"
         case 1 :
-            fields_found["subtype"]="ON"
+            fields_found["subType"]="ON"
         case 4 :
-            fields_found["subtype"]="ALL_OFF"
+            fields_found["subType"]="ALL_OFF"
         case 5 :
-            fields_found["subtype"]="ALL_ON"
+            fields_found["subType"]="ALL_ON"
 
     fields_found["id"]=infos["id"]
+    fields_found["comamnd"]=infos["cmd"]
 
     if fields_found["id"]!="0":
         return fields_found
 
 def infoType_2_decode(infos:list) -> list:
-    if infotypes_debug: log.debug("Decode InfoType 2")
+    if infotypes_debug: log.debug("Decode InfoType 2: %s",str(infos))
     fields_found = {}
     binQualifier=int(infos["qualifier"])
-    match infos["subtype"]:
-        case 0 :
-            fields_found["subtype"]="SENSOR"
-            fields_found["Tamper"]=int(binQualifier[-1])
-            fields_found["Alarm"]=int(binQualifier[-2])
-            fields_found["LowBatt"]=int(binQualifier[-3])
-            fields_found["Supervisor"]=int(binQualifier[-4])
-        case 1 :
-            fields_found["subtype"]="REMOTE"
+    match infos["subType"]:
+        case "0" :
+            fields_found["subType"]="SENSOR"
+            fields_found["tamper"]=int(str(binQualifier[-1]))
+            fields_found["alarm"]=int(str(binQualifier[-2]))
+            fields_found["battery"]=1-int(str(binQualifier[-3]))
+            fields_found["supervisor"]=int(str(binQualifier[-4]))
+        case "1" :
+            fields_found["subType"]="REMOTE"
             fields_found["button1"]=int(binQualifier)==0x08
             fields_found["button2"]=int(binQualifier)==0x10
             fields_found["button3"]=int(binQualifier)==0x20
@@ -119,7 +122,7 @@ def infoType_4_decode(infos:list) -> list:
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
-    fields_found["lowBatt"]=infos["lowBatt"]
+    fields_found["battery"]=1-int(infos["lowBatt"])
 
     match int(infos["qualifier"])>>4:
         case 1 :
@@ -130,6 +133,7 @@ def infoType_4_decode(infos:list) -> list:
             fields_found["oreg_protocol"]="V3"
     elements={'temperature':'°C','hygrometry':'%'}
     for measure in infos["measures"]:
+        log.debug("%s",str(measure))
         if measure['type'] in elements:
             fields_found[measure['type']]= measure['value']
             fields_found[measure['type']+'_unit']= elements[measure['type']]
@@ -148,7 +152,7 @@ def infoType_5_decode(infos:list) -> list:
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
-    fields_found["lowBatt"]=infos["lowBatt"]
+    fields_found["battery"]=1-int(infos["lowBatt"])
 
     match int(infos["qualifier"])>>4:
         case 1 :
@@ -177,7 +181,7 @@ def infoType_6_decode(infos:list) -> list:
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
-    fields_found["lowBatt"]=infos["lowBatt"]
+    fields_found["battery"]=1-int(infos["lowBatt"])
     
     match int(infos["qualifier"])>>4:
         case 1 :
@@ -206,7 +210,7 @@ def infoType_7_decode(infos:list) -> list:
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
-    fields_found["lowBatt"]=infos["lowBatt"]
+    fields_found["battery"]=1-int(infos["lowBatt"])
     
     match int(infos["qualifier"])>>4:
         case 1 :
@@ -235,7 +239,7 @@ def infoType_8_decode(infos:list) -> list:
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
-    fields_found["lowBatt"]=infos["lowBatt"]
+    fields_found["battery"]=1-int(infos["lowBatt"])
     
     match int(infos["qualifier"])>>1:
         case 0 :
@@ -263,7 +267,7 @@ def infoType_9_decode(infos:list) -> list:
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["id_channel"]=infos["id_channel"]
     fields_found["qualifier"]=infos["qualifier"]
-    fields_found["lowBatt"]=infos["lowBatt"]
+    fields_found["battery"]=1-int(infos["lowBatt"])
     
     match int(infos["qualifier"])>>4:
         case 1 :

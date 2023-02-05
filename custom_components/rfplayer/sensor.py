@@ -2,10 +2,8 @@
 import logging
 
 from homeassistant.const import (
-    CONF_DEVICES,CONF_DEVICE,
-    CONF_DEVICES)
+    CONF_DEVICES,CONF_DEVICES)
 from homeassistant.helpers.entity import EntityCategory
-from homeassistant.helpers.device_registry import async_get_registry
 
 from . import RfplayerDevice
 from .const import (
@@ -17,7 +15,6 @@ from .const import (
     EVENT_KEY_SENSOR,
     EVENT_KEY_UNIT,
 )
-from .rflib.rfpparser import PACKET_FIELDS, UNITS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -26,16 +23,6 @@ SENSOR_ICONS = {
     "battery": "mdi:battery",
     "temperature": "mdi:thermometer",
 }
-
-
-def lookup_unit_for_sensor_type(sensor_type):
-    """Get unit for sensor type.
-
-    Async friendly.
-    """
-    field_abbrev = {v: k for k, v in PACKET_FIELDS.items()}
-
-    return UNITS.get(field_abbrev.get(sensor_type))
 
 
 async def async_setup_entry(hass, entry, async_add_entities):

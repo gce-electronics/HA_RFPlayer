@@ -63,6 +63,7 @@ def header_decode(header:dict):
     headers_found['protocol']=header.get('protocolMeaning')
     return headers_found
 
+#X10 : Infotypes : 0,1
 def X10_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode X10")
     if protocols_debug: log.debug("data:%s",str(data))
@@ -84,6 +85,7 @@ def X10_decode(data:list,message:list,node) -> list:
 
     log.warn('Shadow Message, no id found !')
 
+#VISONIC : Infotypes : 2
 def VISONIC_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode VISONIC")
     if protocols_debug: log.debug("data:%s",str(data))
@@ -97,7 +99,7 @@ def VISONIC_decode(data:list,message:list,node) -> list:
     if decoding != None:
         if len(decoding)>0:
             decoding["platform"] = "sensor"
-
+            decoding['sensor']=decoding["qualifier"]
             for element,value in decoding.items():
                 decoded_items[element]=value
             
@@ -105,6 +107,7 @@ def VISONIC_decode(data:list,message:list,node) -> list:
     
     log.warn('Shadow Message, no id found !')
 
+#X10 : Infotypes : 0,1
 def BLYSS_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode BLYSS")
     if protocols_debug: log.debug("data:%s",str(data))

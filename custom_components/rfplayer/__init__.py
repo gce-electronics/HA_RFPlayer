@@ -152,7 +152,7 @@ async def async_setup_entry(hass, entry):
         accordingly.
         """
         event_type = identify_event_type(event)
-        _LOGGER.debug("event of type %s: %s", event_type, event)
+        #_LOGGER.debug("event of type %s: %s", event_type, event)
 
         # Don't propagate non entity events (eg: version string, ack response)
         if event_type not in hass.data[DOMAIN][DATA_ENTITY_LOOKUP]:
@@ -164,12 +164,12 @@ async def async_setup_entry(hass, entry):
         #_LOGGER.debug("List of entities : %s",str(hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type]))
         entity_id = hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type][event_id]
 
-        _LOGGER.debug("Entity ID : %s",entity_id);
-        _LOGGER.debug("Event ID : %s",event_id);
+        #_LOGGER.debug("Entity ID : %s",entity_id);
+        #_LOGGER.debug("Event ID : %s",event_id);
 
         if entity_id:
             # Propagate event to every entity matching the device id
-            _LOGGER.debug("passing event to %s", entity_id)
+            #_LOGGER.debug("passing event to %s", entity_id)
             async_dispatcher_send(
                 hass, SIGNAL_HANDLE_EVENT.format(entity_id), event)
         else:
