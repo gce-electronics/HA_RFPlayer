@@ -71,20 +71,24 @@ def infoType_1_decode(infos:list) -> list:
 def infoType_2_decode(infos:list) -> list:
     if infotypes_debug: log.debug("Decode InfoType 2: %s",str(infos))
     fields_found = {}
-    binQualifier=int(infos["qualifier"])
-    match infos["subType"]:
-        case "0" :
-            fields_found["subType"]="SENSOR"
-            fields_found["tamper"]=int(str(binQualifier[-1]))
-            fields_found["alarm"]=int(str(binQualifier[-2]))
-            fields_found["battery"]=1-int(str(binQualifier[-3]))
-            fields_found["supervisor"]=int(str(binQualifier[-4]))
-        case "1" :
-            fields_found["subType"]="REMOTE"
-            fields_found["button1"]=int(binQualifier)==0x08
-            fields_found["button2"]=int(binQualifier)==0x10
-            fields_found["button3"]=int(binQualifier)==0x20
-            fields_found["button4"]=int(binQualifier)==0x40
+    binQualifier=infos["qualifier"]
+    try:
+        match infos["subType"]:
+            case "0" :
+                fields_found["subType"]="SENSOR"
+                fields_found["tamper"]=binQualifier[-1]
+                fields_found["alarm"]=binQualifier[-2]
+                fields_found["battery"]=1-int(binQualifier[-3])
+                fields_found["supervisor"]=binQualifier[-4]
+            case "1" :
+                fields_found["subType"]="REMOTE"
+                fields_found["button1"]=int(binQualifier)==0x08
+                fields_found["button2"]=int(binQualifier)==0x10
+                fields_found["button3"]=int(binQualifier)==0x20
+                fields_found["button4"]=int(binQualifier)==0x40
+    except:
+        log.debug("Erreur décodage infotype2 - subType : %s",str(binQualifier))    
+        log.debug("infos : %s",str(infos)) 
     fields_found["id"]=infos["id"]
 
     if fields_found["id"]!="0":
@@ -133,7 +137,7 @@ def infoType_4_decode(infos:list) -> list:
             fields_found["oreg_protocol"]="V3"
     elements={'temperature':'°C','hygrometry':'%'}
     for measure in infos["measures"]:
-        log.debug("%s",str(measure))
+        #log.debug("%s",str(measure))
         if measure['type'] in elements:
             fields_found[measure['type']]= measure['value']
             fields_found[measure['type']+'_unit']= elements[measure['type']]

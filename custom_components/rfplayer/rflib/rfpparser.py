@@ -143,7 +143,7 @@ def decode_packet(packet: str) -> list:
 
     #if packets_found==[None]:
     #    log.error("No packets found in %s", str(message))
-    log.debug("Packets Found : %s", str(packets_found))
+    #log.debug("Packets Found : %s", str(packets_found))
     return packets_found
 
 def encode_packet(packet: PacketType) -> str:

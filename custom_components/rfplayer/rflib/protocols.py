@@ -83,7 +83,7 @@ def X10_decode(data:list,message:list,node) -> list:
             
             return decoded_items
 
-    log.warn('Shadow Message, no id found !')
+    #log.warn('Shadow Message, no id found !')
 
 #VISONIC : Infotypes : 2
 def VISONIC_decode(data:list,message:list,node) -> list:
@@ -105,7 +105,7 @@ def VISONIC_decode(data:list,message:list,node) -> list:
             
             return decoded_items
     
-    log.warn('Shadow Message, no id found !')
+    #log.warn('Shadow Message, no id found !')
 
 #X10 : Infotypes : 0,1
 def BLYSS_decode(data:list,message:list,node) -> list:
@@ -127,7 +127,7 @@ def BLYSS_decode(data:list,message:list,node) -> list:
             
             return decoded_items
     
-    log.warn('Shadow Message, no id found !')
+    #log.warn('Shadow Message, no id found !')
 
 def CHACON_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode CHACON")
@@ -148,7 +148,7 @@ def CHACON_decode(data:list,message:list,node) -> list:
             
             return decoded_items
     
-    log.warn('Shadow Message, no id found !')
+    #log.warn('Shadow Message, no id found !')
 
 def OREGON_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode OREGON")
@@ -169,7 +169,7 @@ def OREGON_decode(data:list,message:list,node) -> list:
             
             return decoded_items
     
-    log.warn('Shadow Message, no id found !')
+    #log.warn('Shadow Message, no id found !')
 
 def DOMIA_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode DOMIA")
@@ -190,7 +190,7 @@ def DOMIA_decode(data:list,message:list,node) -> list:
             
             return decoded_items
     
-    log.warn('Shadow Message, no id found !')
+    #log.warn('Shadow Message, no id found !')
 
 def OWL_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode OWL")
@@ -211,7 +211,7 @@ def OWL_decode(data:list,message:list,node) -> list:
             
             return decoded_items
     
-    log.warn('Shadow Message, no id found !')
+    #log.warn('Shadow Message, no id found !')
 
 def X2D_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode X2D")
@@ -233,7 +233,7 @@ def X2D_decode(data:list,message:list,node) -> list:
             
             return decoded_items
     
-    log.warn('Shadow Message, no id found !')
+    #log.warn('Shadow Message, no id found !')
 
 def RTS_decode(data:list,message:list,node) -> list:
     """
@@ -264,7 +264,7 @@ def RTS_decode(data:list,message:list,node) -> list:
             
             return decoded_items
     
-    log.warn('Shadow Message, no address found !')
+    #log.warn('Shadow Message, no address found !')
 
 def KD101_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode KD101")
@@ -285,7 +285,7 @@ def KD101_decode(data:list,message:list,node) -> list:
             
             return decoded_items
     
-    log.warn('Shadow Message, no id found !')
+    #log.warn('Shadow Message, no id found !')
 
 def PARROT_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode PARROT")
@@ -306,7 +306,7 @@ def PARROT_decode(data:list,message:list,node) -> list:
             
             return decoded_items
     
-    log.warn('Shadow Message, no id found !')
+    #log.warn('Shadow Message, no id found !')
 
 def TIC_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode TIC")
@@ -327,7 +327,7 @@ def TIC_decode(data:list,message:list,node) -> list:
             
             return decoded_items
     
-    log.warn('Shadow Message, no id found !')
+    #log.warn('Shadow Message, no id found !')
 
 def FS20_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode FS20")
@@ -348,7 +348,7 @@ def FS20_decode(data:list,message:list,node) -> list:
             
             return decoded_items
     
-    log.warn('Shadow Message, no id found !')
+    #log.warn('Shadow Message, no id found !')
 
 def JAMMING_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode JAMMING")
@@ -369,7 +369,7 @@ def JAMMING_decode(data:list,message:list,node) -> list:
             
             return decoded_items
     
-    log.warn('Shadow Message, no id found !')
+    #log.warn('Shadow Message, no id found !')
 
 def EDISIO_decode(data:list,message:list,node) -> list:
     if protocols_debug: log.debug("Decode EDISIO")
@@ -390,4 +390,4 @@ def EDISIO_decode(data:list,message:list,node) -> list:
             
             return decoded_items
     
-    log.warn('Shadow Message, no id found !')
+    #log.warn('Shadow Message, no id found !')
