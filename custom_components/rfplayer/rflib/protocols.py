@@ -99,7 +99,7 @@ def VISONIC_decode(data:list,message:list,node) -> list:
     if decoding != None:
         if len(decoding)>0:
             decoding["platform"] = "sensor"
-            decoding['sensor']=decoding["qualifier"]
+            #decoding['sensor']=decoding["qualifier"]
             for element,value in decoding.items():
                 decoded_items[element]=value
             

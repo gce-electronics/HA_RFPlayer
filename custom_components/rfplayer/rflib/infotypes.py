@@ -44,7 +44,7 @@ def infoType_0_decode(infos:list) -> list:
             fields_found["subType"]="ALL_ON"
     
     fields_found["id"]=infos["id"]
-    fields_found["comamnd"]=infos["cmd"]
+    fields_found["command"]=fields_found["subType"]
 
     if fields_found["id"]!="0":
         return fields_found
@@ -63,7 +63,7 @@ def infoType_1_decode(infos:list) -> list:
             fields_found["subType"]="ALL_ON"
 
     fields_found["id"]=infos["id"]
-    fields_found["comamnd"]=infos["cmd"]
+    fields_found["command"]=fields_found["subType"]
 
     if fields_found["id"]!="0":
         return fields_found
@@ -76,18 +76,18 @@ def infoType_2_decode(infos:list) -> list:
         match infos["subType"]:
             case "0" :
                 fields_found["subType"]="SENSOR"
-                fields_found["tamper"]=binQualifier[-1]
-                fields_found["alarm"]=binQualifier[-2]
-                fields_found["battery"]=1-int(binQualifier[-3])
-                fields_found["supervisor"]=binQualifier[-4]
+                fields_found["tamper"]=(binQualifier >> 1) & 0x01
+                fields_found["alarm"]=(binQualifier >> 2) &0x01
+                fields_found["battery"]=1-((binQualifier >> 3) &0x01)
+                fields_found["supervisor"]=(binQualifier >> 2) &0x04
             case "1" :
                 fields_found["subType"]="REMOTE"
                 fields_found["button1"]=int(binQualifier)==0x08
                 fields_found["button2"]=int(binQualifier)==0x10
                 fields_found["button3"]=int(binQualifier)==0x20
                 fields_found["button4"]=int(binQualifier)==0x40
-    except:
-        log.debug("Erreur décodage infotype2 - subType : %s",str(binQualifier))    
+    except Exception as ex:
+        log.debug("Erreur décodage infotype2 - qualifier : %s => %s",str(binQualifier),ex)    
         log.debug("infos : %s",str(infos)) 
     fields_found["id"]=infos["id"]
 
