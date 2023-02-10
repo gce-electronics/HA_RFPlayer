@@ -44,7 +44,7 @@ def infoType_0_decode(infos:list) -> list:
             fields_found["subType"]="ALL_ON"
     
     fields_found["id"]=infos["id"]
-    fields_found["command"]=fields_found["subType"]
+    fields_found["command"]=infos["subType"]
 
     if fields_found["id"]!="0":
         return fields_found
@@ -71,7 +71,7 @@ def infoType_1_decode(infos:list) -> list:
 def infoType_2_decode(infos:list) -> list:
     if infotypes_debug: log.debug("Decode InfoType 2: %s",str(infos))
     fields_found = {}
-    binQualifier=infos["qualifier"]
+    binQualifier=int(infos["qualifier"])
     try:
         match infos["subType"]:
             case "0" :
@@ -82,10 +82,10 @@ def infoType_2_decode(infos:list) -> list:
                 fields_found["supervisor"]=(binQualifier >> 2) &0x04
             case "1" :
                 fields_found["subType"]="REMOTE"
-                fields_found["button1"]=int(binQualifier)==0x08
-                fields_found["button2"]=int(binQualifier)==0x10
-                fields_found["button3"]=int(binQualifier)==0x20
-                fields_found["button4"]=int(binQualifier)==0x40
+                fields_found["button1"]=binQualifier==0x08
+                fields_found["button2"]=binQualifier==0x10
+                fields_found["button3"]=binQualifier==0x20
+                fields_found["button4"]=binQualifier==0x40
     except Exception as ex:
         log.debug("Erreur décodage infotype2 - qualifier : %s => %s",str(binQualifier),ex)    
         log.debug("infos : %s",str(infos)) 
@@ -140,7 +140,8 @@ def infoType_4_decode(infos:list) -> list:
         #log.debug("%s",str(measure))
         if measure['type'] in elements:
             fields_found[measure['type']]= measure['value']
-            fields_found[measure['type']+'_unit']= elements[measure['type']]
+            if elements[measure] != '':
+                fields_found[measure['type']+'_unit']= elements[measure['type']]
 
     fields_found["id"]=infos["adr_channel"]
     
@@ -169,7 +170,8 @@ def infoType_5_decode(infos:list) -> list:
     for measure in infos["measures"]:
         if measure['type'] in elements:
             fields_found[measure['type']]= measure['value']
-            fields_found[measure['type']+'_unit']= elements[measure['type']]
+            if elements[measure] != '':
+                fields_found[measure['type']+'_unit']= elements[measure['type']]
 
     fields_found["id"]=infos["adr_channel"]
     
@@ -198,7 +200,8 @@ def infoType_6_decode(infos:list) -> list:
     for measure in infos["measures"]:
         if measure['type'] in elements:
             fields_found[measure['type']]= measure['value']
-            fields_found[measure['type']+'_unit']= elements[measure['type']]
+            if elements[measure] != '':
+                fields_found[measure['type']+'_unit']= elements[measure['type']]
 
     fields_found["id"]=infos["adr_channel"]
     
@@ -227,7 +230,8 @@ def infoType_7_decode(infos:list) -> list:
     for measure in infos["measures"]:
         if measure['type'] in elements:
             fields_found[measure['type']]= measure['value']
-            fields_found[measure['type']+'_unit']= elements[measure['type']]
+            if elements[measure] != '':
+                fields_found[measure['type']+'_unit']= elements[measure['type']]
 
     fields_found["id"]=infos["adr_channel"]
     
@@ -255,7 +259,8 @@ def infoType_8_decode(infos:list) -> list:
     for measure in infos["measures"]:
         if measure['type'] in elements:
             fields_found[measure['type']]= measure['value']
-            fields_found[measure['type']+'_unit']= elements[measure['type']]
+            if elements[measure] != '':
+                fields_found[measure['type']+'_unit']= elements[measure['type']]
 
     fields_found["id"]=infos["adr_channel"]
     
@@ -284,7 +289,8 @@ def infoType_9_decode(infos:list) -> list:
     for measure in infos["measures"]:
         if measure['type'] in elements:
             fields_found[measure['type']]= measure['value']
-            fields_found[measure['type']+'_unit']= elements[measure['type']]
+            if elements[measure] != '':
+                fields_found[measure['type']+'_unit']= elements[measure['type']]
 
     fields_found["id"]=infos["id_channel"]
     
@@ -303,7 +309,8 @@ def infoType_10_decode(infos:list) -> list:
     for measure,value in infos.items():
         if measure in elements:
             fields_found[measure] = value
-            fields_found[measure+'_unit']= elements[measure]
+            if elements[measure] != '':
+                fields_found[measure+'_unit']= elements[measure]
 
     fields_found["id"]=infos["id"]
     
@@ -322,7 +329,8 @@ def infoType_11_decode(infos:list) -> list:
     for measure,value in infos.items():
         if measure in elements:
             fields_found[measure] = value
-            fields_found[measure+'_unit']= elements[measure]
+            if elements[measure] != '':
+                fields_found[measure+'_unit']= elements[measure]
 
     if 'flags' in infos['qualifierMeaning']:
         for flag in infos['qualifierMeaning']['flags']:
