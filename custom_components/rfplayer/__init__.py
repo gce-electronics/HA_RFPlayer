@@ -153,7 +153,7 @@ async def async_setup_entry(hass, entry):
 
         # Lookup entities who registered this device id as device id or alias
         event_id = event.get(EVENT_KEY_ID)
-        #_LOGGER.debug("List of entities : %s",str(hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type]))
+        #_LOGGER.debug("List of entities : %s",str(hass.data[DOMAIN]))
         entity_id = hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type][event_id]
 
         #_LOGGER.debug("Entity ID : %s",entity_id);

@@ -46,7 +46,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         items_to_delete=[]
         for device_id, device_info in config[CONF_DEVICES].items():
             if EVENT_KEY_COMMAND in device_info:
-                if((device_info.get("protocol")!=None) and (device_info.get("platform")!=None)):
+                if((device_info.get("protocol")!=None) and (device_info.get("platform")=="switch")):
                     await add_new_device(device_info)
                 else :
                     _LOGGER.warning("Switch entity not created %s - %s", device_id, device_info)

@@ -132,6 +132,7 @@ def decode_packet(packet: str) -> list:
     # Protocols
     message = json.loads(packet.replace("ZIA33", ""))["frame"]
     data["protocol"] = message["header"]["protocolMeaning"]
+    #log.debug("Packet : %s",packet)
 
     NewMotor=False
 
@@ -218,18 +219,28 @@ def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
     }
 
     packet_id = serialize_packet_id(packet)
+    
     events = {f: v for f, v in packet.items() if f in field_abbrev}
+    forceid=None
     for f, v in packet.items():
         #log.debug("f:%s,v:%s", f, v)
         if f == "platform":
             platform=v
         if f == "protocol":
             protocol=v
+        if f == "forceid" :
+            forceid=v
     for sensor, value in events.items():
-        #log.debug("packet_events, sensor:%s,value:%s", sensor, value)
+        log.debug("packet_events, sensor:%s,value:%s", sensor, value)
         unit = packet.get(sensor + "_unit", None)
+        
+        if forceid==None:
+            id=packet_id + field_abbrev[sensor] + PACKET_ID_SEP + field_abbrev[sensor]
+        else :
+            id=forceid
+            
         yield {
-            "id": packet_id + field_abbrev[sensor] + PACKET_ID_SEP + field_abbrev[sensor],
+            "id": id,
             sensor: value,
             "value":value,
             "unit": unit,

@@ -122,7 +122,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             if EVENT_KEY_COVER in device_info:
                 if device_info.get("entity_type"):
                     device_info["platform"]=device_info.get("entity_type")
-                if device_info.get(CONF_PROTOCOL)!=None and device_info.get("platform")!=None:
+                if device_info.get(CONF_PROTOCOL)!=None and device_info.get("platform")=="cover":
                     await add_new_device(device_info)
                 else :
                     _LOGGER.warning("Cover entity not created %s %s", device_id, device_info)

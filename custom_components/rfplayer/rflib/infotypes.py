@@ -26,7 +26,7 @@ def check_bitL2R(byte, bit):
 def check_bitR2L(byte, bit):
     return bool(byte & (0b1<<bit))
 
-def infoType_0_decode(infos:list) -> list:
+def infoType_0_decode(infos:list,allowEmptyID:bool=False) -> list:
     if infotypes_debug: log.debug("Decode InfoType 0")
     fields_found = {}
     match infos["subType"]:
@@ -46,12 +46,13 @@ def infoType_0_decode(infos:list) -> list:
     fields_found["id"]=infos["id"]
     fields_found["command"]=infos["subType"]
 
-    if fields_found["id"]!="0":
+    if fields_found["id"]!="0" or allowEmptyID:
         return fields_found
 
-def infoType_1_decode(infos:list) -> list:
+def infoType_1_decode(infos:list,allowEmptyID:bool=False) -> list:
     if infotypes_debug: log.debug("Decode InfoType 1")
     fields_found = {}
+    """
     match infos["subType"]:
         case 0 :
             fields_found["subType"]="OFF"
@@ -61,14 +62,20 @@ def infoType_1_decode(infos:list) -> list:
             fields_found["subType"]="ALL_OFF"
         case 5 :
             fields_found["subType"]="ALL_ON"
+        case _ :
+            fields_found["subType"]=infos["subType"]
+    """
+
+    fields_found["subType"]=infos.get("subTypeMeaning")
+    if fields_found["subType"] == None or fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
 
     fields_found["id"]=infos["id"]
     fields_found["command"]=fields_found["subType"]
 
-    if fields_found["id"]!="0":
+    if fields_found["id"]!="0" or allowEmptyID:
         return fields_found
 
-def infoType_2_decode(infos:list) -> list:
+def infoType_2_decode(infos:list,allowEmptyID:bool=False) -> list:
     if infotypes_debug: log.debug("Decode InfoType 2: %s",str(infos))
     fields_found = {}
     binQualifier=int(infos["qualifier"])
@@ -92,10 +99,10 @@ def infoType_2_decode(infos:list) -> list:
         log.debug("infos : %s",str(infos)) 
     fields_found["id"]=infos["id"]
 
-    if fields_found["id"]!="0":
+    if fields_found["id"]!="0" or allowEmptyID:
         return fields_found
 
-def infoType_3_decode(infos:list) -> list:
+def infoType_3_decode(infos:list,allowEmptyID:bool=False) -> list:
     if infotypes_debug: log.debug("Decode InfoType 3")
     fields_found = {}
     fields_found["subType"]=infos["subTypeMeaning"]
@@ -116,10 +123,10 @@ def infoType_3_decode(infos:list) -> list:
 
     fields_found["id"]=infos["id"]
 
-    if fields_found["id"]!="0":
+    if fields_found["id"]!="0" or allowEmptyID:
         return fields_found
 
-def infoType_4_decode(infos:list) -> list:
+def infoType_4_decode(infos:list,allowEmptyID:bool=False) -> list:
     if infotypes_debug: log.debug("Decode InfoType 4")
     fields_found = {}
     
@@ -148,10 +155,10 @@ def infoType_4_decode(infos:list) -> list:
 
     fields_found["id"]=infos["adr_channel"]
     
-    if fields_found["id"]!="0":
+    if fields_found["id"]!="0" or allowEmptyID:
         return fields_found
     
-def infoType_5_decode(infos:list) -> list:
+def infoType_5_decode(infos:list,allowEmptyID:bool=False) -> list:
     if infotypes_debug: log.debug("Decode InfoType 5")
     fields_found = {}
     
@@ -179,10 +186,10 @@ def infoType_5_decode(infos:list) -> list:
 
     fields_found["id"]=infos["adr_channel"]
     
-    if fields_found["id"]!="0":
+    if fields_found["id"]!="0" or allowEmptyID:
         return fields_found
 
-def infoType_6_decode(infos:list) -> list:
+def infoType_6_decode(infos:list,allowEmptyID:bool=False) -> list:
     if infotypes_debug: log.debug("Decode InfoType 6")
     fields_found = {}
     
@@ -210,10 +217,10 @@ def infoType_6_decode(infos:list) -> list:
 
     fields_found["id"]=infos["adr_channel"]
     
-    if fields_found["id"]!="0":
+    if fields_found["id"]!="0" or allowEmptyID:
         return fields_found
 
-def infoType_7_decode(infos:list) -> list:
+def infoType_7_decode(infos:list,allowEmptyID:bool=False) -> list:
     if infotypes_debug: log.debug("Decode InfoType 7")
     fields_found = {}
     
@@ -241,10 +248,10 @@ def infoType_7_decode(infos:list) -> list:
 
     fields_found["id"]=infos["adr_channel"]
     
-    if fields_found["id"]!="0":
+    if fields_found["id"]!="0" or allowEmptyID:
         return fields_found
 
-def infoType_8_decode(infos:list) -> list:
+def infoType_8_decode(infos:list,allowEmptyID:bool=False) -> list:
     if infotypes_debug: log.debug("Decode InfoType 8")
     fields_found = {}
     
@@ -271,10 +278,10 @@ def infoType_8_decode(infos:list) -> list:
 
     fields_found["id"]=infos["adr_channel"]
     
-    if fields_found["id"]!="0":
+    if fields_found["id"]!="0" or allowEmptyID:
         return fields_found
 
-def infoType_9_decode(infos:list) -> list:
+def infoType_9_decode(infos:list,allowEmptyID:bool=False) -> list:
     if infotypes_debug: log.debug("Decode InfoType 9")
     fields_found = {}
     
@@ -302,10 +309,10 @@ def infoType_9_decode(infos:list) -> list:
 
     fields_found["id"]=infos["id_channel"]
     
-    if fields_found["id"]!="0":
+    if fields_found["id"]!="0" or allowEmptyID:
         return fields_found
 
-def infoType_10_decode(infos:list) -> list:
+def infoType_10_decode(infos:list,allowEmptyID:bool=False) -> list:
     if infotypes_debug: log.debug("Decode InfoType 10")
     fields_found = {}
     
@@ -322,10 +329,10 @@ def infoType_10_decode(infos:list) -> list:
 
     fields_found["id"]=infos["id"]
     
-    if fields_found["id"]!="0":
+    if fields_found["id"]!="0" or allowEmptyID:
         return fields_found
 
-def infoType_11_decode(infos:list) -> list:
+def infoType_11_decode(infos:list,allowEmptyID:bool=False) -> list:
     if infotypes_debug: log.debug("Decode InfoType 11 : %d",infos)
     fields_found = {}
     
@@ -346,10 +353,10 @@ def infoType_11_decode(infos:list) -> list:
 
     fields_found["id"]=infos["id"]
     
-    if fields_found["id"]!="0":
+    if fields_found["id"]!="0" or allowEmptyID:
         return fields_found
     
-def infoType_15_decode(infos:list) -> list:
+def infoType_15_decode(infos:list,allowEmptyID:bool=False) -> list:
     if infotypes_debug: log.debug("Decode InfoType 15 : %d",infos)
     fields_found = {}
     
@@ -368,6 +375,6 @@ def infoType_15_decode(infos:list) -> list:
 
     fields_found["id"]=infos["id"]
     
-    if fields_found["id"]!="0":
+    if fields_found["id"]!="0" or allowEmptyID:
         return fields_found
 

@@ -32,7 +32,20 @@ async def async_setup_entry(hass, entry, async_add_entities):
     options = entry.options
 
     # add jamming entity
-    async_add_entities([RfplayerJammingSensor()])
+    #async_add_entities([RfplayerJammingSensor()])
+
+    if CONF_DEVICES in config:
+        items_to_delete=[]
+        for device_id, device_info in config[CONF_DEVICES].items():
+            if EVENT_KEY_SENSOR in device_info:
+                if((device_info.get("protocol")!=None) and (device_info.get("platform")=="sensor")):
+                    await add_new_device(device_info)
+                else :
+                    _LOGGER.warning("Sensor entity not created %s - %s", device_id, device_info)
+                    items_to_delete.append(device_id)
+
+        for item in items_to_delete:
+            config[CONF_DEVICES].pop(item)
 
     async def add_new_device(device_info):
         """Check if device is known, otherwise create device entity."""
@@ -48,18 +61,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         async_add_entities([device])
         
 
-    if CONF_DEVICES in config:
-        items_to_delete=[]
-        for device_id, device_info in config[CONF_DEVICES].items():
-            if EVENT_KEY_SENSOR in device_info:
-                if((device_info.get("protocol")!=None) and (device_info.get("platform")!=None)):
-                    await add_new_device(device_info)
-                else :
-                    _LOGGER.warning("Sensor entity not created %s - %s", device_id, device_info)
-                    items_to_delete.append(device_id)
-
-        for item in items_to_delete:
-            config[CONF_DEVICES].pop(item)
+    
                 
 
     if options.get(CONF_AUTOMATIC_ADD, config[CONF_AUTOMATIC_ADD]):
