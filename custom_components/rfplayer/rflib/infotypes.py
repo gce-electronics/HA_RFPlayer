@@ -78,7 +78,8 @@ def infoType_2_decode(infos:list) -> list:
                 fields_found["subType"]="SENSOR"
                 fields_found["tamper"]=(binQualifier >> 1) & 0x01
                 fields_found["alarm"]=(binQualifier >> 2) &0x01
-                fields_found["battery"]=1-((binQualifier >> 3) &0x01)
+                fields_found["battery_level"]=(1-((binQualifier >> 3) &0x01))*100
+                fields_found["battery_level_unit"]="%"
                 fields_found["supervisor"]=(binQualifier >> 2) &0x04
             case "1" :
                 fields_found["subType"]="REMOTE"
@@ -126,7 +127,8 @@ def infoType_4_decode(infos:list) -> list:
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
-    fields_found["battery"]=1-int(infos["lowBatt"])
+    fields_found["battery_level"]=(1-int(infos["lowBatt"]))*100
+    fields_found["battery_level_unit"]="%"
 
     match int(infos["qualifier"])>>4:
         case 1 :
@@ -140,7 +142,7 @@ def infoType_4_decode(infos:list) -> list:
         #log.debug("%s",str(measure))
         if measure['type'] in elements:
             fields_found[measure['type']]= measure['value']
-            if elements[measure] != '':
+            if elements[measure['type']] != '':
                 fields_found[measure['type']+'_unit']= elements[measure['type']]
 
     fields_found["id"]=infos["adr_channel"]
@@ -157,7 +159,8 @@ def infoType_5_decode(infos:list) -> list:
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
-    fields_found["battery"]=1-int(infos["lowBatt"])
+    fields_found["battery_level"]=(1-int(infos["lowBatt"]))*100
+    fields_found["battery_level_unit"]="%"
 
     match int(infos["qualifier"])>>4:
         case 1 :
@@ -170,7 +173,7 @@ def infoType_5_decode(infos:list) -> list:
     for measure in infos["measures"]:
         if measure['type'] in elements:
             fields_found[measure['type']]= measure['value']
-            if elements[measure] != '':
+            if elements[measure['type']] != '':
                 fields_found[measure['type']+'_unit']= elements[measure['type']]
 
     fields_found["id"]=infos["adr_channel"]
@@ -187,7 +190,8 @@ def infoType_6_decode(infos:list) -> list:
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
-    fields_found["battery"]=1-int(infos["lowBatt"])
+    fields_found["battery_level"]=(1-int(infos["lowBatt"]))*100
+    fields_found["battery_level_unit"]="%"
     
     match int(infos["qualifier"])>>4:
         case 1 :
@@ -200,7 +204,7 @@ def infoType_6_decode(infos:list) -> list:
     for measure in infos["measures"]:
         if measure['type'] in elements:
             fields_found[measure['type']]= measure['value']
-            if elements[measure] != '':
+            if elements[measure['type']] != '':
                 fields_found[measure['type']+'_unit']= elements[measure['type']]
 
     fields_found["id"]=infos["adr_channel"]
@@ -217,7 +221,8 @@ def infoType_7_decode(infos:list) -> list:
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
-    fields_found["battery"]=1-int(infos["lowBatt"])
+    fields_found["battery_level"]=(1-int(infos["lowBatt"]))*100
+    fields_found["battery_level_unit"]="%"
     
     match int(infos["qualifier"])>>4:
         case 1 :
@@ -230,7 +235,7 @@ def infoType_7_decode(infos:list) -> list:
     for measure in infos["measures"]:
         if measure['type'] in elements:
             fields_found[measure['type']]= measure['value']
-            if elements[measure] != '':
+            if elements[measure['type']] != '':
                 fields_found[measure['type']+'_unit']= elements[measure['type']]
 
     fields_found["id"]=infos["adr_channel"]
@@ -247,7 +252,8 @@ def infoType_8_decode(infos:list) -> list:
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
-    fields_found["battery"]=1-int(infos["lowBatt"])
+    fields_found["battery_level"]=(1-int(infos["lowBatt"]))*100
+    fields_found["battery_level_unit"]="%"
     
     match int(infos["qualifier"])>>1:
         case 0 :
@@ -259,7 +265,7 @@ def infoType_8_decode(infos:list) -> list:
     for measure in infos["measures"]:
         if measure['type'] in elements:
             fields_found[measure['type']]= measure['value']
-            if elements[measure] != '':
+            if elements[measure['type']] != '':
                 fields_found[measure['type']+'_unit']= elements[measure['type']]
 
     fields_found["id"]=infos["adr_channel"]
@@ -276,7 +282,8 @@ def infoType_9_decode(infos:list) -> list:
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["id_channel"]=infos["id_channel"]
     fields_found["qualifier"]=infos["qualifier"]
-    fields_found["battery"]=1-int(infos["lowBatt"])
+    fields_found["battery"]=(1-int(infos["lowBatt"]))*100
+    fields_found["battery_level_unit"]="%"
     
     match int(infos["qualifier"])>>4:
         case 1 :
@@ -289,7 +296,7 @@ def infoType_9_decode(infos:list) -> list:
     for measure in infos["measures"]:
         if measure['type'] in elements:
             fields_found[measure['type']]= measure['value']
-            if elements[measure] != '':
+            if elements[measure['type']] != '':
                 fields_found[measure['type']+'_unit']= elements[measure['type']]
 
     fields_found["id"]=infos["id_channel"]

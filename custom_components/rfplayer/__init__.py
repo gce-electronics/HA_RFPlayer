@@ -77,14 +77,6 @@ def identify_event_type(event):
     Async friendly.
     """
     #_LOGGER.debug("Event fired %s", str(event))
-    """
-    if EVENT_KEY_COMMAND in event:
-        return EVENT_KEY_COMMAND #switch.py
-    if EVENT_KEY_SENSOR in event:
-        return EVENT_KEY_SENSOR #sensor.py
-    if EVENT_KEY_COVER in event: 
-        return EVENT_KEY_COVER #cover.py
-    """
     if EVENT_KEY_PLATFORM in event: 
         return event[EVENT_KEY_PLATFORM]
     return "unknown"
@@ -286,6 +278,7 @@ class RfplayerDevice(RestoreEntity):
     platform = None
     _state = None
     _available = True
+    _attr_protocol = None
 
     def __init__(
         self,
@@ -299,6 +292,7 @@ class RfplayerDevice(RestoreEntity):
         # Rflink specific attributes for every component type
         self._initial_event = initial_event
         self._protocol = protocol
+        self._attr_protocol = protocol
         self._device_id = device_id
         self._device_address = device_address
         self._event = None
@@ -370,6 +364,11 @@ class RfplayerDevice(RestoreEntity):
     def available(self):
         """Return True if entity is available."""
         return bool(self._protocol)
+    
+    @property
+    def protocol(self):
+        """Return value."""
+        return self._attr_protocol
 
     @callback
     def _availability_callback(self, availability):
@@ -408,3 +407,5 @@ class RfplayerDevice(RestoreEntity):
         )
         if device:
             device_registry.async_remove_device(device)
+
+

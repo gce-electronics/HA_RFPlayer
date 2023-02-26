@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 PACKET_ID_SEP = "_"
 
 PACKET_FIELDS = {
-    "bat": "battery",
+    "bat": "battery_level",
     "cmd": "command",
     "dtc": "detector",
     "sta": "status",
@@ -139,7 +139,7 @@ def decode_packet(packet: str) -> list:
     except Exception as e:
         log.error("Protocol %s not implemented : %s", str(data["protocol"]),str(e))
         log.debug("Trace : %s",traceback.format_exc())
-        #log.debug("Message : %s", str(message))
+        log.debug("Message : %s", str(message))
 
     #if packets_found==[None]:
     #    log.error("No packets found in %s", str(message))

@@ -78,7 +78,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
     async def add_new_device(device_info):
         #if device_info.get(CONF_ENTITY_TYPE) == ENTITY_TYPE_COVER or device_info.get(CONF_ENTITY_TYPE) == "":
-        """Check if device is known, otherwise create device entity."""
+        """Check if cover device is known, otherwise create device entity."""
         #if(((device_info.get("protocol")!=None) and ((device_info.get("device_id")!=None) or (device_info.get("device_address")!=None))) or True):
         
         # create entity
@@ -136,6 +136,8 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
 class RfplayerCover(RfplayerDevice, CoverEntity):
     """Representation of a Rfplayer cover."""
+
+    _attr_protocol="";
 
     async def async_added_to_hass(self):
         """Restore RFPlayer device state (ON/OFF)."""

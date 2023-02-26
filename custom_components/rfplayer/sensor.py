@@ -109,7 +109,6 @@ class RfplayerSensor(RfplayerDevice):
         """Return value."""
         return self._state
 
-
 class RfplayerJammingSensor(RfplayerDevice):
     """Representation of a Jamming Rfplayer sensor."""
 
