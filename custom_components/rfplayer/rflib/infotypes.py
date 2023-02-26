@@ -99,6 +99,7 @@ def infoType_3_decode(infos:list) -> list:
     if infotypes_debug: log.debug("Decode InfoType 3")
     fields_found = {}
     fields_found["subType"]=infos["subTypeMeaning"]
+    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     match int(infos["qualifier"]):
         case 1 :
             fields_found["qualifier"]="OFF"
@@ -123,7 +124,7 @@ def infoType_4_decode(infos:list) -> list:
     fields_found = {}
     
     fields_found["subType"]=infos.get("subTypeMeaning")
-    if fields_found["subType"] == None : fields_found["subType"]=infos.get("subType")
+    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
@@ -155,7 +156,7 @@ def infoType_5_decode(infos:list) -> list:
     fields_found = {}
     
     fields_found["subType"]=infos.get("subTypeMeaning")
-    if fields_found["subType"] == None : fields_found["subType"]=infos.get("subType")
+    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
@@ -186,7 +187,7 @@ def infoType_6_decode(infos:list) -> list:
     fields_found = {}
     
     fields_found["subType"]=infos.get("subTypeMeaning")
-    if fields_found["subType"] == None : fields_found["subType"]=infos.get("subType")
+    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
@@ -217,7 +218,7 @@ def infoType_7_decode(infos:list) -> list:
     fields_found = {}
     
     fields_found["subType"]=infos.get("subTypeMeaning")
-    if fields_found["subType"] == None : fields_found["subType"]=infos.get("subType")
+    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
@@ -244,11 +245,11 @@ def infoType_7_decode(infos:list) -> list:
         return fields_found
 
 def infoType_8_decode(infos:list) -> list:
-    if infotypes_debug: log.debug("Decode InfoType 7")
+    if infotypes_debug: log.debug("Decode InfoType 8")
     fields_found = {}
     
     fields_found["subType"]=infos.get("subTypeMeaning")
-    if fields_found["subType"] == None : fields_found["subType"]=infos.get("subType")
+    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
@@ -261,7 +262,7 @@ def infoType_8_decode(infos:list) -> list:
         case 1 : 
             fields_found["oreg_protocol"]="Detailed"
 
-    elements={'Power':'W','P1':'W','P2':'W','P3':'W'}
+    elements={'energy':'Wh','power':'W','P1':'W','P2':'W','P3':'W'}
     for measure in infos["measures"]:
         if measure['type'] in elements:
             fields_found[measure['type']]= measure['value']
@@ -278,7 +279,7 @@ def infoType_9_decode(infos:list) -> list:
     fields_found = {}
     
     fields_found["subType"]=infos.get("subTypeMeaning")
-    if fields_found["subType"] == None : fields_found["subType"]=infos.get("subType")
+    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["id_channel"]=infos["id_channel"]
     fields_found["qualifier"]=infos["qualifier"]
@@ -309,7 +310,7 @@ def infoType_10_decode(infos:list) -> list:
     fields_found = {}
     
     fields_found["subType"]=infos.get("subTypeMeaning")
-    if fields_found["subType"] == None : fields_found["subType"]=infos.get("subType")
+    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["qualifier"]=infos["qualifier"]
    
     elements={'functionMeaning':'','stateMeaning':'','modeMeaning':'','d0':'','d1':'','d2':'','d3':''}
@@ -329,7 +330,7 @@ def infoType_11_decode(infos:list) -> list:
     fields_found = {}
     
     fields_found["subType"]=infos.get("subTypeMeaning")
-    if fields_found["subType"] == None : fields_found["subType"]=infos.get("subType")
+    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["qualifier"]=infos["qualifier"]
 
     elements={'functionMeaning':'','stateMeaning':'','modeMeaning':'','d0':'','d1':'','d2':'','d3':''}
@@ -342,6 +343,28 @@ def infoType_11_decode(infos:list) -> list:
     if 'flags' in infos['qualifierMeaning']:
         for flag in infos['qualifierMeaning']['flags']:
             fields_found[flag]=1
+
+    fields_found["id"]=infos["id"]
+    
+    if fields_found["id"]!="0":
+        return fields_found
+    
+def infoType_15_decode(infos:list) -> list:
+    if infotypes_debug: log.debug("Decode InfoType 15 : %d",infos)
+    fields_found = {}
+    
+    fields_found["subType"]=infos.get("subTypeMeaning")
+    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
+    fields_found["qualifier"]=infos["qualifier"]
+
+    fields_found["info"]=infos.get("infoMeaning")
+
+    elements={'add0':'','add1':''}
+    for measure,value in infos.items():
+        if measure in elements:
+            fields_found[measure] = value
+            if elements[measure] != '':
+                fields_found[measure+'_unit']= elements[measure]
 
     fields_found["id"]=infos["id"]
     
