@@ -45,6 +45,9 @@ PACKET_FIELDS = {
     "d1":"d1",
     "d2":"d2",
     "d3":"d3",
+    "add0":"add0",
+    "add1":"add1",
+    "inf":"info",
 }
 
 RTS_ELEM = {
