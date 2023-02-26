@@ -99,7 +99,7 @@ def infoType_3_decode(infos:list) -> list:
     if infotypes_debug: log.debug("Decode InfoType 3")
     fields_found = {}
     fields_found["subType"]=infos["subTypeMeaning"]
-    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
+    if fields_found["subType"] == None or fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     match int(infos["qualifier"]):
         case 1 :
             fields_found["qualifier"]="OFF"
@@ -124,7 +124,7 @@ def infoType_4_decode(infos:list) -> list:
     fields_found = {}
     
     fields_found["subType"]=infos.get("subTypeMeaning")
-    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
+    if fields_found["subType"] == None or fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
@@ -156,7 +156,7 @@ def infoType_5_decode(infos:list) -> list:
     fields_found = {}
     
     fields_found["subType"]=infos.get("subTypeMeaning")
-    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
+    if fields_found["subType"] == None or fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
@@ -187,7 +187,7 @@ def infoType_6_decode(infos:list) -> list:
     fields_found = {}
     
     fields_found["subType"]=infos.get("subTypeMeaning")
-    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
+    if fields_found["subType"] == None or fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
@@ -218,7 +218,7 @@ def infoType_7_decode(infos:list) -> list:
     fields_found = {}
     
     fields_found["subType"]=infos.get("subTypeMeaning")
-    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
+    if fields_found["subType"] == None or fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
@@ -249,7 +249,7 @@ def infoType_8_decode(infos:list) -> list:
     fields_found = {}
     
     fields_found["subType"]=infos.get("subTypeMeaning")
-    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
+    if fields_found["subType"] == None or fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["adr_channel"]=infos["adr_channel"]
     fields_found["qualifier"]=infos["qualifier"]
@@ -279,7 +279,7 @@ def infoType_9_decode(infos:list) -> list:
     fields_found = {}
     
     fields_found["subType"]=infos.get("subTypeMeaning")
-    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
+    if fields_found["subType"] == None or fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["id_PHY"]= infos["id_PHYMeaning"]
     fields_found["id_channel"]=infos["id_channel"]
     fields_found["qualifier"]=infos["qualifier"]
@@ -310,7 +310,7 @@ def infoType_10_decode(infos:list) -> list:
     fields_found = {}
     
     fields_found["subType"]=infos.get("subTypeMeaning")
-    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
+    if fields_found["subType"] == None or fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["qualifier"]=infos["qualifier"]
    
     elements={'functionMeaning':'','stateMeaning':'','modeMeaning':'','d0':'','d1':'','d2':'','d3':''}
@@ -330,7 +330,7 @@ def infoType_11_decode(infos:list) -> list:
     fields_found = {}
     
     fields_found["subType"]=infos.get("subTypeMeaning")
-    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
+    if fields_found["subType"] == None or fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["qualifier"]=infos["qualifier"]
 
     elements={'functionMeaning':'','stateMeaning':'','modeMeaning':'','d0':'','d1':'','d2':'','d3':''}
@@ -354,7 +354,7 @@ def infoType_15_decode(infos:list) -> list:
     fields_found = {}
     
     fields_found["subType"]=infos.get("subTypeMeaning")
-    if fields_found["subType"] == None | fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
+    if fields_found["subType"] == None or fields_found["subType"] == "" : fields_found["subType"]=infos.get("subType")
     fields_found["qualifier"]=infos["qualifier"]
 
     fields_found["info"]=infos.get("infoMeaning")
