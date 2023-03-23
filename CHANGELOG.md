@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.4.1
+
+- Replace deprecated method `async_setup_platforms`
+ 
 ## 0.4.0
 
 - Fix 2022.07 error
