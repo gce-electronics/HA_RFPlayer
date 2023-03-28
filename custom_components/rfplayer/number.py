@@ -50,3 +50,4 @@ class RfplayerJammingNumber(RfplayerDevice, NumberEntity):
         rfplayer = self.hass.data[DOMAIN][RFPLAYER_PROTOCOL]
         await rfplayer.send_command_ack(command=int(value), protocol=self._protocol)
         self._state = value
+        self.async_write_ha_state()
