@@ -85,8 +85,8 @@ async def async_setup_entry(hass, entry):
         """Send Rfplayer command."""
         _LOGGER.debug("Rfplayer send command for %s", str(call.data))
         if not await hass.data[DOMAIN][RFPLAYER_PROTOCOL].send_command_ack(
-            call.data[CONF_PROTOCOL],
-            call.data[CONF_COMMAND],
+            protocol=call.data[CONF_PROTOCOL],
+            command=call.data[CONF_COMMAND],
             device_address=call.data.get(CONF_DEVICE_ADDRESS),
             device_id=call.data.get(CONF_DEVICE_ID),
         ):
