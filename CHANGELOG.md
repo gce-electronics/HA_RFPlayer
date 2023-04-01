@@ -1,9 +1,15 @@
 # CHANGELOG
 
+## 0.5.0
+
+- Add missing async_write_ha_state for number entity
+- Add X2D/STARBOX F03 (CPL) messages parsing
+- Replace deprecated methods
+
 ## 0.4.1
 
 - Replace deprecated method `async_setup_platforms`
- 
+
 ## 0.4.0
 
 - Fix 2022.07 error
