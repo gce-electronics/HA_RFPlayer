@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.6.0
+
+- Replace deprecated async_get_registry method
+
 ## 0.5.0
 
 - Add missing async_write_ha_state for number entity
