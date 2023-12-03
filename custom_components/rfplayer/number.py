@@ -5,8 +5,8 @@ from homeassistant.components.number import NumberEntity
 from homeassistant.core import callback
 from homeassistant.helpers.entity import EntityCategory
 
-from . import EVENT_KEY_COMMAND, RfplayerDevice
-from .const import DATA_ENTITY_LOOKUP, DOMAIN, EVENT_KEY_ID, RFPLAYER_PROTOCOL
+from . import RfplayerDevice
+from .const import DOMAIN, RFPLAYER_PROTOCOL
 
 _LOGGER = logging.getLogger(__name__)
 

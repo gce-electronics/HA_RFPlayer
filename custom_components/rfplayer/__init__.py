@@ -96,8 +96,7 @@ async def async_setup_entry(hass, entry):
             event_id = "_".join(
                 [
                     call.data[CONF_PROTOCOL],
-                    call.data.get(CONF_DEVICE_ID) or call.data.get(
-                        CONF_DEVICE_ADDRESS),
+                    call.data.get(CONF_DEVICE_ID) or call.data.get(CONF_DEVICE_ADDRESS),
                 ]
             )
             device = {
@@ -138,8 +137,7 @@ async def async_setup_entry(hass, entry):
         if entity_id:
             # Propagate event to every entity matching the device id
             _LOGGER.debug("passing event to %s", entity_id)
-            async_dispatcher_send(
-                hass, SIGNAL_HANDLE_EVENT.format(entity_id), event)
+            async_dispatcher_send(hass, SIGNAL_HANDLE_EVENT.format(entity_id), event)
         else:
             # If device is not yet known, register with platform (if loaded)
             if event_type in hass.data[DOMAIN][DATA_DEVICE_REGISTER]:
@@ -213,9 +211,7 @@ async def async_setup_entry(hass, entry):
                 EVENT_KEY_COMMAND: defaultdict(list),
                 EVENT_KEY_SENSOR: defaultdict(list),
             },
-            DATA_DEVICE_REGISTER: {
-                EVENT_KEY_COMMAND: {}
-            },
+            DATA_DEVICE_REGISTER: {},
         }
 
         if options.get(CONF_AUTOMATIC_ADD, config[CONF_AUTOMATIC_ADD]) is True:
@@ -294,8 +290,7 @@ class RfplayerDevice(RestoreEntity):
         if identify_event_type(event) == EVENT_KEY_COMMAND:
             self.hass.bus.async_fire(
                 EVENT_BUTTON_PRESSED,
-                {ATTR_ENTITY_ID: self.entity_id,
-                    ATTR_STATE: event[EVENT_KEY_COMMAND]},
+                {ATTR_ENTITY_ID: self.entity_id, ATTR_STATE: event[EVENT_KEY_COMMAND]},
             )
             _LOGGER.debug(
                 "Fired bus event for %s: %s", self.entity_id, event[EVENT_KEY_COMMAND]
@@ -361,10 +356,9 @@ class RfplayerDevice(RestoreEntity):
     async def async_will_remove_from_hass(self):
         """Clean when entity removed."""
         await super().async_will_remove_from_hass()
-        device_registry = dr.async_get(hass)
+        device_registry = dr.async_get(self.hass)
         device = device_registry.async_get_device(
-            (DOMAIN, self.hass.data[DOMAIN]
-             [CONF_DEVICE] + "_" + self._attr_unique_id)
+            (DOMAIN, self.hass.data[DOMAIN][CONF_DEVICE] + "_" + self._attr_unique_id)
         )
         if device:
             device_registry.async_remove_device(device)

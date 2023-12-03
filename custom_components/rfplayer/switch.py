@@ -9,7 +9,6 @@ from . import DATA_DEVICE_REGISTER, EVENT_KEY_COMMAND, RfplayerDevice
 from .const import (
     COMMAND_OFF,
     COMMAND_ON,
-    CONF_AUTOMATIC_ADD,
     CONF_DEVICE_ADDRESS,
     DATA_ENTITY_LOOKUP,
     DOMAIN,
@@ -41,8 +40,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
             if EVENT_KEY_COMMAND in device_info:
                 await add_new_device(device_info)
 
-    if options.get(CONF_AUTOMATIC_ADD, config[CONF_AUTOMATIC_ADD]):
-        hass.data[DOMAIN][DATA_DEVICE_REGISTER][EVENT_KEY_COMMAND] = add_new_device
+    hass.data[DOMAIN][DATA_DEVICE_REGISTER][EVENT_KEY_COMMAND] = add_new_device
 
 
 class RfplayerSwitch(RfplayerDevice, SwitchEntity):

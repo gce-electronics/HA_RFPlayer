@@ -2,7 +2,7 @@
 
 ## 0.6.1
 
-- Fix missing key when bootstrap conf and adding switch
+- Fix incapacity to create switch entity when automatic entity add is disabled at bootstrap
 
 ## 0.6.0
 
