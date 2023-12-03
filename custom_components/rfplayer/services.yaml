@@ -1,5 +1,6 @@
 send_command:
-  description: Send device command through RFPlayer.
+  name: Send command
+  description: Send device command through RFPlayer and create switch entity if needed.
   fields:
     command:
       name: Command

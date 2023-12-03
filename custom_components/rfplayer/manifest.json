@@ -1,12 +1,12 @@
 {
   "domain": "rfplayer",
   "name": "GCE RFPlayer",
-  "documentation": "https://github.com/gce-electronics/HA_RFPlayer",
-  "issue_tracker": "https://github.com/gce-electronics/HA_RFPlayer/issues",
-  "config_flow": true,
-  "requirements": ["pyserial==3.5", "pyserial-asyncio==0.5"],
   "codeowners": ["@Aohzan"],
+  "config_flow": true,
   "dependencies": [],
+  "documentation": "https://github.com/gce-electronics/HA_RFPlayer",
   "iot_class": "assumed_state",
-  "version": "0.4.0"
+  "issue_tracker": "https://github.com/gce-electronics/HA_RFPlayer/issues",
+  "requirements": ["pyserial==3.5", "pyserial-asyncio==0.5"],
+  "version": "0.6.1"
 }
