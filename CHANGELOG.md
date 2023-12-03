@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.6.1
+
+- Fix missing key when bootstrap conf and adding switch
+
 ## 0.6.0
 
 - Replace deprecated async_get_registry method

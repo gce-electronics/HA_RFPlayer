@@ -213,7 +213,9 @@ async def async_setup_entry(hass, entry):
                 EVENT_KEY_COMMAND: defaultdict(list),
                 EVENT_KEY_SENSOR: defaultdict(list),
             },
-            DATA_DEVICE_REGISTER: {},
+            DATA_DEVICE_REGISTER: {
+                EVENT_KEY_COMMAND: {}
+            },
         }
 
         if options.get(CONF_AUTOMATIC_ADD, config[CONF_AUTOMATIC_ADD]) is True:
