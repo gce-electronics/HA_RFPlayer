@@ -4,7 +4,7 @@ RFPlayer custom component/integration for Home assistant
 
 ## Installation
 
-Copy the `custom_component/rfplayer` folder in your config directory.
+Copy the `custom_components/rfplayer` folder in your config directory.
 
 Go to Home-Assistant UI, Configuration > Integrations, button (+ Add Integration) and search GCE RFPlayer
 
