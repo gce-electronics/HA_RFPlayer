@@ -30,7 +30,7 @@ class RfplayerJammingNumber(RfplayerDevice, RestoreNumber):
     def __init__(self) -> None:
         """Init the number rfplayer entity."""
         self._state: int | None = None
-        super().__init__(name="JAMMING", device_id=0)
+        super().__init__(protocol="JAMMING", device_id=0)
 
     async def async_added_to_hass(self) -> None:
         """Restore RFPlayer device state."""
@@ -50,7 +50,7 @@ class RfplayerJammingNumber(RfplayerDevice, RestoreNumber):
         self._state = int(event["command"])
 
     @property
-    def value(self):
+    def native_value(self) -> float | None:
         """Return the current setting."""
         return self._state
 

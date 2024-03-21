@@ -252,12 +252,12 @@ class RfplayerDevice(RestoreEntity):
         # Rflink specific attributes for every component type
         self._initial_event = initial_event
         self._protocol = protocol
-        self._device_id = device_id
-        self._device_address = device_address
+        self._device_id = str(device_id)
+        self._device_address = str(device_address)
         self._event = None
         self._attr_assumed_state = True
         self._attr_unique_id = "_".join(
-            [self._protocol, self._device_address or str(self._device_id)]
+            [self._protocol, self._device_address or self._device_id]
         )
         if name:
             self._attr_name = name
@@ -310,7 +310,7 @@ class RfplayerDevice(RestoreEntity):
                     DOMAIN,
                     self.hass.data[DOMAIN][
                         CONF_DEVICE
-                    ],  # + "_" + self._attr_unique_id,
+                    ]
                 )
             },
             manufacturer="GCE",
