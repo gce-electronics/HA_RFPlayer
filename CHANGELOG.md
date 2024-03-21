@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## 0.7.0
+
+- Fix default conf missing
+- Lint and code improvments
+- Bump pyserial-asyncio
+- Add service translation
+- Handle no USB device found during init
+
 ## 0.6.1
 
 - Fix incapacity to create switch entity when automatic entity add is disabled at bootstrap

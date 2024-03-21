@@ -1,10 +1,13 @@
 """Parsers."""
 
+from collections.abc import Callable, Generator
 from enum import Enum
 import json
 import logging
 import re
-from typing import Any, Callable, Dict, Generator, cast
+from typing import Any, cast
+
+from .exception import RfPlayerException
 
 log = logging.getLogger(__name__)
 
@@ -30,27 +33,12 @@ DTC_STATUS_LOOKUP = {
     "2": "open",
     "8": "alive",
     "16": "assoc",
-    "18": "test",
-}
-
-SBX_STATUS_LOOKUP = {
-    "0": "eco",     
-    "1": "moderato",   
-    "2": "medio",      
-    "3": "comfort",  
-    "4": "stop",   
-    "5": "outoffrost",
-    "6": "special",    
-    "7": "auto",
-    "8": "centralised",
-    "9": "outoffrost", # starbox f03: undocumented, like outoffrost + progressive heating ?
 }
 
 VALUE_TRANSLATION = cast(
-    Dict[str, Callable[[str], str]],
+    dict[str, Callable[[str], str]],
     {
         "detector": lambda x: DTC_STATUS_LOOKUP.get(x, "unknown"),
-        "starbox": lambda x: SBX_STATUS_LOOKUP.get(x, "unknown"),
     },
 )
 
@@ -67,7 +55,7 @@ PACKET_HEADER_RE = (
 
 packet_header_re = re.compile(PACKET_HEADER_RE)
 
-PacketType = Dict[str, Any]
+PacketType = dict[str, Any]
 
 
 class PacketHeader(Enum):
@@ -102,28 +90,6 @@ def decode_packet(packet: str) -> list:
         data["command"] = message["infos"]["subType"]
         data["state"] = message["infos"]["subTypeMeaning"]
         packets_found.append(data)
-    elif data["protocol"] in ["X2D"]:
-        data["id"] = message["infos"]["id"]
-        if message["infos"]["subTypeMeaning"] == "Detector/Sensor":
-          value = VALUE_TRANSLATION["detector"](message["infos"]["qualifier"]) 
-          data["command"] = value
-          data["state"] = value
-        elif message["infos"]["subTypeMeaning"] == "STARBOX F03":
-          if message["infos"]["functionMeaning"] == "OPERATING MODE": 
-            value = VALUE_TRANSLATION["starbox"](message["infos"]["state"])
-            data["command"] = value                                             
-            data["state"] = value  
-          elif ( message["infos"]["functionMeaning"] == "OTHER FUNCTION" 
-                 and message["infos"]["state"] == "6" ):
-            data["command"] = "assoc:" + message["infos"]["area"]
-            data["state"] = "assoc:" + message["infos"]["area"]
-          else:
-            data["command"] = message["infos"]["functionMeaning"]
-            data["state"] = message["infos"]["stateMeaning"]
-        else:
-          data["command"] = message["infos"]["subTypeMeaning"]
-          data["state"] = message["infos"]["qualifier"]
-        packets_found.append(data)
     elif data["protocol"] in ["OREGON"]:
         data["id"] = message["infos"]["id_PHY"]
         data["hardware"] = message["infos"]["id_PHYMeaning"]
@@ -155,7 +121,7 @@ def encode_packet(packet: PacketType) -> str:
         return f"ZIA++{command} {protocol} ID {packet['id']}"
     if "address" in packet:
         return f"ZIA++{command} {protocol} {packet['address']}"
-    raise Exception("No ID or Address found")
+    raise RfPlayerException("No ID or Address found")
 
 
 def serialize_packet_id(packet: PacketType) -> str:
@@ -172,7 +138,7 @@ def serialize_packet_id(packet: PacketType) -> str:
     )
 
 
-def deserialize_packet_id(packet_id: str) -> Dict[str, str]:
+def deserialize_packet_id(packet_id: str) -> dict[str, str]:
     """Deserialize packet id."""
     if packet_id == "rfplayer":
         return {"protocol": "unknown"}

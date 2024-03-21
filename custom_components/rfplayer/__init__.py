@@ -1,14 +1,13 @@
 """Support for Rfplayer devices."""
-import asyncio
+from asyncio import timeout
 from collections import defaultdict
 import copy
 import logging
 
-import async_timeout
 from serial import SerialException
-from homeassistant.util import slugify
 import voluptuous as vol
 
+from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
     ATTR_STATE,
@@ -19,14 +18,14 @@ from homeassistant.const import (
     CONF_PROTOCOL,
     EVENT_HOMEASSISTANT_STOP,
 )
-from homeassistant.core import CoreState, callback
+from homeassistant.core import CoreState, HomeAssistant, callback
+from homeassistant.helpers import device_registry as dr
 import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import (
     async_dispatcher_connect,
     async_dispatcher_send,
 )
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.restore_state import RestoreEntity
 
 from .const import (
@@ -76,8 +75,10 @@ def identify_event_type(event):
     return "unknown"
 
 
-async def async_setup_entry(hass, entry):
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up GCE RFPlayer from a config entry."""
+    hass.data.setdefault(DOMAIN, {})
+
     config = entry.data
     options = entry.options
 
@@ -85,8 +86,8 @@ async def async_setup_entry(hass, entry):
         """Send Rfplayer command."""
         _LOGGER.debug("Rfplayer send command for %s", str(call.data))
         if not await hass.data[DOMAIN][RFPLAYER_PROTOCOL].send_command_ack(
-            protocol=call.data[CONF_PROTOCOL],
-            command=call.data[CONF_COMMAND],
+            call.data[CONF_PROTOCOL],
+            call.data[CONF_COMMAND],
             device_address=call.data.get(CONF_DEVICE_ADDRESS),
             device_id=call.data.get(CONF_DEVICE_ID),
         ):
@@ -138,17 +139,15 @@ async def async_setup_entry(hass, entry):
             # Propagate event to every entity matching the device id
             _LOGGER.debug("passing event to %s", entity_id)
             async_dispatcher_send(hass, SIGNAL_HANDLE_EVENT.format(entity_id), event)
+        elif event_type in hass.data[DOMAIN][DATA_DEVICE_REGISTER]:
+            _LOGGER.debug("device_id not known, adding new device")
+            hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type][event_id] = event
+            _add_device_to_base_config(event, event_id)
+            hass.async_create_task(
+                hass.data[DOMAIN][DATA_DEVICE_REGISTER][event_type](event)
+            )
         else:
-            # If device is not yet known, register with platform (if loaded)
-            if event_type in hass.data[DOMAIN][DATA_DEVICE_REGISTER]:
-                _LOGGER.debug("device_id not known, adding new device")
-                hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type][event_id] = event
-                _add_device_to_base_config(event, event_id)
-                hass.async_create_task(
-                    hass.data[DOMAIN][DATA_DEVICE_REGISTER][event_type](event)
-                )
-            else:
-                _LOGGER.debug("device_id not known and automatic add disabled")
+            _LOGGER.debug("device_id not known and automatic add disabled")
 
     @callback
     def _add_device_to_base_config(event, event_id):
@@ -182,14 +181,10 @@ async def async_setup_entry(hass, entry):
         )
 
         try:
-            with async_timeout.timeout(CONNECTION_TIMEOUT):
+            with timeout(CONNECTION_TIMEOUT):
                 transport, protocol = await connection
 
-        except (
-            SerialException,
-            OSError,
-            asyncio.TimeoutError,
-        ) as exc:
+        except (TimeoutError, SerialException, OSError) as exc:
             reconnect_interval = config[CONF_RECONNECT_INTERVAL]
             _LOGGER.exception(
                 "Error connecting to Rfplayer, reconnecting in %s", reconnect_interval
@@ -240,8 +235,6 @@ class RfplayerDevice(RestoreEntity):
     Contains the common logic for Rfplayer entities.
     """
 
-    platform = None
-    _state = None
     _available = True
 
     def __init__(
@@ -251,7 +244,7 @@ class RfplayerDevice(RestoreEntity):
         device_id=None,
         initial_event=None,
         name=None,
-    ):
+    ) -> None:
         """Initialize the device."""
         # Rflink specific attributes for every component type
         self._initial_event = initial_event
@@ -259,14 +252,14 @@ class RfplayerDevice(RestoreEntity):
         self._device_id = device_id
         self._device_address = device_address
         self._event = None
-        self._state: bool = None
         self._attr_assumed_state = True
-        if name is not None:
+        self._attr_unique_id = "_".join(
+            [self._protocol, self._device_address or self._device_id]
+        )
+        if name:
             self._attr_name = name
-            self._attr_unique_id = slugify(f"{protocol}_{name}")
         else:
-            self._attr_name = f"{protocol} {device_id or device_address}"
-            self._attr_unique_id = slugify(f"{protocol}_{device_id or device_address}")
+            self._attr_name = f"{protocol} {device_address or device_id}"
 
     async def _async_send_command(self, command, *args):
         rfplayer = self.hass.data[DOMAIN][RFPLAYER_PROTOCOL]
@@ -298,7 +291,7 @@ class RfplayerDevice(RestoreEntity):
 
     def _handle_event(self, event):
         """Platform specific event handler."""
-        raise NotImplementedError()
+        raise NotImplementedError
 
     @property
     def should_poll(self):

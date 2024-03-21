@@ -2,7 +2,6 @@
   "config": {
     "step": {
       "user": {
-        "title": "GCE RFPlayer",
         "description": "Configure RFPlayer integration",
         "data": {
           "device": "RFPlayer USB device",
@@ -17,7 +16,8 @@
     "abort": {
       "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
       "already_in_progress": "[%key:common::config_flow::abort::already_in_progress%]",
-      "unknown": "[%key:common::config_flow::error::unknown%]"
+      "unknown": "[%key:common::config_flow::error::unknown%]",
+      "no_devices_found": "No USB device found."
     }
   },
   "options": {
@@ -26,6 +26,34 @@
         "title": "GCE RFPlayer Options",
         "data": {
           "automatic_add": "Add device automatically when signal received"
+        }
+      }
+    }
+  },
+  "services": {
+    "send_command": {
+      "name": "Send command",
+      "description": "Send device command through RFPlayer and facultativly add it as an entity.",
+      "fields": {
+        "command": {
+          "name": "Command",
+          "description": "The command to be sent."
+        },
+        "protocol": {
+          "name": "Protocol",
+          "description": "RFPlayer compatible protocol."
+        },
+        "device_address": {
+          "name": "Device address",
+          "description": "Exclusive with device ID, eg A1."
+        },
+        "device_id": {
+          "name": "Device ID",
+          "description": "Exclusive with device address, eg 1."
+        },
+        "automatic_add": {
+          "name": "Create entity",
+          "description": "Create associated switch entity."
         }
       }
     }

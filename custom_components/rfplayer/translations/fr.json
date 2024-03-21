@@ -17,7 +17,8 @@
       "abort": {
         "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
         "already_in_progress": "[%key:common::config_flow::abort::already_in_progress%]",
-        "unknown": "[%key:common::config_flow::error::unknown%]"
+        "unknown": "[%key:common::config_flow::error::unknown%]",
+        "no_devices_found": "Aucun appareil USB n'a été trouvé."
       }
     },
     "options": {
@@ -26,6 +27,34 @@
           "title": "Options GCE RFPlayer",
           "data": {
             "automatic_add":"Ajouter les appareil automatiquement lorsqu'un signal est reçu"
+          }
+        }
+      }
+    },
+    "services": {
+      "send_command": {
+        "name": "Envoyer une commande",
+        "description": "Envoyer une commande sur un appareil à travers RFPlayer et facultativement l'ajouter en tant qu'entité.",
+        "fields": {
+          "command": {
+            "name": "Commande",
+            "description": "La commande à envoyer."
+          },
+          "protocol": {
+            "name": "Protocol",
+            "description": "Protocole compatible RFPlayer."
+          },
+          "device_address": {
+            "name": "Adresse de l'appareil",
+            "description": "Exclusif avec l'ID, exemple: A1."
+          },
+          "device_id": {
+            "name": "ID de l'appareil",
+            "description": "Exclusif avec l'adresse, exemple: 1."
+          },
+          "automatic_add": {
+            "name": "Créer une entité",
+            "description": "Créer l'entité de type switch associée."
           }
         }
       }

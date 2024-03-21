@@ -8,7 +8,7 @@ CONF_RECONNECT_INTERVAL = "reconnect_interval"
 DEFAULT_RECONNECT_INTERVAL = 10
 DEFAULT_SIGNAL_REPETITIONS = 1
 
-PLATFORMS = ["sensor", "switch", "number"]
+PLATFORMS = ["number", "sensor", "switch"]
 
 ATTR_EVENT = "event"
 
