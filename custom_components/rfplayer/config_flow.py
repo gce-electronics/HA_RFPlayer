@@ -10,12 +10,11 @@ from homeassistant.config_entries import (
     HANDLERS,
     ConfigEntry,
     ConfigFlow,
-    ConfigFlowResult,
     OptionsFlow,
 )
 from homeassistant.const import CONF_DEVICE, CONF_DEVICES
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import AbortFlow
+from homeassistant.data_entry_flow import AbortFlow, FlowResult
 
 from .const import (
     CONF_AUTOMATIC_ADD,
@@ -33,7 +32,7 @@ class RfplayerConfigFlow(ConfigFlow, domain=DOMAIN):
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    ) -> FlowResult:
         """Config flow started from UI."""
         schema_errors: dict[str, Any] = {}
 
@@ -89,7 +88,7 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
-    ) -> ConfigFlowResult:
+    ) -> FlowResult:
         """Manage the options."""
         if user_input is None:
             config = self.config_entry.data
