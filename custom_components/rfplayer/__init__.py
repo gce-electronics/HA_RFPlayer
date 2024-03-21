@@ -1,4 +1,5 @@
 """Support for Rfplayer devices."""
+
 from asyncio import timeout
 from collections import defaultdict
 import copy
@@ -77,10 +78,20 @@ def identify_event_type(event):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up GCE RFPlayer from a config entry."""
-    hass.data.setdefault(DOMAIN, {})
-
     config = entry.data
     options = entry.options
+
+    hass.data.setdefault(
+        DOMAIN,
+        {
+            CONF_DEVICE: config[CONF_DEVICE],
+            DATA_ENTITY_LOOKUP: {
+                EVENT_KEY_COMMAND: defaultdict(list),
+                EVENT_KEY_SENSOR: defaultdict(list),
+            },
+            DATA_DEVICE_REGISTER: {},
+        },
+    )
 
     async def async_send_command(call):
         """Send Rfplayer command."""
@@ -181,7 +192,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
 
         try:
-            with timeout(CONNECTION_TIMEOUT):
+            async with timeout(CONNECTION_TIMEOUT):
                 transport, protocol = await connection
 
         except (TimeoutError, SerialException, OSError) as exc:
@@ -199,15 +210,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # mark entities as available
         async_dispatcher_send(hass, SIGNAL_AVAILABILITY, True)
 
-        hass.data[DOMAIN] = {
-            RFPLAYER_PROTOCOL: protocol,
-            CONF_DEVICE: config[CONF_DEVICE],
-            DATA_ENTITY_LOOKUP: {
-                EVENT_KEY_COMMAND: defaultdict(list),
-                EVENT_KEY_SENSOR: defaultdict(list),
-            },
-            DATA_DEVICE_REGISTER: {},
-        }
+        hass.data[DOMAIN][RFPLAYER_PROTOCOL] = (protocol,)
 
         if options.get(CONF_AUTOMATIC_ADD, config[CONF_AUTOMATIC_ADD]) is True:
             for device_type in "sensor", "command":
@@ -254,7 +257,7 @@ class RfplayerDevice(RestoreEntity):
         self._event = None
         self._attr_assumed_state = True
         self._attr_unique_id = "_".join(
-            [self._protocol, self._device_address or self._device_id]
+            [self._protocol, self._device_address or str(self._device_id)]
         )
         if name:
             self._attr_name = name
