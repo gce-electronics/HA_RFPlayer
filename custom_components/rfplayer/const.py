@@ -14,6 +14,7 @@ ATTR_EVENT = "event"
 
 RFPLAYER_PROTOCOL = "rfplayer_protocol"
 
+CONF_MANUAL_DEVICE = "manual_device"
 CONF_DEVICE_ADDRESS = "device_address"
 CONF_FIRE_EVENT = "fire_event"
 CONF_IGNORE_DEVICES = "ignore_devices"

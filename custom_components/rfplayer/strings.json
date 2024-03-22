@@ -4,16 +4,19 @@
       "user": {
         "description": "Configure RFPlayer integration",
         "data": {
-          "device": "RFPlayer USB device",
+          "device": "USB devices found",
+          "manual_device": "USB manual path",
           "automatic_add": "Add device automatically when signal received",
           "reconnect_interval": "Reconnect interval"
         }
       }
     },
     "error": {
-      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]"
+      "cannot_connect": "[%key:common::config_flow::error::cannot_connect%]",
+      "device_missing": "A device must be specified from list or manually."
     },
     "abort": {
+      "single_instance_allowed": "[%key:common::config_flow::abort::single_instance_allowed%]",
       "already_configured": "[%key:common::config_flow::abort::already_configured_device%]",
       "already_in_progress": "[%key:common::config_flow::abort::already_in_progress%]",
       "unknown": "[%key:common::config_flow::error::unknown%]",

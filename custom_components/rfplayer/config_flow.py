@@ -13,6 +13,7 @@ from homeassistant.data_entry_flow import AbortFlow, FlowResult
 
 from .const import (
     CONF_AUTOMATIC_ADD,
+    CONF_MANUAL_DEVICE,
     CONF_RECONNECT_INTERVAL,
     DEFAULT_RECONNECT_INTERVAL,
     DOMAIN,
@@ -29,14 +30,23 @@ class RfplayerConfigFlow(ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Config flow started from UI."""
+        if self._async_current_entries():
+            return self.async_abort(reason="single_instance_allowed")
+
         schema_errors: dict[str, Any] = {}
 
         if user_input is not None:
             user_input[CONF_DEVICES] = {}
 
-            user_input[CONF_DEVICE] = await self.hass.async_add_executor_job(
-                get_serial_by_id, user_input[CONF_DEVICE]
-            )
+            if user_input.get(CONF_DEVICE):
+                user_input[CONF_DEVICE] = await self.hass.async_add_executor_job(
+                    get_serial_by_id, user_input[CONF_DEVICE]
+                )
+            elif user_input.get(CONF_MANUAL_DEVICE):
+                user_input[CONF_DEVICE] = user_input[CONF_MANUAL_DEVICE]
+                user_input.pop(CONF_MANUAL_DEVICE)
+            else:
+                schema_errors.update({CONF_DEVICE: "device_missing"})
 
             if not schema_errors:
                 return self.async_create_entry(
@@ -55,7 +65,8 @@ class RfplayerConfigFlow(ConfigFlow, domain=DOMAIN):
             raise AbortFlow("no_devices_found")
 
         data = {
-            vol.Required(CONF_DEVICE): vol.In(list_of_ports),
+            vol.Optional(CONF_DEVICE): vol.In(list_of_ports),
+            vol.Optional(CONF_MANUAL_DEVICE): str,
             vol.Required(CONF_AUTOMATIC_ADD, default=True): bool,
             vol.Required(
                 CONF_RECONNECT_INTERVAL, default=DEFAULT_RECONNECT_INTERVAL

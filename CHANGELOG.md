@@ -8,6 +8,8 @@
 - Add service translation
 - Handle no USB device found during init
 - Replace the jamming sensor by a binary_sensor and add events catching to it
+- Allow to specify manual path to USB device
+- Disallow multi instance of the integration
 
 ## 0.6.1
 
