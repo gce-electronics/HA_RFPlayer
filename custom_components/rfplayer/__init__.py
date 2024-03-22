@@ -1,5 +1,4 @@
 """Support for Rfplayer devices."""
-
 from asyncio import timeout
 from collections import defaultdict
 import copy
@@ -78,6 +77,7 @@ def identify_event_type(event):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up GCE RFPlayer from a config entry."""
+
     config = entry.data
     options = entry.options
 
@@ -97,8 +97,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         """Send Rfplayer command."""
         _LOGGER.debug("Rfplayer send command for %s", str(call.data))
         if not await hass.data[DOMAIN][RFPLAYER_PROTOCOL].send_command_ack(
-            call.data[CONF_PROTOCOL],
-            call.data[CONF_COMMAND],
+            protocol=call.data[CONF_PROTOCOL],
+            command=call.data[CONF_COMMAND],
             device_address=call.data.get(CONF_DEVICE_ADDRESS),
             device_id=call.data.get(CONF_DEVICE_ID),
         ):
@@ -210,7 +210,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # mark entities as available
         async_dispatcher_send(hass, SIGNAL_AVAILABILITY, True)
 
-        hass.data[DOMAIN][RFPLAYER_PROTOCOL] = (protocol,)
+        hass.data[DOMAIN][RFPLAYER_PROTOCOL] = protocol
 
         if options.get(CONF_AUTOMATIC_ADD, config[CONF_AUTOMATIC_ADD]) is True:
             for device_type in "sensor", "command":
@@ -310,7 +310,7 @@ class RfplayerDevice(RestoreEntity):
                     DOMAIN,
                     self.hass.data[DOMAIN][
                         CONF_DEVICE
-                    ]
+                    ],  # TODO + "_" + self._attr_unique_id,
                 )
             },
             manufacturer="GCE",

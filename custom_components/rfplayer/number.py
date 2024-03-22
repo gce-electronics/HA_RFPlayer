@@ -47,7 +47,7 @@ class RfplayerJammingNumber(RfplayerDevice, RestoreNumber):
 
     @callback
     def _handle_event(self, event):
-        self._state = int(event["command"])
+        self._state = int(event["value"])
 
     @property
     def native_value(self) -> float | None:
@@ -59,3 +59,4 @@ class RfplayerJammingNumber(RfplayerDevice, RestoreNumber):
         rfplayer = self.hass.data[DOMAIN][RFPLAYER_PROTOCOL]
         await rfplayer.send_command_ack(command=int(value), protocol=self._protocol)
         self._state = int(value)
+        self.async_write_ha_state()

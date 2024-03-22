@@ -6,12 +6,7 @@ import serial
 import voluptuous as vol
 
 from homeassistant import exceptions
-from homeassistant.config_entries import (
-    HANDLERS,
-    ConfigEntry,
-    ConfigFlow,
-    OptionsFlow,
-)
+from homeassistant.config_entries import HANDLERS, ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.const import CONF_DEVICE, CONF_DEVICES
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import AbortFlow, FlowResult
