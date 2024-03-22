@@ -27,6 +27,7 @@ from homeassistant.helpers.dispatcher import (
     async_dispatcher_send,
 )
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.util import slugify
 
 from .const import (
     CONF_AUTOMATIC_ADD,
@@ -277,8 +278,10 @@ class RfplayerDevice(RestoreEntity):
         self._event = None
 
         self._attr_name = name or f"{protocol} {device_address or device_id}"
-        self._attr_unique_id = "_".join(
-            [protocol, unique_id or device_address or device_id]  # type: ignore[list-item]
+        self._attr_unique_id = slugify(
+            "_".join(
+                [protocol, unique_id or device_address or device_id]  # type: ignore[list-item]
+            )
         )
 
     @property
