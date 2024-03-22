@@ -46,11 +46,11 @@
           },
           "device_address": {
             "name": "Adresse de l'appareil",
-            "description": "Exclusif avec l'ID, exemple: A1."
+            "description": "Exclusif avec l'ID (exemple A1)."
           },
           "device_id": {
             "name": "ID de l'appareil",
-            "description": "Exclusif avec l'adresse, exemple: 1."
+            "description": "Exclusif avec l'adresse (exemple 1)."
           },
           "automatic_add": {
             "name": "Créer une entité",

@@ -1,5 +1,6 @@
 """Support for Rfplayer sensors."""
 import logging
+from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_DEVICES
@@ -20,12 +21,6 @@ from .rflib.rfpparser import PACKET_FIELDS, UNITS
 
 _LOGGER = logging.getLogger(__name__)
 
-SENSOR_ICONS = {
-    "humidity": "mdi:water-percent",
-    "battery": "mdi:battery",
-    "temperature": "mdi:thermometer",
-}
-
 
 def lookup_unit_for_sensor_type(sensor_type):
     """Get unit for sensor type.
@@ -43,11 +38,6 @@ async def async_setup_entry(
     """Set up the Rfplayer platform."""
     config = entry.data
     options = entry.options
-
-    # add jamming entity
-    async_add_entities(
-        [RfplayerSensor(protocol="JAMMING", device_id=0, name="Jamming detection")]
-    )
 
     async def add_new_device(device_info):
         """Check if device is known, otherwise create device entity."""
@@ -75,23 +65,25 @@ async def async_setup_entry(
 class RfplayerSensor(RfplayerDevice):
     """Representation of a Rfplayer sensor."""
 
+    _attr_native_value: float | None = None
+
     def __init__(
         self,
-        protocol,
-        device_id,
-        unit_of_measurement=None,
-        initial_event=None,
-        name=None,
-        **kwargs,
+        protocol: str,
+        device_id: str | None = None,
+        initial_event: dict[str, Any] | None = None,
+        name: str | None = None,
+        unique_id: str | None = None,
+        unit_of_measurement: str | None = None,
     ) -> None:
         """Handle sensor specific args and super init."""
-        self._state: float | None = None
-        self._protocol = protocol
-        self._device_id = device_id
-        self._attr_name = name
         self._attr_unit_of_measurement = unit_of_measurement
         super().__init__(
-            protocol, device_id=device_id, initial_event=initial_event, **kwargs
+            protocol=protocol,
+            device_id=device_id,
+            initial_event=initial_event,
+            name=name,
+            unique_id=unique_id,
         )
 
     async def async_added_to_hass(self) -> None:
@@ -99,15 +91,11 @@ class RfplayerSensor(RfplayerDevice):
         # Register id and aliases
         await super().async_added_to_hass()
 
-        self.hass.data[DOMAIN][DATA_ENTITY_LOOKUP][EVENT_KEY_SENSOR][
-            self._initial_event[EVENT_KEY_ID]
-        ] = self.entity_id
+        if self._initial_event:
+            self.hass.data[DOMAIN][DATA_ENTITY_LOOKUP][EVENT_KEY_SENSOR][
+                self._initial_event[EVENT_KEY_ID]
+            ] = self.entity_id
 
     def _handle_event(self, event):
         """Domain specific event handler."""
-        self._state = float(event["value"])
-
-    @property
-    def state(self) -> float | None:
-        """Return value."""
-        return self._state
+        self._attr_native_value = float(event["value"])

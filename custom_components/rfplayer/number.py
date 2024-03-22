@@ -1,13 +1,19 @@
 """Support for Rfplayer number."""
 import logging
 
-from homeassistant.components.number import NumberMode, RestoreNumber
+from homeassistant.components.number import (
+    NumberEntityDescription,
+    NumberMode,
+    RestoreNumber,
+)
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN, EntityCategory
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
-from . import EVENT_KEY_COMMAND, RfplayerDevice
-from .const import DATA_ENTITY_LOOKUP, DOMAIN, EVENT_KEY_ID, RFPLAYER_PROTOCOL
+from . import RfplayerDevice
+from .const import DOMAIN, RFPLAYER_PROTOCOL
+from .rflib.rfpprotocol import RfplayerProtocol
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -23,36 +29,38 @@ async def async_setup_entry(
 class RfplayerJammingNumber(RfplayerDevice, RestoreNumber):
     """Representation of a Rfplayer jamming number setting entity."""
 
+    entity_description = NumberEntityDescription(
+        key="jamming_level",
+        translation_key="jamming_level",
+        entity_category=EntityCategory.CONFIG,
+    )
     _attr_native_min_value = 0
     _attr_native_max_value = 10
+    _attr_native_step = 1
+    _attr_native_value: float | None = None
     _attr_mode = NumberMode.SLIDER
 
     def __init__(self) -> None:
-        """Init the number rfplayer entity."""
-        self._state: int | None = None
-        super().__init__(protocol="JAMMING", device_id=0)
+        """Init the jamming number rfplayer entity."""
+        super().__init__(
+            protocol="JAMMING",
+            unique_id="jamming_level",
+            name="Jamming detection level",
+        )
 
     async def async_added_to_hass(self) -> None:
         """Restore RFPlayer device state."""
         await super().async_added_to_hass()
-
-        if self._event is None:
-            old_state = await self.async_get_last_state()
-            if old_state is not None:
-                self._state = int(old_state.state)
-
-    @callback
-    def _handle_event(self, event):
-        self._state = int(event["value"])
-
-    @property
-    def native_value(self) -> float | None:
-        """Return the current setting."""
-        return self._state
+        if (last_state := await self.async_get_last_state()) and (
+            last_number_data := await self.async_get_last_number_data()
+        ):
+            if last_state.state not in (STATE_UNKNOWN, STATE_UNAVAILABLE):
+                self._attr_native_value = last_number_data.native_value
 
     async def async_set_native_value(self, value: float) -> None:
         """Update the current value."""
-        rfplayer = self.hass.data[DOMAIN][RFPLAYER_PROTOCOL]
-        await rfplayer.send_command_ack(command=int(value), protocol=self._protocol)
-        self._state = int(value)
+        value = int(max(0, min(10, value)))
+        rfplayer: RfplayerProtocol = self.hass.data[DOMAIN][RFPLAYER_PROTOCOL]
+        await rfplayer.send_command_ack(command=str(value), protocol=self._protocol)
+        self._attr_native_value = value
         self.async_write_ha_state()

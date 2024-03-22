@@ -1,8 +1,8 @@
 """Support for Rfplayer devices."""
-from asyncio import timeout
-from collections import defaultdict
+from asyncio import BaseTransport, timeout
 import copy
 import logging
+from typing import Any
 
 from serial import SerialException
 import voluptuous as vol
@@ -39,6 +39,7 @@ from .const import (
     EVENT_BUTTON_PRESSED,
     EVENT_KEY_COMMAND,
     EVENT_KEY_ID,
+    EVENT_KEY_JAMMING,
     EVENT_KEY_SENSOR,
     PLATFORMS,
     RFPLAYER_PROTOCOL,
@@ -47,7 +48,11 @@ from .const import (
     SIGNAL_EVENT,
     SIGNAL_HANDLE_EVENT,
 )
-from .rflib.rfpprotocol import create_rfplayer_connection
+from .rflib.rfpprotocol import (
+    ProtocolBase,
+    RfplayerProtocol,
+    create_rfplayer_connection,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -68,6 +73,8 @@ def identify_event_type(event):
 
     Async friendly.
     """
+    if "JAMMING_" in event.get(EVENT_KEY_ID):
+        return EVENT_KEY_JAMMING
     if EVENT_KEY_COMMAND in event:
         return EVENT_KEY_COMMAND
     if EVENT_KEY_SENSOR in event:
@@ -86,8 +93,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         {
             CONF_DEVICE: config[CONF_DEVICE],
             DATA_ENTITY_LOOKUP: {
-                EVENT_KEY_COMMAND: defaultdict(list),
-                EVENT_KEY_SENSOR: defaultdict(list),
+                EVENT_KEY_COMMAND: {},
+                EVENT_KEY_SENSOR: {},
+                EVENT_KEY_JAMMING: {},
             },
             DATA_DEVICE_REGISTER: {},
         },
@@ -108,7 +116,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             event_id = "_".join(
                 [
                     call.data[CONF_PROTOCOL],
-                    call.data.get(CONF_DEVICE_ID) or call.data.get(CONF_DEVICE_ADDRESS),
+                    call.data.get(CONF_DEVICE_ID)
+                    or call.data.get(CONF_DEVICE_ADDRESS)
+                    or call.data.get(CONF_COMMAND),
                 ]
             )
             device = {
@@ -190,6 +200,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             disconnect_callback=reconnect,
             loop=hass.loop,
         )
+        transport: BaseTransport
+        protocol: ProtocolBase
 
         try:
             async with timeout(CONNECTION_TIMEOUT):
@@ -239,33 +251,48 @@ class RfplayerDevice(RestoreEntity):
     """
 
     _available = True
+    _attr_assumed_state = True
+    _attr_should_poll = False
 
     def __init__(
         self,
-        protocol,
-        device_address=None,
-        device_id=None,
-        initial_event=None,
-        name=None,
+        protocol: str,
+        device_address: str | None = None,
+        device_id: str | None = None,
+        initial_event: dict[str, Any] | None = None,
+        name: str | None = None,
+        unique_id: str | None = None,
     ) -> None:
         """Initialize the device."""
-        # Rflink specific attributes for every component type
+        # Rfplayer specific attributes for every component type
+        if not (name or device_address or device_id) or not (
+            unique_id or device_address or device_id
+        ):
+            raise TypeError("Incorrect arguments for RfplayerDevice")
+
         self._initial_event = initial_event
         self._protocol = protocol
-        self._device_id = str(device_id)
-        self._device_address = str(device_address)
+        self._device_id = device_id
+        self._device_address = device_address
         self._event = None
-        self._attr_assumed_state = True
+
+        self._attr_name = name or f"{protocol} {device_address or device_id}"
         self._attr_unique_id = "_".join(
-            [self._protocol, self._device_address or self._device_id]
+            [protocol, unique_id or device_address or device_id]  # type: ignore[list-item]
         )
-        if name:
-            self._attr_name = name
-        else:
-            self._attr_name = f"{protocol} {device_address or device_id}"
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device registry information for this entity."""
+        return DeviceInfo(
+            identifiers={(DOMAIN, self.hass.data[DOMAIN][CONF_DEVICE])},
+            manufacturer="GCE",
+            model="RFPlayer",
+            name="RFPlayer",
+        )
 
     async def _async_send_command(self, command, *args):
-        rfplayer = self.hass.data[DOMAIN][RFPLAYER_PROTOCOL]
+        rfplayer: RfplayerProtocol = self.hass.data[DOMAIN][RFPLAYER_PROTOCOL]
         await rfplayer.send_command_ack(
             command=command,
             protocol=self._protocol,
@@ -297,28 +324,6 @@ class RfplayerDevice(RestoreEntity):
         raise NotImplementedError
 
     @property
-    def should_poll(self):
-        """No polling needed."""
-        return False
-
-    @property
-    def device_info(self) -> DeviceInfo:
-        """Return device registry information for this entity."""
-        return DeviceInfo(
-            identifiers={
-                (
-                    DOMAIN,
-                    self.hass.data[DOMAIN][
-                        CONF_DEVICE
-                    ],  # TODO + "_" + self._attr_unique_id,
-                )
-            },
-            manufacturer="GCE",
-            model="RFPlayer",
-            name="RFPlayer",
-        )
-
-    @property
     def available(self):
         """Return True if entity is available."""
         return bool(self._protocol)
@@ -331,7 +336,6 @@ class RfplayerDevice(RestoreEntity):
 
     async def async_added_to_hass(self):
         """Register update callback."""
-        await super().async_added_to_hass()
         self.async_on_remove(
             async_dispatcher_connect(
                 self.hass, SIGNAL_AVAILABILITY, self._availability_callback

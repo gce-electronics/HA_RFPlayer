@@ -2,7 +2,7 @@
     "config": {
         "abort": {
             "already_configured": "Device is already configured",
-            "already_in_progress": "Configuration flow is already in progress",
+            "already_in_progress": "[%key:common::config_flow::abort::already_ls /devin_progress%]",
             "no_devices_found": "No USB device found.",
             "unknown": "Unexpected error"
         },
@@ -43,11 +43,11 @@
                     "name": "Command"
                 },
                 "device_address": {
-                    "description": "Exclusive with device ID, eg A1.",
+                    "description": "Exclusive with device ID (eg 1).",
                     "name": "Device address"
                 },
                 "device_id": {
-                    "description": "Exclusive with device address, eg 1.",
+                    "description": "Exclusive with device address (eg A1).",
                     "name": "Device ID"
                 },
                 "protocol": {

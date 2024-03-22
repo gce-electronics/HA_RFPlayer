@@ -8,7 +8,7 @@ CONF_RECONNECT_INTERVAL = "reconnect_interval"
 DEFAULT_RECONNECT_INTERVAL = 10
 DEFAULT_SIGNAL_REPETITIONS = 1
 
-PLATFORMS = ["number", "sensor", "switch"]
+PLATFORMS = ["binary_sensor", "number", "sensor", "switch"]
 
 ATTR_EVENT = "event"
 
@@ -26,6 +26,7 @@ CONNECTION_TIMEOUT = 10
 
 EVENT_BUTTON_PRESSED = "button_pressed"
 EVENT_KEY_COMMAND = "command"
+EVENT_KEY_JAMMING = "jamming"
 EVENT_KEY_ID = "id"
 EVENT_KEY_SENSOR = "sensor"
 EVENT_KEY_UNIT = "unit"
