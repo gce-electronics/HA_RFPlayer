@@ -36,10 +36,6 @@ class RfplayerJammingNumber(RfplayerDevice, RestoreNumber):
         """Restore RFPlayer device state."""
         await super().async_added_to_hass()
 
-        self.hass.data[DOMAIN][DATA_ENTITY_LOOKUP][EVENT_KEY_COMMAND][
-            self._initial_event[EVENT_KEY_ID]
-        ] = self.entity_id
-
         if self._event is None:
             old_state = await self.async_get_last_state()
             if old_state is not None:
