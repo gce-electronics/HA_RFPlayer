@@ -6,5 +6,7 @@
   "dependencies": [],
   "documentation": "https://github.com/gce-electronics/HA_RFPlayer",
   "iot_class": "assumed_state",
-  "requirements": ["pyserial==3.5", "pyserial-asyncio==0.6"]
+  "issue_tracker": "https://github.com/gce-electronics/HA_RFPlayer/issues",
+  "requirements": ["pyserial==3.5", "pyserial-asyncio==0.6"],
+  "version": "0.7.0"
 }
