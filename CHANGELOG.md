@@ -7,7 +7,7 @@
 - Bump pyserial-asyncio
 - Add service translation
 - Handle no USB device found during init
-- Replace the jamming sensor by a binary_sensor and add events catching to it 
+- Replace the jamming sensor by a binary_sensor and add events catching to it
 
 ## 0.6.1
 
