@@ -76,9 +76,9 @@ PacketType = dict[str, Any]
 class PacketHeader(Enum):
     """Packet source identification."""
 
-    master = "10"
-    echo = "11"
-    gateway = "20"
+    MASTER = "10"
+    ECHO = "11"
+    GATEWAY = "20"
 
 
 def valid_packet(packet: str) -> bool:
@@ -86,10 +86,11 @@ def valid_packet(packet: str) -> bool:
     return bool(packet_header_re.match(packet))
 
 
+# pylint: disable-next=too-many-branches too-many-statements
 def decode_packet(packet: str) -> list:
     """Decode packet."""
     packets_found = []
-    data = cast(PacketType, {"node": PacketHeader.gateway.name})
+    data = cast(PacketType, {"node": PacketHeader.GATEWAY.name})
 
     # Welcome messages directly send
     if packet.startswith("ZIA--"):

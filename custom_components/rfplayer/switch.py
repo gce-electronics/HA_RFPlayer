@@ -1,4 +1,5 @@
 """Support for Rfplayer switch."""
+
 import logging
 from typing import Any
 
@@ -53,13 +54,14 @@ async def async_setup_entry(
 class RfplayerSwitch(RfplayerDevice, SwitchEntity):
     """Representation of a Rfplayer sensor."""
 
+    # pylint: disable-next=too-many-arguments
     def __init__(
         self,
-        protocol,
-        device_address=None,
-        device_id=None,
-        initial_event=None,
-        name=None,
+        protocol: str,
+        device_id: str | None = None,
+        device_address: str | None = None,
+        initial_event: dict[str, Any] | None = None,
+        name: str | None = None,
     ) -> None:
         """Handle switch specific args and super init."""
         self._state: bool | None = None
@@ -69,9 +71,10 @@ class RfplayerSwitch(RfplayerDevice, SwitchEntity):
         """Restore RFPlayer device state (ON/OFF)."""
         await super().async_added_to_hass()
 
-        self.hass.data[DOMAIN][DATA_ENTITY_LOOKUP][EVENT_KEY_COMMAND][
-            self._initial_event[EVENT_KEY_ID]
-        ] = self.entity_id
+        if self._initial_event:
+            self.hass.data[DOMAIN][DATA_ENTITY_LOOKUP][EVENT_KEY_COMMAND][
+                self._initial_event[EVENT_KEY_ID]
+            ] = self.entity_id
 
         if self._event is None:
             old_state = await self.async_get_last_state()

@@ -1,65 +1,65 @@
 {
-    "config": {
-        "abort": {
-            "already_configured": "Device is already configured",
-            "already_in_progress": "Configuration flow is already in progress",
-            "no_devices_found": "No USB device found.",
-            "single_instance_allowed": "Already configured. Only a single configuration possible.",
-            "unknown": "Unexpected error"
-        },
-        "error": {
-            "cannot_connect": "Failed to connect",
-            "device_missing": "A device must be specified from list or manually.",
-            "no_devices_found": "No USB device found."
-        },
-        "step": {
-            "user": {
-                "data": {
-                    "device": "USB devices found",
-                    "manual_device": "USB manual path",
-                    "automatic_add": "Add device automatically when signal received",
-                    "reconnect_interval": "Reconnect interval"
-                },
-                "description": "Configure RFPlayer integration"
-            }
-        }
+  "config": {
+    "abort": {
+      "already_configured": "Device is already configured",
+      "already_in_progress": "Configuration flow is already in progress",
+      "no_devices_found": "No USB device found.",
+      "single_instance_allowed": "Already configured. Only a single configuration possible.",
+      "unknown": "Unexpected error"
     },
-    "options": {
-        "step": {
-            "init": {
-                "data": {
-                    "automatic_add": "Add device automatically when signal received"
-                },
-                "title": "GCE RFPlayer Options"
-            }
-        }
+    "error": {
+      "cannot_connect": "Failed to connect",
+      "device_missing": "A device must be specified from list or manually.",
+      "no_devices_found": "No USB device found."
     },
-    "services": {
-        "send_command": {
-            "description": "Send device command through RFPlayer and facultativly add it as an entity.",
-            "fields": {
-                "automatic_add": {
-                    "description": "Create associated switch entity.",
-                    "name": "Create entity"
-                },
-                "command": {
-                    "description": "The command to be sent.",
-                    "name": "Command"
-                },
-                "device_address": {
-                    "description": "Exclusive with device ID (eg 1).",
-                    "name": "Device address"
-                },
-                "device_id": {
-                    "description": "Exclusive with device address (eg A1).",
-                    "name": "Device ID"
-                },
-                "protocol": {
-                    "description": "RFPlayer compatible protocol.",
-                    "name": "Protocol"
-                }
-            },
-            "name": "Send command"
-        }
+    "step": {
+      "user": {
+        "data": {
+          "device": "USB devices found",
+          "manual_device": "USB manual path",
+          "automatic_add": "Add device automatically when signal received",
+          "reconnect_interval": "Reconnect interval"
+        },
+        "description": "Configure RFPlayer integration"
+      }
     }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "data": {
+          "automatic_add": "Add device automatically when signal received"
+        },
+        "title": "GCE RFPlayer Options"
+      }
+    }
+  },
+  "services": {
+    "send_command": {
+      "description": "Send device command through RFPlayer and facultativly add it as an entity.",
+      "fields": {
+        "automatic_add": {
+          "description": "Create associated switch entity.",
+          "name": "Create entity"
+        },
+        "command": {
+          "description": "The command to be sent.",
+          "name": "Command"
+        },
+        "device_address": {
+          "description": "Exclusive with device ID (eg 1).",
+          "name": "Device address"
+        },
+        "device_id": {
+          "description": "Exclusive with device address (eg A1).",
+          "name": "Device ID"
+        },
+        "protocol": {
+          "description": "RFPlayer compatible protocol.",
+          "name": "Protocol"
+        }
+      },
+      "name": "Send command"
+    }
+  }
 }

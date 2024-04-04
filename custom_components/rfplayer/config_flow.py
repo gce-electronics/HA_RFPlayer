@@ -1,4 +1,5 @@
 """Config flow to configure the rfplayer integration."""
+
 import os
 from typing import Any
 

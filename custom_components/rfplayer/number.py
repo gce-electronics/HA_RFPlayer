@@ -1,4 +1,5 @@
 """Support for Rfplayer number."""
+
 import logging
 
 from homeassistant.components.number import (
@@ -19,7 +20,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
+    _hass: HomeAssistant, _entry: ConfigEntry, async_add_entities: AddEntitiesCallback
 ) -> None:
     """Set up the Rfplayer platform."""
     _LOGGER.debug("Add jamming number entity")

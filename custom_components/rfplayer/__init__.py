@@ -5,7 +5,6 @@ import copy
 import logging
 from typing import Any
 
-from serial import SerialException
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry
@@ -20,7 +19,6 @@ from homeassistant.const import (
     EVENT_HOMEASSISTANT_STOP,
 )
 from homeassistant.core import CoreState, HomeAssistant, callback
-from homeassistant.helpers import device_registry as dr
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import (
@@ -65,7 +63,7 @@ SEND_COMMAND_SCHEMA = vol.Schema(
         vol.Required(CONF_COMMAND): cv.string,
         vol.Optional(CONF_DEVICE_ADDRESS): cv.string,
         vol.Optional(CONF_DEVICE_ID): cv.string,
-        vol.Required(CONF_AUTOMATIC_ADD, default=False): cv.boolean,
+        vol.Required(CONF_AUTOMATIC_ADD, default=False): cv.boolean,  # type: ignore
     }
 )
 
@@ -84,6 +82,7 @@ def identify_event_type(event):
     return "unknown"
 
 
+# pylint: disable-next=too-many-statements
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up GCE RFPlayer from a config entry."""
 
@@ -163,14 +162,14 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _LOGGER.debug("passing event to %s", entity_id)
             async_dispatcher_send(hass, SIGNAL_HANDLE_EVENT.format(entity_id), event)
         elif event_type in hass.data[DOMAIN][DATA_DEVICE_REGISTER]:
-            _LOGGER.debug("device_id not known, adding new device")
+            _LOGGER.debug("event_id not known, adding new device")
             hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type][event_id] = event
             _add_device_to_base_config(event, event_id)
             hass.async_create_task(
                 hass.data[DOMAIN][DATA_DEVICE_REGISTER][event_type](event)
             )
         else:
-            _LOGGER.debug("device_id not known and automatic add disabled")
+            _LOGGER.debug("event_id not known and automatic add disabled")
 
     @callback
     def _add_device_to_base_config(event, event_id):
@@ -184,6 +183,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     def reconnect(exc=None):
         """Schedule reconnect after connection has been unexpectedly lost."""
         # Reset protocol binding before starting reconnect
+        if exc:
+            _LOGGER.error(exc)
         hass.data[DOMAIN][RFPLAYER_PROTOCOL] = None
 
         async_dispatcher_send(hass, SIGNAL_AVAILABILITY, False)
@@ -209,10 +210,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             async with timeout(CONNECTION_TIMEOUT):
                 transport, protocol = await connection
 
-        except (TimeoutError, SerialException, OSError) as exc:
+        except (TimeoutError, OSError) as exc:
             reconnect_interval = config[CONF_RECONNECT_INTERVAL]
             _LOGGER.exception(
-                "Error connecting to Rfplayer, reconnecting in %s", reconnect_interval
+                "Error connecting to Rfplayer, reconnecting in %s",
+                reconnect_interval,
             )
             # Connection to Rfplayer device is lost, make entities unavailable
             async_dispatcher_send(hass, SIGNAL_AVAILABILITY, False)
@@ -246,6 +248,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     return True
 
 
+# pylint: disable-next=too-many-instance-attributes
 class RfplayerDevice(RestoreEntity):
     """Representation of a Rfplayer device.
 
@@ -256,6 +259,7 @@ class RfplayerDevice(RestoreEntity):
     _attr_assumed_state = True
     _attr_should_poll = False
 
+    # pylint: disable-next=too-many-arguments
     def __init__(
         self,
         protocol: str,
@@ -271,7 +275,6 @@ class RfplayerDevice(RestoreEntity):
             unique_id or device_address or device_id
         ):
             raise TypeError("Incorrect arguments for RfplayerDevice")
-
         self._initial_event = initial_event
         self._protocol = protocol
         self._device_id = device_id
@@ -295,7 +298,7 @@ class RfplayerDevice(RestoreEntity):
             name="RFPlayer",
         )
 
-    async def _async_send_command(self, command, *args):
+    async def _async_send_command(self, command) -> None:
         rfplayer: RfplayerProtocol = self.hass.data[DOMAIN][RFPLAYER_PROTOCOL]
         await rfplayer.send_command_ack(
             command=command,
@@ -305,7 +308,7 @@ class RfplayerDevice(RestoreEntity):
         )
 
     @callback
-    def handle_event_callback(self, event: dict[str, Any]):
+    def handle_event_callback(self, event: dict[str, Any]) -> None:
         """Handle incoming event for device type."""
         # Call platform specific event handler
         self._handle_event(event)
@@ -323,22 +326,22 @@ class RfplayerDevice(RestoreEntity):
                 "Fired bus event for %s: %s", self.entity_id, event[EVENT_KEY_COMMAND]
             )
 
-    def _handle_event(self, event):
+    def _handle_event(self, event) -> None:
         """Platform specific event handler."""
         raise NotImplementedError
 
     @property
-    def available(self):
+    def available(self) -> bool:
         """Return True if entity is available."""
         return bool(self._protocol)
 
     @callback
-    def _availability_callback(self, availability):
+    def _availability_callback(self, availability) -> None:
         """Update availability state."""
         self._available = availability
         self.async_write_ha_state()
 
-    async def async_added_to_hass(self):
+    async def async_added_to_hass(self) -> None:
         """Register update callback."""
         self.async_on_remove(
             async_dispatcher_connect(
@@ -356,13 +359,3 @@ class RfplayerDevice(RestoreEntity):
         # Process the initial event now that the entity is created
         if self._initial_event:
             self.handle_event_callback(self._initial_event)
-
-    async def async_will_remove_from_hass(self):
-        """Clean when entity removed."""
-        await super().async_will_remove_from_hass()
-        device_registry = dr.async_get(self.hass)
-        device = device_registry.async_get_device(
-            (DOMAIN, self.hass.data[DOMAIN][CONF_DEVICE] + "_" + self._attr_unique_id)
-        )
-        if device:
-            device_registry.async_remove_device(device)

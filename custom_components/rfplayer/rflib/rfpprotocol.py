@@ -6,7 +6,7 @@ from datetime import timedelta
 from fnmatch import fnmatchcase
 from functools import partial
 import logging
-from typing import Any, Optional, cast
+from typing import Any, cast
 
 from serial_asyncio import create_serial_connection
 
@@ -29,10 +29,14 @@ class ProtocolBase(asyncio.Protocol):
 
     def __init__(
         self,
-        disconnect_callback: Optional[Callable[[Optional[Exception]], None]] = None,
-        **kwargs: Any,
+        loop: asyncio.AbstractEventLoop | None = None,
+        disconnect_callback: Callable[[Exception | None], None] | None = None,
     ) -> None:
         """Initialize class."""
+        if loop:
+            self.loop = loop
+        else:
+            self.loop = asyncio.get_event_loop()
         self.transport: asyncio.WriteTransport | None = None
         self.packet = ""
         self.buffer = ""
@@ -81,7 +85,7 @@ class ProtocolBase(asyncio.Protocol):
         assert self.transport is not None
         self.transport.write(data)
 
-    def connection_lost(self, exc: Optional[Exception]) -> None:
+    def connection_lost(self, exc: Exception | None) -> None:
         """Log when connection is closed, if needed call callback."""
         if exc:
             log.exception("disconnected due to exception")
@@ -97,7 +101,7 @@ class PacketHandling(ProtocolBase):
     def __init__(
         self,
         *args: Any,
-        packet_callback: Optional[Callable[[PacketType], None]] = None,
+        packet_callback: Callable[[PacketType], None] | None = None,
         **kwargs: Any,
     ) -> None:
         """Add packethandling specific initialization.
@@ -169,7 +173,7 @@ class CommandSerialization(PacketHandling):
     def __init__(
         self,
         *args: Any,
-        packet_callback: Optional[Callable[[PacketType], None]] = None,
+        packet_callback: Callable[[PacketType], None] | None = None,
         **kwargs: Any,
     ) -> None:
         """Add packethandling specific initialization."""
@@ -215,8 +219,8 @@ class EventHandling(PacketHandling):
     def __init__(
         self,
         *args: Any,
-        event_callback: Optional[Callable[[PacketType], None]] = None,
-        ignore: Optional[Sequence[str]] = None,
+        event_callback: Callable[[PacketType], None] | None = None,
+        ignore: Sequence[str] | None = None,
         **kwargs: Any,
     ) -> None:
         """Add eventhandling specific initialization."""
@@ -278,14 +282,15 @@ class RfplayerProtocol(CommandSerialization, EventHandling):
     """Combine preferred abstractions that form complete Rflink interface."""
 
 
+# pylint: disable-next=too-many-arguments
 def create_rfplayer_connection(
     port: str,
     baud: int = 115200,
-    packet_callback: Optional[Callable[[PacketType], None]] = None,
-    event_callback: Optional[Callable[[PacketType], None]] = None,
-    disconnect_callback: Optional[Callable[[Optional[Exception]], None]] = None,
-    ignore: Optional[Sequence[str]] = None,
-    loop: Optional[asyncio.AbstractEventLoop] = None,
+    packet_callback: Callable[[PacketType], None] | None = None,
+    event_callback: Callable[[PacketType], None] | None = None,
+    disconnect_callback: Callable[[Exception | None], None] | None = None,
+    ignore: Sequence[str] | None = None,
+    loop: asyncio.AbstractEventLoop | None = None,
 ) -> "Coroutine[Any, Any, tuple[asyncio.BaseTransport, ProtocolBase]]":
     """Create Rflink manager class, returns transport coroutine."""
     if loop is None:

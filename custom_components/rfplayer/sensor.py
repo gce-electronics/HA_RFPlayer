@@ -19,19 +19,8 @@ from .const import (
     EVENT_KEY_SENSOR,
     EVENT_KEY_UNIT,
 )
-from .rflib.rfpparser import PACKET_FIELDS, UNITS
 
 _LOGGER = logging.getLogger(__name__)
-
-
-def lookup_unit_for_sensor_type(sensor_type):
-    """Get unit for sensor type.
-
-    Async friendly.
-    """
-    field_abbrev = {v: k for k, v in PACKET_FIELDS.items()}
-
-    return UNITS.get(field_abbrev.get(sensor_type))
 
 
 async def async_setup_entry(
@@ -69,6 +58,7 @@ class RfplayerSensor(RfplayerDevice, RestoreSensor):
 
     _attr_native_value: float | None = None
 
+    # pylint: disable-next=too-many-arguments
     def __init__(
         self,
         protocol: str,
@@ -79,7 +69,7 @@ class RfplayerSensor(RfplayerDevice, RestoreSensor):
         unit_of_measurement: str | None = None,
     ) -> None:
         """Handle sensor specific args and super init."""
-        self._attr_unit_of_measurement = unit_of_measurement
+        self._attr_native_unit_of_measurement = unit_of_measurement
         super().__init__(
             protocol=protocol,
             device_id=device_id,
