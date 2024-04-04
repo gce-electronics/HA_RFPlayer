@@ -11,7 +11,6 @@ classifiers = [
   "Framework :: AsyncIO",
   "Intended Audience :: Developers",
   "Natural Language :: English",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3",
 ]
@@ -33,7 +32,7 @@ keywords = [
   "rfplayer",
   "utils",
 ]
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.12,<3.13"
 dependencies = [
     "homeassistant>=2024.4.0",
     "colorlog>=6.8.2",
