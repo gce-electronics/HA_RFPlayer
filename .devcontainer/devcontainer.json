@@ -27,7 +27,7 @@
     "--userns=keep-id:uid=1000,gid=1000",
     "--privileged",
     "-v",
-    "/dev/ttyUSB0:/dev/ttyUSB0" // on host: sudo chmod 666 /dev/ttyUSB0
+    "/dev/ttyUSB0:/dev/ttyUSB0"
   ],
   "onCreateCommand": "rye config --set-bool behavior.use-uv=true && npm install -g mystmd",
   "updateContentCommand": "rye sync",
