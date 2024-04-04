@@ -1,4 +1,5 @@
 """Support for Rfplayer devices."""
+
 from asyncio import BaseTransport, timeout
 import copy
 import logging
@@ -155,7 +156,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # Lookup entities who registered this device id as device id or alias
         event_id = event.get(EVENT_KEY_ID)
 
-        entity_id = hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type][event_id]
+        entity_id = hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type].get(event_id)
 
         if entity_id:
             # Propagate event to every entity matching the device id
@@ -304,7 +305,7 @@ class RfplayerDevice(RestoreEntity):
         )
 
     @callback
-    def handle_event_callback(self, event):
+    def handle_event_callback(self, event: dict[str, Any]):
         """Handle incoming event for device type."""
         # Call platform specific event handler
         self._handle_event(event)

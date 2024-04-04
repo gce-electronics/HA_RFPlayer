@@ -1,0 +1,12 @@
+---
+# default_config:
+config:
+energy:
+history:
+logbook:
+usb:
+
+logger:
+  default: info
+  logs:
+    custom_components.rfplayer: debug

@@ -1,10 +1,12 @@
 """Support for Rfplayer sensors."""
+
 import logging
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_DEVICES
 from homeassistant.core import HomeAssistant
+from homeassistant.components.sensor import RestoreSensor
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import RfplayerDevice
@@ -62,7 +64,7 @@ async def async_setup_entry(
         hass.data[DOMAIN][DATA_DEVICE_REGISTER][EVENT_KEY_SENSOR] = add_new_device
 
 
-class RfplayerSensor(RfplayerDevice):
+class RfplayerSensor(RfplayerDevice, RestoreSensor):
     """Representation of a Rfplayer sensor."""
 
     _attr_native_value: float | None = None
@@ -96,6 +98,6 @@ class RfplayerSensor(RfplayerDevice):
                 self._initial_event[EVENT_KEY_ID]
             ] = self.entity_id
 
-    def _handle_event(self, event):
+    def _handle_event(self, event: dict[str, Any]) -> None:
         """Domain specific event handler."""
         self._attr_native_value = float(event["value"])
