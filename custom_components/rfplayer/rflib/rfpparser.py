@@ -131,7 +131,7 @@ def decode_packet(packet: str) -> list:
             data["state"] = message["infos"]["qualifier"]
         packets_found.append(data)
     elif data["protocol"] in ["OREGON"]:
-        data["id"] = message["infos"]["id_PHY"]
+        data["id"] = message["infos"]["adr_channel"]
         data["hardware"] = message["infos"]["id_PHYMeaning"]
         for measure in message["infos"]["measures"]:
             measure_data = data.copy()
