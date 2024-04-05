@@ -230,12 +230,12 @@ def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
     #   packet["message"]
     #   yield { "id": packet_id, "message": packet["message"] }
     # except KeyError:
-    for sensor, value in events.items():
-        log.debug("packet_events, sensor:%s,value:%s", sensor, value)
-        unit = packet.get(sensor + "_unit", None)
+    for paquet_type, value in events.items():
+        log.debug("packet_events, sensor:%s,value:%s", paquet_type, value)
+        unit = packet.get(paquet_type + "_unit", None)
         yield {
-            "id": packet_id + PACKET_ID_SEP + field_abbrev[sensor],
-            "sensor": sensor,
+            "id": packet_id + PACKET_ID_SEP + field_abbrev[paquet_type],
+            "sensor": paquet_type,
             "value": value,
             "unit": unit,
         }

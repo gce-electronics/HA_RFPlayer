@@ -10,6 +10,7 @@
 - Replace the jamming sensor by a binary_sensor and add events catching to it
 - Allow to specify manual path to USB device
 - Disallow multi instance of the integration
+- Fix options changes not reloading integration
 
 ## 0.6.1
 

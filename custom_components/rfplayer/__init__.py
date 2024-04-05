@@ -228,6 +228,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
         hass.data[DOMAIN][RFPLAYER_PROTOCOL] = protocol
 
+        entry.add_update_listener(_async_update_listener)
+
         if options.get(CONF_AUTOMATIC_ADD, config[CONF_AUTOMATIC_ADD]) is True:
             for device_type in "sensor", "command":
                 hass.data[DOMAIN][DATA_DEVICE_REGISTER][device_type] = {}
@@ -246,6 +248,20 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     return True
+
+
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Unload a config entry."""
+    await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+    hass.data.pop(DOMAIN)
+
+    return True
+
+
+async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
+    """Handle options update."""
+    await hass.config_entries.async_reload(entry.entry_id)
 
 
 # pylint: disable-next=too-many-instance-attributes
