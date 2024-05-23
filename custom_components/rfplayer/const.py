@@ -1,4 +1,5 @@
 """Constants for the rfplayer integration."""
+
 DOMAIN = "rfplayer"
 DATA_RFOBJECT = "rfobject"
 
@@ -8,12 +9,13 @@ CONF_RECONNECT_INTERVAL = "reconnect_interval"
 DEFAULT_RECONNECT_INTERVAL = 10
 DEFAULT_SIGNAL_REPETITIONS = 1
 
-PLATFORMS = ["sensor", "switch", "number"]
+PLATFORMS = ["binary_sensor", "number", "sensor", "switch"]
 
 ATTR_EVENT = "event"
 
 RFPLAYER_PROTOCOL = "rfplayer_protocol"
 
+CONF_MANUAL_DEVICE = "manual_device"
 CONF_DEVICE_ADDRESS = "device_address"
 CONF_FIRE_EVENT = "fire_event"
 CONF_IGNORE_DEVICES = "ignore_devices"
@@ -26,6 +28,7 @@ CONNECTION_TIMEOUT = 10
 
 EVENT_BUTTON_PRESSED = "button_pressed"
 EVENT_KEY_COMMAND = "command"
+EVENT_KEY_JAMMING = "jamming"
 EVENT_KEY_ID = "id"
 EVENT_KEY_SENSOR = "sensor"
 EVENT_KEY_UNIT = "unit"

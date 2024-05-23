@@ -1,39 +1,55 @@
 """Config flow to configure the rfplayer integration."""
+
 import os
+from typing import Any
 
 import serial
 import voluptuous as vol
 
-from homeassistant import config_entries, exceptions
+from homeassistant import exceptions
+from homeassistant.config_entries import HANDLERS, ConfigEntry, ConfigFlow, OptionsFlow
 from homeassistant.const import CONF_DEVICE, CONF_DEVICES
 from homeassistant.core import callback
+from homeassistant.data_entry_flow import AbortFlow, FlowResult
 
 from .const import (
     CONF_AUTOMATIC_ADD,
+    CONF_MANUAL_DEVICE,
     CONF_RECONNECT_INTERVAL,
     DEFAULT_RECONNECT_INTERVAL,
     DOMAIN,
 )
 
 
-@config_entries.HANDLERS.register(DOMAIN)
-class RfplayerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+@HANDLERS.register(DOMAIN)
+class RfplayerConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a rfplayer config flow."""
 
     VERSION = 1
 
-    async def async_step_user(self, user_input=None):
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Config flow started from UI."""
-        errors = {}
+        if self._async_current_entries():
+            return self.async_abort(reason="single_instance_allowed")
+
+        schema_errors: dict[str, Any] = {}
 
         if user_input is not None:
             user_input[CONF_DEVICES] = {}
 
-            user_input[CONF_DEVICE] = await self.hass.async_add_executor_job(
-                get_serial_by_id, user_input[CONF_DEVICE]
-            )
+            if user_input.get(CONF_DEVICE):
+                user_input[CONF_DEVICE] = await self.hass.async_add_executor_job(
+                    get_serial_by_id, user_input[CONF_DEVICE]
+                )
+            elif user_input.get(CONF_MANUAL_DEVICE):
+                user_input[CONF_DEVICE] = user_input[CONF_MANUAL_DEVICE]
+                user_input.pop(CONF_MANUAL_DEVICE)
+            else:
+                schema_errors.update({CONF_DEVICE: "device_missing"})
 
-            if not errors:
+            if not schema_errors:
                 return self.async_create_entry(
                     title=user_input[CONF_DEVICE], data=user_input
                 )
@@ -41,14 +57,17 @@ class RfplayerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         ports = await self.hass.async_add_executor_job(serial.tools.list_ports.comports)
         list_of_ports = {}
         for port in ports:
-            list_of_ports[
-                port.device
-            ] = f"{port}, s/n: {port.serial_number or 'n/a'}" + (
-                f" - {port.manufacturer}" if port.manufacturer else ""
+            list_of_ports[port.device] = (
+                f"{port}, s/n: {port.serial_number or 'n/a'}"
+                + (f" - {port.manufacturer}" if port.manufacturer else "")
             )
 
+        if not list_of_ports:
+            raise AbortFlow("no_devices_found")
+
         data = {
-            vol.Required(CONF_DEVICE): vol.In(list_of_ports),
+            vol.Optional(CONF_DEVICE): vol.In(list_of_ports),
+            vol.Optional(CONF_MANUAL_DEVICE): str,
             vol.Required(CONF_AUTOMATIC_ADD, default=True): bool,
             vol.Required(
                 CONF_RECONNECT_INTERVAL, default=DEFAULT_RECONNECT_INTERVAL
@@ -57,24 +76,26 @@ class RfplayerConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_show_form(
             step_id="user",
             data_schema=vol.Schema(data),
-            errors=errors,
+            errors=schema_errors,
         )
 
     @staticmethod
     @callback
-    def async_get_options_flow(config_entry):
+    def async_get_options_flow(config_entry: ConfigEntry) -> OptionsFlow:
         """Define the config flow to handle options."""
         return RfPlayerOptionsFlowHandler(config_entry)
 
 
-class RfPlayerOptionsFlowHandler(config_entries.OptionsFlow):
+class RfPlayerOptionsFlowHandler(OptionsFlow):
     """Handle a RFPLayer options flow."""
 
-    def __init__(self, config_entry):
+    def __init__(self, config_entry: ConfigEntry) -> None:
         """Initialize."""
         self.config_entry = config_entry
 
-    async def async_step_init(self, user_input: dict = None):
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
         """Manage the options."""
         if user_input is None:
             config = self.config_entry.data

@@ -1,10 +1,13 @@
 """Parsers."""
 
+from collections.abc import Callable, Generator
 from enum import Enum
 import json
 import logging
 import re
-from typing import Any, Callable, Dict, Generator, cast
+from typing import Any, cast
+
+from .exception import RfPlayerException
 
 log = logging.getLogger(__name__)
 
@@ -34,20 +37,20 @@ DTC_STATUS_LOOKUP = {
 }
 
 SBX_STATUS_LOOKUP = {
-    "0": "eco",     
-    "1": "moderato",   
-    "2": "medio",      
-    "3": "comfort",  
-    "4": "stop",   
+    "0": "eco",
+    "1": "moderato",
+    "2": "medio",
+    "3": "comfort",
+    "4": "stop",
     "5": "outoffrost",
-    "6": "special",    
+    "6": "special",
     "7": "auto",
     "8": "centralised",
-    "9": "outoffrost", # starbox f03: undocumented, like outoffrost + progressive heating ?
+    "9": "outoffrost",  # starbox f03: undocumented, like outoffrost + progressive heating ?
 }
 
 VALUE_TRANSLATION = cast(
-    Dict[str, Callable[[str], str]],
+    dict[str, Callable[[str], str]],
     {
         "detector": lambda x: DTC_STATUS_LOOKUP.get(x, "unknown"),
         "starbox": lambda x: SBX_STATUS_LOOKUP.get(x, "unknown"),
@@ -67,15 +70,15 @@ PACKET_HEADER_RE = (
 
 packet_header_re = re.compile(PACKET_HEADER_RE)
 
-PacketType = Dict[str, Any]
+PacketType = dict[str, Any]
 
 
 class PacketHeader(Enum):
     """Packet source identification."""
 
-    master = "10"
-    echo = "11"
-    gateway = "20"
+    MASTER = "10"
+    ECHO = "11"
+    GATEWAY = "20"
 
 
 def valid_packet(packet: str) -> bool:
@@ -83,10 +86,11 @@ def valid_packet(packet: str) -> bool:
     return bool(packet_header_re.match(packet))
 
 
+# pylint: disable-next=too-many-branches too-many-statements
 def decode_packet(packet: str) -> list:
     """Decode packet."""
     packets_found = []
-    data = cast(PacketType, {"node": PacketHeader.gateway.name})
+    data = cast(PacketType, {"node": PacketHeader.GATEWAY.name})
 
     # Welcome messages directly send
     if packet.startswith("ZIA--"):
@@ -105,27 +109,29 @@ def decode_packet(packet: str) -> list:
     elif data["protocol"] in ["X2D"]:
         data["id"] = message["infos"]["id"]
         if message["infos"]["subTypeMeaning"] == "Detector/Sensor":
-          value = VALUE_TRANSLATION["detector"](message["infos"]["qualifier"]) 
-          data["command"] = value
-          data["state"] = value
+            value = VALUE_TRANSLATION["detector"](message["infos"]["qualifier"])
+            data["command"] = value
+            data["state"] = value
         elif message["infos"]["subTypeMeaning"] == "STARBOX F03":
-          if message["infos"]["functionMeaning"] == "OPERATING MODE": 
-            value = VALUE_TRANSLATION["starbox"](message["infos"]["state"])
-            data["command"] = value                                             
-            data["state"] = value  
-          elif ( message["infos"]["functionMeaning"] == "OTHER FUNCTION" 
-                 and message["infos"]["state"] == "6" ):
-            data["command"] = "assoc:" + message["infos"]["area"]
-            data["state"] = "assoc:" + message["infos"]["area"]
-          else:
-            data["command"] = message["infos"]["functionMeaning"]
-            data["state"] = message["infos"]["stateMeaning"]
+            if message["infos"]["functionMeaning"] == "OPERATING MODE":
+                value = VALUE_TRANSLATION["starbox"](message["infos"]["state"])
+                data["command"] = value
+                data["state"] = value
+            elif (
+                message["infos"]["functionMeaning"] == "OTHER FUNCTION"
+                and message["infos"]["state"] == "6"
+            ):
+                data["command"] = "assoc:" + message["infos"]["area"]
+                data["state"] = "assoc:" + message["infos"]["area"]
+            else:
+                data["command"] = message["infos"]["functionMeaning"]
+                data["state"] = message["infos"]["stateMeaning"]
         else:
-          data["command"] = message["infos"]["subTypeMeaning"]
-          data["state"] = message["infos"]["qualifier"]
+            data["command"] = message["infos"]["subTypeMeaning"]
+            data["state"] = message["infos"]["qualifier"]
         packets_found.append(data)
     elif data["protocol"] in ["OREGON"]:
-        data["id"] = message["infos"]["id_PHY"]
+        data["id"] = message["infos"]["adr_channel"]
         data["hardware"] = message["infos"]["id_PHYMeaning"]
         for measure in message["infos"]["measures"]:
             measure_data = data.copy()
@@ -155,7 +161,7 @@ def encode_packet(packet: PacketType) -> str:
         return f"ZIA++{command} {protocol} ID {packet['id']}"
     if "address" in packet:
         return f"ZIA++{command} {protocol} {packet['address']}"
-    raise Exception("No ID or Address found")
+    raise RfPlayerException("No ID or Address found")
 
 
 def serialize_packet_id(packet: PacketType) -> str:
@@ -172,7 +178,7 @@ def serialize_packet_id(packet: PacketType) -> str:
     )
 
 
-def deserialize_packet_id(packet_id: str) -> Dict[str, str]:
+def deserialize_packet_id(packet_id: str) -> dict[str, str]:
     """Deserialize packet id."""
     if packet_id == "rfplayer":
         return {"protocol": "unknown"}
@@ -224,12 +230,12 @@ def packet_events(packet: PacketType) -> Generator[PacketType, None, None]:
     #   packet["message"]
     #   yield { "id": packet_id, "message": packet["message"] }
     # except KeyError:
-    for sensor, value in events.items():
-        log.debug("packet_events, sensor:%s,value:%s", sensor, value)
-        unit = packet.get(sensor + "_unit", None)
+    for paquet_type, value in events.items():
+        log.debug("packet_events, sensor:%s,value:%s", paquet_type, value)
+        unit = packet.get(paquet_type + "_unit", None)
         yield {
-            "id": packet_id + PACKET_ID_SEP + field_abbrev[sensor],
-            "sensor": sensor,
+            "id": packet_id + PACKET_ID_SEP + field_abbrev[paquet_type],
+            "sensor": paquet_type,
             "value": value,
             "unit": unit,
         }

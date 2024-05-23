@@ -1,0 +1,124 @@
+[project]
+name = "HA_RFPlayer"
+version = "0.0.0"
+license = { text = "MIT License" }
+description = "Home-Assistant GCE RFPlayer"
+authors = [{ name = "Aohzan", email = "aohzan@gmail.com"}]
+maintainers = [{ name = "Aohzan", email = "aohzan@gmail.com"}]
+readme = "README.md"
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Framework :: AsyncIO",
+  "Intended Audience :: Developers",
+  "Natural Language :: English",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3",
+]
+keywords = [
+  "custom component",
+  "custom integration",
+  "gce",
+  "hacs-component",
+  "hacs-integration",
+  "hacs-repository",
+  "hacs",
+  "hass.io",
+  "hass",
+  "hassio",
+  "home assistant",
+  "home-assistant",
+  "homeassistant",
+  "integration",
+  "rfplayer",
+  "utils",
+]
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "homeassistant>=2024.4.0",
+    "colorlog>=6.8.2",
+    "pyserial==3.5",
+    "pyserial-asyncio==0.6",
+    "aiodns==3.2.0",
+    "numpy>=1.26.4",
+]
+
+[project.urls]
+Homepage = "https://www.gce-electronics.com/fr/produits-radio/1777-rf-player-3770008041004.html"
+Documentation = "https://github.com/gce-electronics/HA_RFPlayer/blob/main/rfplayer_api_v1.15.pdf"
+Changelog = "https://github.com/gce-electronics/HA_RFPlayer/releases"
+Support = "https://forum.gce-electronics.com/"
+Issues = "https://github.com/gce-electronics/HA_RFPlayer/issues"
+Repository = "https://github.com/gce-electronics/HA_RFPlayer"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["custom_components/rfplayer"]
+
+[tool.ruff]
+src = ["custom_components/rfplayer"]
+
+[tool.ruff.lint]
+ignore = [
+  "ANN101", # Self... explanatory
+  "ANN401", # Opiniated warning on disallowing dynamically typed expressions
+  "D203", # Conflicts with other rules
+  "D213", # Conflicts with other rules
+  "TID252", # Relative imports
+  "RUF012", # Just broken
+
+  # Formatter conflicts
+  "COM812",
+  "COM819",
+  "D206",
+  "E501",
+  "ISC001",
+  "Q000",
+  "Q001",
+  "Q002",
+  "Q003",
+  "W191",
+]
+select = ["ALL"]
+
+[tool.ruff.lint.flake8-import-conventions.extend-aliases]
+"homeassistant.helpers.area_registry" = "ar"
+"homeassistant.helpers.config_validation" = "cv"
+"homeassistant.helpers.device_registry" = "dr"
+"homeassistant.helpers.entity_registry" = "er"
+"homeassistant.helpers.issue_registry" = "ir"
+voluptuous = "vol"
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+known-first-party = [
+    "homeassistant",
+]
+combine-as-imports = true
+
+[tool.pylint."MESSAGES CONTROL"]
+# Reasons disabled:
+# format - handled by ruff
+# duplicate-code - unavoidable
+# used-before-assignment - false positives with TYPE_CHECKING structures
+disable = [
+  "abstract-method",
+  "duplicate-code",
+  "format",
+  "unexpected-keyword-arg",
+  "used-before-assignment",
+]
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+  "pre-commit>=3.6.0",
+  "pre-commit-hooks>=4.5.0",
+  "pylint>=3.1.0",
+  "ruff>=0.3.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
