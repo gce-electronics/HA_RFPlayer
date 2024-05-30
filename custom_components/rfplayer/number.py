@@ -44,8 +44,10 @@ class RfplayerJammingNumber(RfplayerDevice, RestoreNumber):
     def __init__(self) -> None:
         """Init the jamming number rfplayer entity."""
         super().__init__(
+            unique_id="JAMMING_jamming_level",
             protocol="JAMMING",
-            unique_id="jamming_level",
+            device_id="0",
+            event_type="jamming_level",
             name="Jamming detection level",
         )
 

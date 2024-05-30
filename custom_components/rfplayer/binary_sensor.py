@@ -41,9 +41,12 @@ class RfplayerJammingBinarySensor(RfplayerDevice, BinarySensorEntity):
     def __init__(self) -> None:
         """Init the jamming sensor rfplayer entity."""
         # Get Jamming events by simulating event id
+        # FIXME not sure how
         super().__init__(
+            unique_id="JAMMING_0_event",
             protocol="JAMMING",
-            unique_id="jamming_detection",
+            device_id="jamming ",
+            event_type="detection",
             name="Jamming detection",
         )
 
@@ -58,4 +61,4 @@ class RfplayerJammingBinarySensor(RfplayerDevice, BinarySensorEntity):
 
     def _handle_event(self, event):
         """Domain specific event handler."""
-        self._attr_is_on = bool(event["value"] == "1")
+        self._attr_is_on = bool(event["state"] == "1")

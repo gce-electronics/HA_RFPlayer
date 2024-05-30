@@ -1,12 +1,12 @@
 """Support for Rfplayer devices."""
 
-from asyncio import BaseTransport, timeout
 import copy
 import logging
-from typing import Any
+from asyncio import BaseTransport, timeout
+from typing import Any, cast
 
+import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_ENTITY_ID,
@@ -19,7 +19,6 @@ from homeassistant.const import (
     EVENT_HOMEASSISTANT_STOP,
 )
 from homeassistant.core import CoreState, HomeAssistant, callback
-import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.dispatcher import (
     async_dispatcher_connect,
@@ -87,7 +86,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up GCE RFPlayer from a config entry."""
 
     config = entry.data
-    options = entry.options
 
     hass.data.setdefault(
         DOMAIN,
@@ -163,6 +161,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             async_dispatcher_send(hass, SIGNAL_HANDLE_EVENT.format(entity_id), event)
         elif event_type in hass.data[DOMAIN][DATA_DEVICE_REGISTER]:
             _LOGGER.debug("event_id not known, adding new device")
+            # Should be entity_id (see above) which is not yet known
+            # Set to event to prevent race condition
+            # Will be set to entity_id once created
             hass.data[DOMAIN][DATA_ENTITY_LOOKUP][event_type][event_id] = event
             _add_device_to_base_config(event, event_id)
             hass.async_create_task(
@@ -182,17 +183,23 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     @callback
     def reconnect(exc=None):
         """Schedule reconnect after connection has been unexpectedly lost."""
+
         # Reset protocol binding before starting reconnect
         if exc:
             _LOGGER.error(exc)
-        hass.data[DOMAIN][RFPLAYER_PROTOCOL] = None
+
+        # Check if domain unloaded
+        if DOMAIN in hass.data:
+            hass.data[DOMAIN][RFPLAYER_PROTOCOL] = None
 
         async_dispatcher_send(hass, SIGNAL_AVAILABILITY, False)
 
-        # If HA is not stopping, initiate new connection
-        if hass.state != CoreState.stopping:
+        # If HA is not stopping and connection not explicitly closed, initiate new connection
+        if hass.state != CoreState.stopping and exc:
             _LOGGER.warning("Disconnected from Rfplayer, reconnecting")
             hass.async_create_task(connect())
+        else:
+            _LOGGER.warning("Rfplayer connection closed")
 
     async def connect():
         """Set up connection and hook it into HA for reconnect/shutdown."""
@@ -226,13 +233,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         # mark entities as available
         async_dispatcher_send(hass, SIGNAL_AVAILABILITY, True)
 
+        # FIXME don't reload on update cause it's causing serial reconnection and duplicate entries
+
         hass.data[DOMAIN][RFPLAYER_PROTOCOL] = protocol
-
-        entry.add_update_listener(_async_update_listener)
-
-        if options.get(CONF_AUTOMATIC_ADD, config[CONF_AUTOMATIC_ADD]) is True:
-            for device_type in "sensor", "command":
-                hass.data[DOMAIN][DATA_DEVICE_REGISTER][device_type] = {}
 
         # handle shutdown of Rfplayer asyncio transport
         hass.bus.async_listen_once(
@@ -252,16 +255,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    if not await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
+        return False
+
+    hass.services.async_remove(DOMAIN, SERVICE_SEND_COMMAND)
+
+    protocol = cast(ProtocolBase, hass.data[DOMAIN][RFPLAYER_PROTOCOL])
+    if protocol:
+        _LOGGER.info("Closing RfPlayer connection on unload")
+        hass.data[DOMAIN][RFPLAYER_PROTOCOL] = None
+        if protocol.transport:
+            protocol.transport.close()
 
     hass.data.pop(DOMAIN)
 
     return True
-
-
-async def _async_update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
-    """Handle options update."""
-    await hass.config_entries.async_reload(entry.entry_id)
 
 
 # pylint: disable-next=too-many-instance-attributes
@@ -278,18 +286,17 @@ class RfplayerDevice(RestoreEntity):
     # pylint: disable-next=too-many-arguments
     def __init__(
         self,
+        unique_id: str,
         protocol: str,
+        event_type: str,
         device_address: str | None = None,
         device_id: str | None = None,
         initial_event: dict[str, Any] | None = None,
         name: str | None = None,
-        unique_id: str | None = None,
     ) -> None:
         """Initialize the device."""
         # Rfplayer specific attributes for every component type
-        if not (name or device_address or device_id) or not (
-            unique_id or device_address or device_id
-        ):
+        if not (device_address or device_id):
             raise TypeError("Incorrect arguments for RfplayerDevice")
         self._initial_event = initial_event
         self._protocol = protocol
@@ -297,12 +304,10 @@ class RfplayerDevice(RestoreEntity):
         self._device_address = device_address
         self._event = None
 
-        self._attr_name = name or f"{protocol} {device_address or device_id}"
-        self._attr_unique_id = slugify(
-            "_".join(
-                [protocol, unique_id or device_address or device_id]  # type: ignore[list-item]
-            )
+        self._attr_name = (
+            name or f"{protocol} {device_address or device_id} {event_type}"
         )
+        self._attr_unique_id = slugify(unique_id)
 
     @property
     def device_info(self) -> DeviceInfo:
@@ -316,7 +321,7 @@ class RfplayerDevice(RestoreEntity):
 
     async def _async_send_command(self, command) -> None:
         rfplayer: RfplayerProtocol = self.hass.data[DOMAIN][RFPLAYER_PROTOCOL]
-        await rfplayer.send_command_ack(
+        rfplayer.send_command(
             command=command,
             protocol=self._protocol,
             device_id=self._device_id,
@@ -349,22 +354,27 @@ class RfplayerDevice(RestoreEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return bool(self._protocol)
+        return bool(self._available)
 
     @callback
     def _availability_callback(self, availability) -> None:
         """Update availability state."""
+        _LOGGER.debug("availability state updated %s", availability)
         self._available = availability
         self.async_write_ha_state()
 
     async def async_added_to_hass(self) -> None:
         """Register update callback."""
+        await super().async_added_to_hass()
+
         self.async_on_remove(
+            # connect returns the method to be called on remove
             async_dispatcher_connect(
                 self.hass, SIGNAL_AVAILABILITY, self._availability_callback
             )
         )
         self.async_on_remove(
+            # connect returns the method to be called on remove
             async_dispatcher_connect(
                 self.hass,
                 SIGNAL_HANDLE_EVENT.format(self.entity_id),
