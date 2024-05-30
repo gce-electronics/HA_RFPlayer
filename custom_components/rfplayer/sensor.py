@@ -3,10 +3,10 @@
 import logging
 from typing import Any
 
+from homeassistant.components.sensor import RestoreSensor
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_DEVICES
 from homeassistant.core import HomeAssistant
-from homeassistant.components.sensor import RestoreSensor
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 from . import RfplayerDevice
@@ -15,7 +15,9 @@ from .const import (
     DATA_DEVICE_REGISTER,
     DATA_ENTITY_LOOKUP,
     DOMAIN,
+    EVENT_KEY_DEVICE_ID,
     EVENT_KEY_ID,
+    EVENT_KEY_PROTOCOL,
     EVENT_KEY_SENSOR,
     EVENT_KEY_UNIT,
 )
@@ -32,16 +34,23 @@ async def async_setup_entry(
 
     async def add_new_device(device_info):
         """Check if device is known, otherwise create device entity."""
-        device_id = device_info[EVENT_KEY_ID]
+
+        # FIXME improve typing
+        event_id = device_info[EVENT_KEY_ID]
+        device_protocol = device_info[EVENT_KEY_PROTOCOL]
+        device_id = device_info[EVENT_KEY_DEVICE_ID]
+        sensor_type = device_info[EVENT_KEY_SENSOR]
 
         # create entity
         device = RfplayerSensor(
-            protocol=device_id.split("_")[0],
-            device_id=device_id.split("_")[1],
-            unit_of_measurement=device_info[EVENT_KEY_UNIT],
+            event_id=event_id,
+            protocol=device_protocol,
+            device_id=device_id,
+            sensor_type=sensor_type,
+            unit_of_measurement=device_info.get(EVENT_KEY_UNIT),
             initial_event=device_info,
         )
-        _LOGGER.debug("Add sensor entity %s", device_id)
+        _LOGGER.debug("Add sensor entity %s %s", device_id, sensor_type)
         async_add_entities([device])
 
     if CONF_DEVICES in config:
@@ -61,21 +70,23 @@ class RfplayerSensor(RfplayerDevice, RestoreSensor):
     # pylint: disable-next=too-many-arguments
     def __init__(
         self,
+        event_id: str,
         protocol: str,
-        device_id: str | None = None,
+        device_id: str,
+        sensor_type: str,
         initial_event: dict[str, Any] | None = None,
         name: str | None = None,
-        unique_id: str | None = None,
         unit_of_measurement: str | None = None,
     ) -> None:
         """Handle sensor specific args and super init."""
         self._attr_native_unit_of_measurement = unit_of_measurement
         super().__init__(
+            unique_id=event_id,
             protocol=protocol,
             device_id=device_id,
+            event_type=sensor_type,
             initial_event=initial_event,
             name=name,
-            unique_id=unique_id,
         )
 
     async def async_added_to_hass(self) -> None:
@@ -90,4 +101,4 @@ class RfplayerSensor(RfplayerDevice, RestoreSensor):
 
     def _handle_event(self, event: dict[str, Any]) -> None:
         """Domain specific event handler."""
-        self._attr_native_value = float(event["value"])
+        self._attr_native_value = float(event["state"])

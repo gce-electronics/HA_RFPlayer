@@ -34,6 +34,7 @@ async def async_setup_entry(
         """Check if device is known, otherwise create device entity."""
         # create entity
         device = RfplayerSwitch(
+            event_id=device_info[EVENT_KEY_ID],
             protocol=device_info[CONF_PROTOCOL],
             device_address=device_info.get(CONF_DEVICE_ADDRESS),
             device_id=device_info.get(CONF_DEVICE_ID),
@@ -52,11 +53,12 @@ async def async_setup_entry(
 
 
 class RfplayerSwitch(RfplayerDevice, SwitchEntity):
-    """Representation of a Rfplayer sensor."""
+    """Representation of a Rfplayer switch."""
 
     # pylint: disable-next=too-many-arguments
     def __init__(
         self,
+        event_id: str,
         protocol: str,
         device_id: str | None = None,
         device_address: str | None = None,
@@ -65,7 +67,18 @@ class RfplayerSwitch(RfplayerDevice, SwitchEntity):
     ) -> None:
         """Handle switch specific args and super init."""
         self._state: bool | None = None
-        super().__init__(protocol, device_address, device_id, initial_event, name)
+        if not (name or device_address or device_id) or not (
+            device_address or device_id
+        ):
+            raise TypeError("Incorrect arguments for RfplayerSwitch")
+        super().__init__(
+            unique_id=event_id,
+            protocol=protocol,
+            device_id=device_address or device_id,
+            event_type="command",
+            initial_event=initial_event,
+            name=name,
+        )
 
     async def async_added_to_hass(self) -> None:
         """Restore RFPlayer device state (ON/OFF)."""
@@ -83,7 +96,7 @@ class RfplayerSwitch(RfplayerDevice, SwitchEntity):
 
     @callback
     def _handle_event(self, event):
-        command = event["command"]
+        command = event["state"]
         if command in [COMMAND_ON, "ALLON"]:
             self._state = True
         elif command in [COMMAND_OFF, "ALLOFF"]:

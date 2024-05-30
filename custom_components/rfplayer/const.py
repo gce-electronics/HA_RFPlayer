@@ -27,9 +27,11 @@ DATA_ENTITY_LOOKUP = "entity_lookup"
 CONNECTION_TIMEOUT = 10
 
 EVENT_BUTTON_PRESSED = "button_pressed"
-EVENT_KEY_COMMAND = "command"
 EVENT_KEY_JAMMING = "jamming"
+EVENT_KEY_COMMAND = "command"
 EVENT_KEY_ID = "id"
+EVENT_KEY_DEVICE_ID = "device_id"
+EVENT_KEY_PROTOCOL = "protocol"
 EVENT_KEY_SENSOR = "sensor"
 EVENT_KEY_UNIT = "unit"
 

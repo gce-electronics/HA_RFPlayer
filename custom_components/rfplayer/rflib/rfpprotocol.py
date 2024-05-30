@@ -2,7 +2,7 @@
 
 import asyncio
 from collections.abc import Callable, Coroutine, Sequence
-from datetime import timedelta
+import contextlib
 from fnmatch import fnmatchcase
 from functools import partial
 import logging
@@ -15,13 +15,12 @@ from .rfpparser import (
     RfPlayerException,
     decode_packet,
     encode_packet,
-    packet_events,
     valid_packet,
 )
 
 log = logging.getLogger(__name__)
 
-TIMEOUT = timedelta(seconds=5)
+RESPONSE_TIMEOUT = 5.0
 
 
 class ProtocolBase(asyncio.Protocol):
@@ -68,7 +67,8 @@ class ProtocolBase(asyncio.Protocol):
     def handle_lines(self) -> None:
         """Assemble incoming data into per-line packets."""
         while "\n\r" in self.buffer:
-            line, self.buffer = self.buffer.split("\n\r", 1)
+            line, self.buffer = self.buffer.split("\n", 1)
+            line = line.strip("\0\r")
             if valid_packet(line):
                 self.handle_raw_packet(line)
             else:
@@ -125,12 +125,14 @@ class PacketHandling(ProtocolBase):
         if packets:
             for packet in packets:
                 log.debug("decoded packet: %s", packet)
-                if "ok" in packet:
+                if "response" in packet:
                     # handle response packets internally
                     log.debug("command response: %s", packet)
                     self.handle_response_packet(packet)
-                else:
+                elif "command" in packet or "sensor" in packet:
                     self.handle_packet(packet)
+                else:
+                    log.warning("unsupported packet type: %s", packet)
         else:
             log.warning("no valid packet")
 
@@ -198,12 +200,17 @@ class CommandSerialization(PacketHandling):
         device_address: str | None = None,
         device_id: str | None = None,
     ) -> bool:
-        """Send command, wait for gateway to repond."""
+        """Send command, wait for gateway to respond."""
         async with self._lock:
-            self.send_command(protocol, command, device_address, device_id)
             self._event.clear()
-            # await self._event.wait()
-        return True
+            self.send_command(protocol, command, device_address, device_id)
+            return await self._event_wait(RESPONSE_TIMEOUT)
+
+    async def _event_wait(self, timeout):
+        # suppress TimeoutError because we'll return False in case of timeout
+        with contextlib.suppress(asyncio.TimeoutError):
+            await asyncio.wait_for(self._event.wait(), timeout)
+        return self._event.is_set()
 
 
 class EventHandling(PacketHandling):
@@ -238,24 +245,23 @@ class EventHandling(PacketHandling):
 
     def _handle_packet(self, packet: PacketType) -> None:
         """Event specific packet handling logic."""
-        events = packet_events(packet)
+        if self.ignore_event(packet["id"]):
+            log.debug("ignoring event with id: %s", packet)
+            return
+        log.debug("got event: %s", packet)
+        if self.event_callback:
+            self.event_callback(packet)
+        else:
+            self._log_event(packet)
 
-        for event in events:
-            if self.ignore_event(event["id"]):
-                log.debug("ignoring event with id: %s", event)
-                continue
-            log.debug("got event: %s", event)
-            if self.event_callback:
-                self.event_callback(event)
-            else:
-                self.handle_event(event)
-
-    def handle_event(self, event: PacketType) -> None:
+    def _log_event(self, event: PacketType) -> None:
         """Handle of incoming event (print)."""
         log.debug("_handle_event")
         string = "{id:<32} "
         if "command" in event:
             string += "{command}"
+        if "sensor" in event:
+            string += "{sensor}"
         elif "version" in event:
             if "hardware" in event:
                 string += "{hardware} {firmware} "
@@ -306,6 +312,4 @@ def create_rfplayer_connection(
     )
 
     # setup serial connection
-    conn = create_serial_connection(loop, protocol_factory, port, baud)
-
-    return conn
+    return create_serial_connection(loop, protocol_factory, port, baud)
