@@ -103,13 +103,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     async def async_send_command(call):
         """Send Rfplayer command."""
         _LOGGER.debug("Rfplayer send command for %s", str(call.data))
-        if not await hass.data[DOMAIN][RFPLAYER_PROTOCOL].send_command_ack(
+        hass.data[DOMAIN][RFPLAYER_PROTOCOL].send_command(
             protocol=call.data[CONF_PROTOCOL],
             command=call.data[CONF_COMMAND],
             device_address=call.data.get(CONF_DEVICE_ADDRESS),
             device_id=call.data.get(CONF_DEVICE_ID),
-        ):
-            _LOGGER.error("Failed Rfplayer command")
+        )
+
         if call.data[CONF_AUTOMATIC_ADD] is True:
             _LOGGER.debug("Add device for %s", str(call.data))
             event_id = "_".join(

@@ -48,12 +48,21 @@ def decode_packet(packet: str) -> list:
     if data["protocol"] in ["BLYSS", "CHACON"]:
         data["device_id"] = message["infos"]["id"]
         data["command"] = "cmd"
+        # assume its in ON OFF ALLON ALLOFF
         data["state"] = message["infos"]["subTypeMeaning"]
         packets_found.append(data)
     elif data["protocol"] in ["X2D"]:
         data["device_id"] = message["infos"]["id"]
-        data["sensor"] = message["infos"]["functionMeaning"]  # FIXME should be a number
-        data["state"] = message["infos"]["state"]
+
+        if message["infoType"] == "10":
+            # thermostat
+            data["sensor"] = message["infos"]["functionMeaning"]
+            data["state"] = message["infos"]["state"]
+        elif message["infoType"] == "11":
+            # detector/sensor
+            data["sensor"] = message["infos"]["subTypeMeaning"]
+            data["state"] = message["infos"]["qualifier"]
+
         packets_found.append(data)
     elif data["protocol"] in ["OREGON"]:
         data["device_id"] = message["infos"]["adr_channel"]
