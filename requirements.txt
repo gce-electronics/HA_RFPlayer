@@ -1,6 +1,6 @@
 colorlog==6.8.2
 homeassistant==2024.6.1
-ruff==0.4.7
+ruff==0.4.8
 
 # pyserial==3.5
 # pyserial-asyncio==0.6
