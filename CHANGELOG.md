@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.7.1
+
+- Fix mixup between device ID and device address in english for send_command service
+
 ## 0.7.0
 
 - Fix default conf missing error during initialization

@@ -47,11 +47,11 @@
           "name": "Command"
         },
         "device_address": {
-          "description": "Exclusive with device ID (eg 1).",
+          "description": "Exclusive with device address (eg A1).",
           "name": "Device address"
         },
         "device_id": {
-          "description": "Exclusive with device address (eg A1).",
+          "description": "Exclusive with device ID (eg 1).",
           "name": "Device ID"
         },
         "protocol": {
