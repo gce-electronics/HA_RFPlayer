@@ -349,7 +349,7 @@ class RfplayerDevice(RestoreEntity):
     @property
     def available(self) -> bool:
         """Return True if entity is available."""
-        return bool(self._protocol)
+        return bool(self._available)
 
     @callback
     def _availability_callback(self, availability) -> None:

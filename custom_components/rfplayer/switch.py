@@ -52,7 +52,7 @@ async def async_setup_entry(
 
 
 class RfplayerSwitch(RfplayerDevice, SwitchEntity):
-    """Representation of a Rfplayer sensor."""
+    """Representation of a Rfplayer switch."""
 
     # pylint: disable-next=too-many-arguments
     def __init__(
