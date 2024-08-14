@@ -63,7 +63,7 @@ SEND_COMMAND_SCHEMA = vol.Schema(
         vol.Required(CONF_COMMAND): cv.string,
         vol.Optional(CONF_DEVICE_ADDRESS): cv.string,
         vol.Optional(CONF_DEVICE_ID): cv.string,
-        vol.Required(CONF_AUTOMATIC_ADD, default=False): cv.boolean,  # type: ignore
+        vol.Required(CONF_AUTOMATIC_ADD, default=False): cv.boolean,
     }
 )
 
