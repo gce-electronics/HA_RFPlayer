@@ -89,6 +89,7 @@ def valid_packet(packet: str) -> bool:
 # pylint: disable-next=too-many-branches too-many-statements
 def decode_packet(packet: str) -> list:
     """Decode packet."""
+    log.debug("decode_packet: %s", packet)
     packets_found = []
     data = cast(PacketType, {"node": PacketHeader.GATEWAY.name})
 
@@ -155,6 +156,7 @@ def decode_packet(packet: str) -> list:
 
 def encode_packet(packet: PacketType) -> str:
     """Construct packet string from packet dictionary."""
+    log.debug("encode_packet: %s", packet)
     command = str(packet["command"]).upper()
     protocol = str(packet["protocol"]).upper()
     if "id" in packet:

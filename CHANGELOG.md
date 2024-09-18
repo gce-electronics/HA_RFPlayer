@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.8.0
+
+- Allow sensor with strings values
+
 ## 0.7.1
 
 - Fix mixup between device ID and device address in english for send_command service
