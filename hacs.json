@@ -1,5 +1,8 @@
 {
-  "name": "GCE RFPlayer",
-  "country": "FR",
-  "render_readme": true
+  "name": "RfPlayer",
+  "filename": "rfplayer.zip",
+  "hide_default_branch": true,
+  "homeassistant": "2024.10.3",
+  "render_readme": true,
+  "zip_release": true
 }

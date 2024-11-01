@@ -1,107 +1,106 @@
-"""Support for Rfplayer switch."""
+"""Support for RfPlayer lights."""
 
 import logging
-from typing import Any
+from typing import Any, cast
 
-from homeassistant.components.switch import SwitchEntity
+from custom_components.rfplayer.const import COMMAND_GROUP_LIST, COMMAND_OFF_LIST, COMMAND_ON_LIST
+from custom_components.rfplayer.device_profiles import AnyRfpPlatformConfig, RfpPlatformConfig, RfpSwitchConfig
+from custom_components.rfplayer.entity import RfDeviceEntity, async_setup_platform_entry
+from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
+from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
+from homeassistant.components.switch import SwitchEntity, SwitchEntityDescription
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_DEVICE_ID, CONF_DEVICES, CONF_PROTOCOL
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.const import Platform
+from homeassistant.core import HomeAssistant
+from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-
-from . import DATA_DEVICE_REGISTER, EVENT_KEY_COMMAND, RfplayerDevice
-from .const import (
-    COMMAND_OFF,
-    COMMAND_ON,
-    CONF_AUTOMATIC_ADD,
-    CONF_DEVICE_ADDRESS,
-    DATA_ENTITY_LOOKUP,
-    DOMAIN,
-    EVENT_KEY_ID,
-)
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities: AddEntitiesCallback
-) -> None:
-    """Set up the Rfplayer platform."""
-    config = entry.data
-    options = entry.options
+def _get_entity_description(
+    config: AnyRfpPlatformConfig, event_data: RfPlayerEventData | None
+) -> SwitchEntityDescription:
+    assert isinstance(config, RfpSwitchConfig)
+    return SwitchEntityDescription(key=config.name)
 
-    async def add_new_device(device_info):
-        """Check if device is known, otherwise create device entity."""
-        # create entity
-        device = RfplayerSwitch(
-            protocol=device_info[CONF_PROTOCOL],
-            device_address=device_info.get(CONF_DEVICE_ADDRESS),
-            device_id=device_info.get(CONF_DEVICE_ID),
-            initial_event=device_info,
+
+def _builder(
+    device: RfDeviceId, platform_config: list[AnyRfpPlatformConfig], event_data: RfPlayerEventData | None, verbose: bool
+) -> list[Entity]:
+    return [
+        RfPlayerSwitch(
+            device, _get_entity_description(config, event_data), config, event_data=event_data, verbose=verbose
         )
-        _LOGGER.debug("Add switch entity %s", device_info)
-        async_add_entities([device])
-
-    if CONF_DEVICES in config:
-        for device in config[CONF_DEVICES].values():
-            if EVENT_KEY_COMMAND in device:
-                await add_new_device(device)
-
-    if options.get(CONF_AUTOMATIC_ADD, config[CONF_AUTOMATIC_ADD]):
-        hass.data[DOMAIN][DATA_DEVICE_REGISTER][EVENT_KEY_COMMAND] = add_new_device
+        for config in platform_config
+    ]
 
 
-class RfplayerSwitch(RfplayerDevice, SwitchEntity):
-    """Representation of a Rfplayer switch."""
+async def async_setup_entry(
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
+    """Set up config rf device entry."""
 
-    # pylint: disable-next=too-many-arguments
+    await async_setup_platform_entry(
+        hass,
+        config_entry,
+        async_add_entities,
+        Platform.SWITCH,
+        _builder,
+    )
+
+
+class RfPlayerSwitch(RfDeviceEntity, SwitchEntity):
+    """A representation of a RF switch device."""
+
+    _attr_name = None
+
     def __init__(
         self,
-        protocol: str,
-        device_id: str | None = None,
-        device_address: str | None = None,
-        initial_event: dict[str, Any] | None = None,
-        name: str | None = None,
+        device: RfDeviceId,
+        entity_description: SwitchEntityDescription,
+        platform_config: RfpPlatformConfig,
+        event_data: RfPlayerEventData | None,
+        verbose: bool,
     ) -> None:
-        """Handle switch specific args and super init."""
-        self._state: bool | None = None
-        super().__init__(protocol, device_address, device_id, initial_event, name)
-
-    async def async_added_to_hass(self) -> None:
-        """Restore RFPlayer device state (ON/OFF)."""
-        await super().async_added_to_hass()
-
-        if self._initial_event:
-            self.hass.data[DOMAIN][DATA_ENTITY_LOOKUP][EVENT_KEY_COMMAND][
-                self._initial_event[EVENT_KEY_ID]
-            ] = self.entity_id
-
-        if self._event is None:
-            old_state = await self.async_get_last_state()
-            if old_state is not None:
-                self._state = old_state.state == COMMAND_ON
-
-    @callback
-    def _handle_event(self, event):
-        command = event["command"]
-        if command in [COMMAND_ON, "ALLON"]:
-            self._state = True
-        elif command in [COMMAND_OFF, "ALLOFF"]:
-            self._state = False
-
-    @property
-    def is_on(self) -> bool | None:
-        """Return true if device is on."""
-        return self._state
+        """Initialize the RfPlayer switch."""
+        super().__init__(device_id=device, name=platform_config.name, event_data=event_data, verbose=verbose)
+        self.entity_description = entity_description
+        assert isinstance(platform_config, RfpSwitchConfig)
+        self._config = cast(RfpSwitchConfig, platform_config)
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the device on."""
-        await self._async_send_command(COMMAND_ON)
-        self._state = True
+        _LOGGER.debug("turn on %s", self.entity_id)
+        await self._send_command(self._config.make_cmd_turn_on(**self._command_parameters()))
+        self._attr_is_on = True
         self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the device off."""
-        await self._async_send_command(COMMAND_OFF)
-        self._state = False
+        _LOGGER.debug("turn off %s", self.entity_id)
+        await self._send_command(self._config.make_cmd_turn_off(**self._command_parameters()))
+        self._attr_is_on = False
         self.async_write_ha_state()
+
+    def _apply_event(self, event_data: RfPlayerEventData) -> bool:
+        """Apply command from RfPlayer."""
+        super()._apply_event(event_data)
+
+        status = self._config.status.get_value(event_data)
+        command = status.lower() if status else None
+        if command in COMMAND_ON_LIST:
+            self._attr_is_on = True
+        elif command in COMMAND_OFF_LIST:
+            self._attr_is_on = False
+        else:
+            _LOGGER.info("Unsupported switch command %s", command)
+            return False
+
+        return True
+
+    def _group_event(self, event: RfDeviceEvent) -> bool:
+        value = self._config.status.get_value(event.data)
+        return value.lower() in COMMAND_GROUP_LIST if value else False

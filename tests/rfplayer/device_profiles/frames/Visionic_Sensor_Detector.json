@@ -1,0 +1,76 @@
+[
+  {
+    "given": {
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "dataFlag": "1",
+            "rfLevel": "-50",
+            "floorNoise": "-107",
+            "rfQuality": "10",
+            "protocol": "2",
+            "protocolMeaning": "VISONIC",
+            "infoType": "2",
+            "frequency": "868950"
+          },
+          "infos": {
+            "subType": "0",
+            "subTypeMeaning": "Detector/Sensor",
+            "id": "1166992416",
+            "qualifier": "8",
+            "qualifierMeaning": { "flags": ["Supervisor/Alive"] }
+          }
+        }
+      }
+    },
+    "then": {
+      "binary_sensor": {
+        "Tamper": { "value": "0" },
+        "Alarm": { "value": "0" },
+        "Low Battery": { "value": "0" },
+        "Supervisor Alive": { "value": "1" }
+      }
+    }
+  },
+  {
+    "given": {
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "dataFlag": "1",
+            "rfLevel": "-52",
+            "floorNoise": "-107",
+            "rfQuality": "10",
+            "protocol": "2",
+            "protocolMeaning": "VISONIC",
+            "infoType": "2",
+            "frequency": "868950"
+          },
+          "infos": {
+            "subType": "0",
+            "subTypeMeaning": "Detector/Sensor",
+            "id": "1166992416",
+            "qualifier": "1",
+            "qualifierMeaning": { "flags": ["Tamper"] }
+          }
+        }
+      }
+    },
+    "then": {
+      "binary_sensor": {
+        "Tamper": { "value": "1" },
+        "Alarm": { "value": "0" },
+        "Low Battery": { "value": "0" },
+        "Supervisor Alive": { "value": "0" }
+      },
+      "sensor": {
+        "Rf Level": {
+          "value": "-52",
+          "unit": "dB"
+        }
+      }
+    }
+  }
+]

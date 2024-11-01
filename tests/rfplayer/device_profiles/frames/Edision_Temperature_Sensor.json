@@ -1,0 +1,49 @@
+[
+  {
+    "given": {
+      "profile_name": "Edisio Temperature Sensor",
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "cluster": "0",
+            "dataFlag": "1",
+            "rfLevel": "-58",
+            "floorNoise": "-98",
+            "rfQuality": "10",
+            "protocol": "16",
+            "protocolMeaning": "EDISIO",
+            "infoType": "15",
+            "frequency": "868350"
+          },
+          "infos": {
+            "subType": "25",
+            "subTypeMeaning": "SET_TEMPERATURE",
+            "id": "3021627888",
+            "qualifier": "2",
+            "info": "8968",
+            "infoMeaning": "ETS-100, 3.5V",
+            "add0": "2212",
+            "add1": "0"
+          }
+        }
+      }
+    },
+    "then": {
+      "sensor": {
+        "Temperature": {
+          "value": "22.12",
+          "unit": "°C"
+        },
+        "Rf Level": {
+          "value": "-58",
+          "unit": "dB"
+        },
+        "Battery Voltage": {
+          "value": "3.5",
+          "unit": "V"
+        }
+      }
+    }
+  }
+]

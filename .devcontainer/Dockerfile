@@ -1,37 +1,55 @@
-FROM mcr.microsoft.com/devcontainers/base:debian
+FROM mcr.microsoft.com/devcontainers/python:1-3.12
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Install dependencies needed by Home Assistant or its dependencies
+# Copy any custom certificates if needed
+RUN mkdir -p certs
+COPY certs/. /usr/local/share/ca-certificates/
+RUN update-ca-certificates
+
+# Uninstall pre-installed formatting and linting tools
+# They would conflict with our pinned versions
 RUN \
-    apt-get update \
-    && DEBIAN_FRONTEND=noninteractive \
-        apt-get install -y --no-install-recommends \
-            build-essential \
-            clang \
-            cmake \
-            ffmpeg \
-            gcc \
-            git \
-            libavcodec-dev \
-            libavdevice-dev \
-            libavfilter-dev \
-            libavformat-dev \
-            libavutil-dev \
-            libffi-dev \
-            liblzma-dev \
-            libpcap-dev \
-            libssl-dev \
-            libswresample-dev \
-            libswscale-dev \
-            libturbojpeg0 \
-            libudev-dev \
-            libxml2 \
-            libxmlsec1-dev \
-            libyaml-dev \
-            lzma-dev \
-            uuid-dev \
-            webp \
-            xz-utils \
-            zlib1g-dev \
-            pre-commit
+    pipx uninstall pydocstyle \
+    && pipx uninstall pycodestyle \
+    && pipx uninstall mypy \
+    && pipx uninstall pylint
+
+RUN \
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor > yarn.gpg \
+    && mv yarn.gpg /etc/apt/trusted.gpg.d/yarn.gpg \
+    && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        # Additional library needed by some tests and accordingly by VScode Tests Discovery
+        bluez \
+        ffmpeg \
+        libudev-dev \
+        libavformat-dev \
+        libavcodec-dev \
+        libavdevice-dev \
+        libavutil-dev \
+        libgammu-dev \
+        libswscale-dev \
+        libswresample-dev \
+        libavfilter-dev \
+        libpcap-dev \
+        libturbojpeg0 \
+        libyaml-dev \
+        libxml2 \
+        git \
+        cmake \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install uv
+RUN pip3 install uv
+
+USER vscode
+ENV VIRTUAL_ENV="/home/vscode/.local/ha-venv"
+RUN uv venv ${VIRTUAL_ENV}
+ENV PATH="${VIRTUAL_ENV}/bin:$PATH"
+
+WORKDIR /workspaces/HacsRfPlayer
+
+# Set the default shell to bash instead of sh
+ENV SHELL=/bin/bash

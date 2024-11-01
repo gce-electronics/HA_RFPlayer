@@ -1,0 +1,39 @@
+[
+  {
+    "given": {
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "dataFlag": "0",
+            "rfLevel": "-41",
+            "floorNoise": "-97",
+            "rfQuality": "10",
+            "protocol": "9",
+            "protocolMeaning": "RTS",
+            "infoType": "3",
+            "frequency": "433920"
+          },
+          "infos": {
+            "subType": "1",
+            "id": "123",
+            "subTypeMeaning": "PORTAL",
+            "qualifier": "1",
+            "qualifierMeaning": ["Down"]
+          }
+        }
+      }
+    },
+    "then": {
+      "cover": {
+        "Portal": { "state": "1" }
+      },
+      "sensor": {
+        "Rf Level": {
+          "value": "-41",
+          "unit": "dB"
+        }
+      }
+    }
+  }
+]

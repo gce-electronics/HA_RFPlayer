@@ -1,0 +1,105 @@
+[
+  {
+    "given": {
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "cluster": "0",
+            "dataFlag": "1",
+            "rfLevel": "-39",
+            "floorNoise": "-83",
+            "rfQuality": "10",
+            "protocol": "8",
+            "protocolMeaning": "X2D",
+            "infoType": "10",
+            "frequency": "868350"
+          },
+          "infos": {
+            "subType": "5",
+            "subTypeMeaning": "DRIVER RF",
+            "id": "3120956673",
+            "area": "1",
+            "qualifier": "32",
+            "qualifierMeaning": { "flags": [] },
+            "function": "1",
+            "functionMeaning": "HEATING SPEED",
+            "state": "0",
+            "stateMeaning": "OFF",
+            "d0": "1",
+            "d1": "42238",
+            "d2": "0",
+            "d3": "0"
+          }
+        }
+      }
+    },
+    "then": {
+      "binary_sensor": {
+        "Anomaly": { "value": "0" }
+      },
+      "sensor": {
+        "Rf Level": {
+          "value": "-39",
+          "unit": "dB"
+        }
+      },
+      "climate": {
+        "Thermostat": {
+          "event_type": "state",
+          "state": "0"
+        }
+      }
+    }
+  },
+  {
+    "given": {
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "cluster": "0",
+            "dataFlag": "1",
+            "rfLevel": "-40",
+            "floorNoise": "-83",
+            "rfQuality": "10",
+            "protocol": "8",
+            "protocolMeaning": "X2D",
+            "infoType": "10",
+            "frequency": "868350"
+          },
+          "infos": {
+            "subType": "5",
+            "subTypeMeaning": "DRIVER RF",
+            "id": "3120956674",
+            "area": "2",
+            "qualifier": "32",
+            "qualifierMeaning": { "flags": [] },
+            "function": "2",
+            "functionMeaning": "OPERATING MODE",
+            "state": "7",
+            "stateMeaning": "AUTO",
+            "d0": "1794",
+            "d1": "39934",
+            "d2": "0",
+            "d3": "0"
+          }
+        }
+      }
+    },
+    "then": {
+      "binary_sensor": {
+        "Anomaly": { "value": "0" }
+      },
+      "sensor": {
+        "Rf Level": {
+          "value": "-40",
+          "unit": "dB"
+        }
+      },
+      "climate": {
+        "Thermostat": { "event_type": "preset_mode", "preset_mode": "Auto" }
+      }
+    }
+  }
+]

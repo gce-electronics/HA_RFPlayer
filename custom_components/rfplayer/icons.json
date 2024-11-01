@@ -1,5 +1,13 @@
 {
   "services": {
-    "send_command": "mdi:remote"
+    "send_raw_command": {
+      "service": "mdi:send"
+    },
+    "send_pairing_command": {
+      "service": "mdi:send"
+    },
+    "simulate_event": {
+      "service": "mdi:send"
+    }
   }
 }

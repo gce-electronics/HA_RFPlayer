@@ -1,0 +1,56 @@
+[
+  {
+    "given": {
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "dataFlag": "0",
+            "rfLevel": "-64",
+            "floorNoise": "-97",
+            "rfQuality": "6",
+            "protocol": "5",
+            "protocolMeaning": "OREGON",
+            "infoType": "6",
+            "frequency": "433920"
+          },
+          "infos": {
+            "subType": "0",
+            "id_PHY": "0x1A89",
+            "id_PHYMeaning": "WGR800",
+            "adr_channel": "40192",
+            "adr": "157",
+            "channel": "0",
+            "qualifier": "48",
+            "lowBatt": "1",
+            "measures": [
+              { "type": "wind speed", "value": "0.4", "unit": "m/s" },
+              { "type": "direction", "value": "225", "unit": "degree" }
+            ]
+          }
+        }
+      }
+    },
+    "then": {
+      "binary_sensor": {
+        "Low Battery": {
+          "value": "1"
+        }
+      },
+      "sensor": {
+        "Wind Speed": {
+          "value": "0.4",
+          "unit": "m/s"
+        },
+        "Direction": {
+          "value": "225",
+          "unit": "°"
+        },
+        "Rf Level": {
+          "value": "-64",
+          "unit": "dB"
+        }
+      }
+    }
+  }
+]

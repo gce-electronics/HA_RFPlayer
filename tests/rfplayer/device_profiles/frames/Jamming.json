@@ -1,0 +1,27 @@
+[
+  {
+    "given": {
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "dataFlag": "0",
+            "rfLevel": "-41",
+            "floorNoise": "-97",
+            "rfQuality": "10",
+            "protocol": "3",
+            "protocolMeaning": "JAMMING",
+            "infoType": "1",
+            "frequency": "0"
+          },
+          "infos": { "subType": "0", "id": "0", "subTypeMeaning": "OFF" }
+        }
+      }
+    },
+    "then": {
+      "binary_sensor": {
+        "Detector": { "value": "0" }
+      }
+    }
+  }
+]
