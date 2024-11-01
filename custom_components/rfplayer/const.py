@@ -4,7 +4,7 @@ CONF_RECONNECT_INTERVAL = "reconnect_interval"
 CONF_VERBOSE_MODE = "verbose_mode"
 
 DEFAULT_RECONNECT_INTERVAL = 10
-DEFAULT_RECEIVER_PROTOCOLS = ["*"]
+DEFAULT_RECEIVER_PROTOCOLS: list[str] = []
 
 CONF_DEVICE_SIMULATOR = "device_simulator"
 CONF_AUTOMATIC_ADD = "automatic_add"
@@ -16,7 +16,10 @@ ATTR_EVENT_DATA = "event_data"
 ATTR_COMMAND = "command"
 ATTR_INFO_TYPE = "info_type"
 ATTR_INFOS = "infos"
+
 CONNECTION_TIMEOUT = 10
+INIT_COMMANDS_EMPTY = "-"
+INIT_COMMANDS_SEPARATOR = ","
 
 SERVICE_SEND_RAW_COMMAND = "send_raw_command"
 SERVICE_SEND_PAIRING_COMMAND = "send_pairing_command"

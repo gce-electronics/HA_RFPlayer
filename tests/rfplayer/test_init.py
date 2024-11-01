@@ -30,6 +30,7 @@ from tests.rfplayer.constants import (
     OREGON_ADDRESS,
     OREGON_EVENT_DATA,
     OREGON_ID_STRING,
+    SOME_INIT_COMMANDS,
     SOME_PROTOCOLS,
 )
 
@@ -193,7 +194,11 @@ async def test_connect(serial_connection_mock: Mock, hass: HomeAssistant) -> Non
     """Test that we attempt to connect to the device."""
 
     config_entry = await setup_rfplayer_test_cfg(hass, device="/dev/ttyUSBfake")
+    client = cast(RfPlayerClient, hass.data[DOMAIN][RFPLAYER_CLIENT])
+
     serial_connection_mock.assert_called_once_with(hass.loop, ANY, "/dev/ttyUSBfake", 115200)
+    assert client.receiver_protocols == []
+    assert client.init_commands == []
     assert config_entry.state is ConfigEntryState.LOADED
 
 
@@ -216,6 +221,15 @@ async def test_connect_with_protocols(serial_connection_mock: Mock, hass: HomeAs
     serial_connection_mock.assert_called_once_with(hass.loop, ANY, "/dev/ttyUSBfake", 115200)
 
     assert client.receiver_protocols == SOME_PROTOCOLS
+    assert config_entry.state is ConfigEntryState.LOADED
+
+
+@pytest.mark.asyncio
+async def test_connect_with_init_commands(serial_connection_mock: Mock, hass: HomeAssistant) -> None:
+    config_entry = await setup_rfplayer_test_cfg(hass, device="/dev/ttyUSBfake", init_commands=SOME_INIT_COMMANDS)
+    client = cast(RfPlayerClient, hass.data[DOMAIN][RFPLAYER_CLIENT])
+
+    assert client.init_commands == ["PING", "HELLO"]
     assert config_entry.state is ConfigEntryState.LOADED
 
 

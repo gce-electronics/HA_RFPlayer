@@ -18,7 +18,6 @@ _LOGGER = logging.getLogger(__name__)
 SIMULATOR_PORT = "/simulator"
 
 RECEIVER_MODES = [
-    "*",
     "X10",
     "RTS",
     "VISONIC",
@@ -82,6 +81,8 @@ COMMAND_PROTOCOLS = [
 ]
 """List of protocol names allowed for outgoing commands."""
 
+RFPLAYER_BAUD_RATE = 115200
+
 
 class RfPlayerException(Exception):
     """Generic RfPlayer exception."""
@@ -94,11 +95,10 @@ class RfPlayerClient:
     event_callback: Callable[[RfDeviceEvent], None]
     disconnect_callback: Callable[[Exception | None], None]
     loop: asyncio.AbstractEventLoop
-    port: str = "/dev/ttyUSB0"
-    baud: int = 115200
-    receiver_protocols: list[str] | None = None
-    init_commands: str | None = None
-    verbose: bool = False
+    port: str
+    receiver_protocols: list[str]
+    init_commands: list[str]
+    verbose: bool
     _protocol: RfplayerProtocol | None = None
     _adapter: RfDeviceEventAdapter | None = None
 
@@ -120,7 +120,7 @@ class RfPlayerClient:
             verbose=self.verbose,
         )
         try:
-            (_, protocol) = await create_serial_connection(self.loop, protocol_factory, self.port, self.baud)
+            (_, protocol) = await create_serial_connection(self.loop, protocol_factory, self.port, RFPLAYER_BAUD_RATE)
         except (SerialException, OSError) as err:
             raise RfPlayerException("Failed to create serial connection") from err
         self._protocol = cast(RfplayerProtocol, protocol)
@@ -180,7 +180,9 @@ class RfPlayerClient:
         result = []
         if self.receiver_protocols:
             result.append(f"RECEIVER -* +{' +'.join(self.receiver_protocols)}")
+        else:
+            result.append("RECEIVER +*")
         if self.init_commands:
-            result.extend(self.init_commands.splitlines())
+            result.extend(self.init_commands)
 
         return result

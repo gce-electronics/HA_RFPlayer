@@ -1,4 +1,5 @@
 SOME_PROTOCOLS = ["X2D", "RTS"]
+SOME_INIT_COMMANDS = "PING,HELLO"
 
 # Jamming examples
 # ===============

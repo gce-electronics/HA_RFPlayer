@@ -36,7 +36,13 @@ async def test_simulator(mocker: MockerFixture):
     logger_mock = mocker.patch("custom_components.rfplayer.rfplayerlib._LOGGER")
     event_callback = Mock()
     test_client = RfPlayerClient(
-        event_callback=event_callback, disconnect_callback=Mock(), loop=Mock(), port="/simulator"
+        event_callback=event_callback,
+        disconnect_callback=Mock(),
+        loop=Mock(),
+        port="/simulator",
+        receiver_protocols=[],
+        init_commands=[],
+        verbose=False,
     )
     assert not test_client.connected
 
@@ -70,6 +76,24 @@ async def test_receiver_protocols(
     protocol_factory = serial_connection_mock.call_args[0][1]
     protocol = protocol_factory()
     assert protocol.init_script == ["FORMAT JSON", "RECEIVER -* +X2D +RTS", "PING", "HELLO"]
+
+
+@pytest.mark.asyncio
+async def test_no_receiver_protocol(
+    test_client: RfPlayerClient,
+    test_protocol: RfplayerProtocol,
+    serial_connection_mock: Mock,
+):
+    # GIVEN
+    test_client.receiver_protocols = []
+
+    # WHEN
+    await test_client.connect()
+
+    # THEN
+    protocol_factory = serial_connection_mock.call_args[0][1]
+    protocol = protocol_factory()
+    assert protocol.init_script == ["FORMAT JSON", "RECEIVER +*", "PING", "HELLO"]
 
 
 @pytest.mark.asyncio

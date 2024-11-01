@@ -29,6 +29,7 @@ from .const import (
     DEFAULT_RECEIVER_PROTOCOLS,
     DEFAULT_RECONNECT_INTERVAL,
     DOMAIN,
+    INIT_COMMANDS_EMPTY,
 )
 
 SELECT_DEVICE_EXCLUSION = "select_device"
@@ -64,7 +65,7 @@ class RfplayerConfigFlow(ConfigFlow):
                     CONF_AUTOMATIC_ADD: True,
                     CONF_RECONNECT_INTERVAL: DEFAULT_RECONNECT_INTERVAL,
                     CONF_RECEIVER_PROTOCOLS: DEFAULT_RECEIVER_PROTOCOLS,
-                    CONF_INIT_COMMANDS: None,
+                    CONF_INIT_COMMANDS: INIT_COMMANDS_EMPTY,
                     CONF_VERBOSE_MODE: False,
                     CONF_DEVICES: {},
                     CONF_REDIRECT_ADDRESS: {},
@@ -125,7 +126,7 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
                 CONF_AUTOMATIC_ADD: user_input[CONF_AUTOMATIC_ADD],
                 CONF_RECONNECT_INTERVAL: user_input[CONF_RECONNECT_INTERVAL],
                 CONF_RECEIVER_PROTOCOLS: user_input[CONF_RECEIVER_PROTOCOLS] or None,
-                CONF_INIT_COMMANDS: user_input.get(CONF_INIT_COMMANDS),
+                CONF_INIT_COMMANDS: user_input.get(CONF_INIT_COMMANDS, INIT_COMMANDS_EMPTY),
                 CONF_VERBOSE_MODE: user_input.get(CONF_VERBOSE_MODE, False),
             }
 
@@ -146,9 +147,12 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
             ): int,
             vol.Required(
                 CONF_RECEIVER_PROTOCOLS,
-                default=data.get(CONF_RECEIVER_PROTOCOLS, ["*"]),
+                default=data.get(CONF_RECEIVER_PROTOCOLS, []),
             ): cv.multi_select(RECEIVER_MODES),
-            vol.Optional(CONF_INIT_COMMANDS, default=data.get(CONF_INIT_COMMANDS)): str,
+            vol.Required(
+                CONF_INIT_COMMANDS,
+                default=data.get(CONF_INIT_COMMANDS, INIT_COMMANDS_EMPTY),
+            ): str,
             vol.Required(CONF_VERBOSE_MODE, default=data.get(CONF_VERBOSE_MODE, False)): bool,
         }
 

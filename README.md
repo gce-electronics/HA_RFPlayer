@@ -46,6 +46,12 @@ This integration supports configuration flow to
 - configure RF device options
 - add RF devices manually
 
+### Gateway configuration
+
+For best performance, it's recommended to limit the number of enabled receiver protocols. By default all protocols are enabled.
+
+For additional RfPlayer tuning, it's possible to execute a set of RfPlayer commands when the integration is loaded. The configuration is a list of comma-separated low-level commands. For example, it's possible to fine-tune the sensivity or selectivity of the receiver.
+
 ### Manual RF device configuration
 
 By default, RF device are added automatically to HomeAssitant upon receipt of RfPlayer packet matching a known device that has not been already configured. The RF device will be created with the first matching RF device profiles. The automatic creation option can be disabled afterward if you don't want to add new devices anymore.

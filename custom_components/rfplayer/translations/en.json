@@ -24,7 +24,7 @@
           "automatic_add": "Add device automatically when signal received",
           "reconnect_interval": "Reconnect interval",
           "receiver_protocols": "List of enabled receiver protocols",
-          "init_commands": "RfPlayer initialization commands",
+          "init_commands": "Commands executed at startup or - for empty list",
           "verbose_mode": "Enable verbose logging"
         }
       },

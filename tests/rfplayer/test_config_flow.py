@@ -9,7 +9,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 import serial.tools.list_ports
 
 from custom_components.rfplayer import DOMAIN, config_flow
-from custom_components.rfplayer.const import RFPLAYER_CLIENT
+from custom_components.rfplayer.const import INIT_COMMANDS_EMPTY, RFPLAYER_CLIENT
 from custom_components.rfplayer.helpers import get_identifiers_from_device_id
 from custom_components.rfplayer.rfplayerlib import RfPlayerClient
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
@@ -82,8 +82,8 @@ async def test_setup_serial(serial_connection_mock: Mock, hass: HomeAssistant) -
         "device": port.device,
         "automatic_add": True,
         "reconnect_interval": 10,
-        "receiver_protocols": ["*"],
-        "init_commands": None,
+        "receiver_protocols": [],
+        "init_commands": "-",
         "verbose_mode": False,
         "devices": {},
         "redirect_address": {},
@@ -108,8 +108,8 @@ async def test_setup_serial_simulator(serial_connection_mock: Mock, hass: HomeAs
         "device": "/simulator",
         "automatic_add": True,
         "reconnect_interval": 10,
-        "receiver_protocols": ["*"],
-        "init_commands": None,
+        "receiver_protocols": [],
+        "init_commands": "-",
         "verbose_mode": False,
         "devices": {},
         "redirect_address": {},
@@ -162,7 +162,7 @@ async def test_options_gateway(serial_connection_mock: Mock, hass: HomeAssistant
             "automatic_add": True,
             "reconnect_interval": 20,
             "receiver_protocols": ["RTS"],
-            "init_commands": "",
+            "init_commands": INIT_COMMANDS_EMPTY,
             "verbose_mode": True,
         },
     )
@@ -174,6 +174,7 @@ async def test_options_gateway(serial_connection_mock: Mock, hass: HomeAssistant
     assert entry.data["automatic_add"]
     assert entry.data["reconnect_interval"] == 20
     assert entry.data["receiver_protocols"] == ["RTS"]
+    assert entry.data["init_commands"] == "-"
     assert entry.data["verbose_mode"] is True
 
 
@@ -205,7 +206,7 @@ async def test_options_gateway_no_receiver_protocols(serial_connection_mock: Moc
             "automatic_add": False,
             "reconnect_interval": 20,
             "receiver_protocols": [],
-            "init_commands": "PING\nHELLO",
+            "init_commands": INIT_COMMANDS_EMPTY,
             "verbose_mode": True,
         },
     )
@@ -230,6 +231,8 @@ async def test_options_gateway_init_commands(serial_connection_mock: Mock, hass:
     )
     result = await start_options_flow(hass, entry)
 
+    assert entry.data["init_commands"] == INIT_COMMANDS_EMPTY
+
     assert result["type"] is FlowResultType.MENU
     assert result["step_id"] == "init"
 
@@ -247,7 +250,7 @@ async def test_options_gateway_init_commands(serial_connection_mock: Mock, hass:
             "automatic_add": False,
             "reconnect_interval": 20,
             "receiver_protocols": ["RTS"],
-            "init_commands": "PING\nHELLO",
+            "init_commands": "PING,HELLO",
             "verbose_mode": True,
         },
     )
@@ -256,7 +259,7 @@ async def test_options_gateway_init_commands(serial_connection_mock: Mock, hass:
 
     await hass.async_block_till_done()
 
-    assert entry.data["init_commands"] == "PING\nHELLO"
+    assert entry.data["init_commands"] == "PING,HELLO"
 
 
 @pytest.mark.asyncio

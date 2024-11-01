@@ -40,6 +40,8 @@ from .const import (
     CONF_VERBOSE_MODE,
     CONNECTION_TIMEOUT,
     DOMAIN,
+    INIT_COMMANDS_EMPTY,
+    INIT_COMMANDS_SEPARATOR,
     RFPLAYER_CLIENT,
     SERVICE_SEND_PAIRING_COMMAND,
     SERVICE_SEND_RAW_COMMAND,
@@ -84,7 +86,7 @@ class Gateway:
             loop=self.hass.loop,
             port=self.config[CONF_DEVICE],
             receiver_protocols=self.config[CONF_RECEIVER_PROTOCOLS],
-            init_commands=self.config[CONF_INIT_COMMANDS],
+            init_commands=self._prepare_init_commands(),
             verbose=self.verbose,
         )
         self.hass.data[DOMAIN][RFPLAYER_CLIENT] = client
@@ -122,6 +124,12 @@ class Gateway:
         self.hass.services.async_remove(DOMAIN, SERVICE_SEND_RAW_COMMAND)
 
         await self.hass.async_add_executor_job(self._get_client().close)
+
+    def _prepare_init_commands(self) -> list[str]:
+        command_string = cast(str, self.config[CONF_INIT_COMMANDS])
+        commands = command_string.split(INIT_COMMANDS_SEPARATOR)
+        commands = [c.strip() for c in commands]
+        return [c for c in commands if c != INIT_COMMANDS_EMPTY]
 
     @callback
     def _async_handle_receive(self, event: RfDeviceEvent) -> None:

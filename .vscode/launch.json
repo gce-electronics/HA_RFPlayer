@@ -17,7 +17,7 @@
       "name": "Hass",
       "type": "debugpy",
       "request": "launch",
-      "program": "${workspaceFolder}/venv/bin/hass",
+      "program": "/home/vscode/.local/ha-venv/bin/hass",
       "args": ["--config", "${workspaceFolder}/config", "--debug"],
       "console": "integratedTerminal",
       "justMyCode": false
