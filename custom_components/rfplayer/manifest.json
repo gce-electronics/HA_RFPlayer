@@ -1,12 +1,12 @@
 {
   "domain": "rfplayer",
-  "name": "RfPlayer",
-  "codeowners": ["@racletteparty"],
+  "name": "GCE RFPlayer",
+  "codeowners": ["@racletteparty", "@Aohzan"],
   "config_flow": true,
-  "documentation": "https://github.com/racletteparty/HacsRfPlayer",
+  "documentation": "https://github.com/gce-electronics/HA_RFPlayer",
   "integration_type": "hub",
   "iot_class": "local_push",
-  "issue_tracker": "https://github.com/racletteparty/HacsRfPlayer/issues",
+  "issue_tracker": "https://github.com/gce-electronics/HA_RFPlayer/issues",
   "loggers": ["rfplayer"],
   "requirements": [
     "pyserial==3.5",

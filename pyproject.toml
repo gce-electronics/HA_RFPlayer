@@ -21,7 +21,7 @@ classifiers = [
   "Topic :: Software Development :: Home Automation",
 
   # Pick your license as you wish (see also "license" above)
-  "License :: OSI Approved :: MIT License",
+  "License :: OSI Approved :: Apache License, Version 2.0",
 
   # Specify the Python versions you support here.
   "Programming Language :: Python :: 3.12",
