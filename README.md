@@ -1,11 +1,11 @@
-# RFPLAYER HomeAssistant Integration
+# _RF Player_ HomeAssistant Integration
 
 [![GitHub Release][releases-shield]][releases]
 [![GitHub Activity][commits-shield]][commits]
 [![License][license-shield]](LICENSE)
 [![Community Forum][forum-shield]][forum]
 
-_Integration to integrate with [GCE RFPlayer][rfplayer]._
+_Integration to integrate with [GCE RF Player][rfplayer]._
 
 **This integration will set up the following platforms.**
 
@@ -31,7 +31,7 @@ Services:
 
 1. Using the tool of choice open the directory (folder) for your HA configuration (where you find `configuration.yaml`).
 1. If you do not have a `custom_components` directory (folder) there, you need to create it.
-1. In the `custom_components` directory (folder) create a new folder called `GCE RFPlayer`.
+1. In the `custom_components` directory (folder) create a new folder called `rfplayer`.
 1. Download _all_ the files from the `custom_components/rfplayer/` directory (folder) in this repository.
 1. Place the files you downloaded in the new directory (folder) you created.
 1. Restart Home Assistant
@@ -41,8 +41,8 @@ Services:
 
 This integration supports configuration flow to
 
-- select the RFPLAYER USB device
-- configure RFPLAYER options (receiver modes, init script...)
+- select the _RF Player_ USB device
+- configure _RF Player_ options (receiver modes, init commands...)
 - configure RF device options
 - add RF devices manually
 
@@ -50,13 +50,13 @@ This integration supports configuration flow to
 
 For best performance, it's recommended to limit the number of enabled receiver protocols. By default all protocols are enabled.
 
-For additional RFPLAYER tuning, it's possible to execute a set of RFPLAYER commands when the integration is loaded. The configuration is a list of comma-separated commands. The list of available commands is available in the [RFPLAYER API documentation][rfplayer-api]. For example, it's possible to fine-tune the sensivity or selectivity of the receiver.
+For additional _RF Player_ tuning, it's possible to execute a set of _RF Player_ commands when the integration is loaded. The configuration is a list of comma-separated commands. The list of available commands is available in the [RF PLAYER API documentation][rfplayer-api]. For example, it's possible to fine-tune the sensivity or selectivity of the receiver.
 
 ### Manual RF device configuration
 
-By default, RF device are added automatically to HomeAssitant upon receipt of RFPLAYER packet matching a known device that has not been already configured. The RF device will be created with the first matching RF device profiles. The automatic creation option can be disabled afterward if you don't want to add new devices anymore.
+By default, RF device are added automatically to HomeAssitant upon receipt of _RF Player_ packet matching a known device that has not been already configured. The RF device will be created with the first matching RF device profiles. The automatic creation option can be disabled afterward if you don't want to add new devices anymore.
 
-Automatic device creation is mostly useful for sensors because most actuators are only receivers and cannot send events. In that case, the RF device must be declared manually from the RFPLAYER configuration menu.
+Automatic device creation is mostly useful for sensors because most actuators are only receivers and cannot send events. In that case, the RF device must be declared manually from the _RF Player_ configuration menu.
 
 Some generic RF devices can match several device profiles (e.g. Blyss devices). If you want to assign a more specific profile, you need to disable automatic device creation, delete the device that was automatically created and re-create it manually with the profile of your choice.
 
@@ -66,13 +66,13 @@ Some RF devices like Oregon sensors will renew their addresses after changing th
 
 ### Simulation
 
-It is possible to emulate a RFPLAYER to try the integration without real hardware. When the RFPLAYER integration is added, simply select the simulator device instead of a real USB device.
+It is possible to emulate a _RF Player_ to try the integration without real hardware. When the _RF Player_ integration is added, simply select the simulator device instead of a real USB device.
 
-You can use the simulate event service to try out different JSON events as if they were received on the USB serial line. Read the RFPLAYER API documentation for details about the JSON payload format.
+You can use the simulate event service to try out different JSON events as if they were received on the USB serial line. Read the [RF PLAYER API documentation][rfplayer-api] for details about the JSON payload format.
 
 ## Device profiles
 
-A devic profile defines the mapping between RFPLAYER JSON events / commands and Home Assistant platforms attributes / services.
+A devic profile defines the mapping between _RF Player_ JSON events / commands and Home Assistant platforms attributes / services.
 The mapping is described in a YAML file. You can find the latest version of the [device profiles here][device-profiles].
 Platform attributes are extracted from the JSON payload using [JSON path](https://en.wikipedia.org/wiki/JSONPath) expressions.
 

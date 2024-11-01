@@ -1,6 +1,6 @@
 {
   "domain": "rfplayer",
-  "name": "GCE RFPlayer",
+  "name": "GCE RF Player",
   "codeowners": ["@racletteparty", "@Aohzan"],
   "config_flow": true,
   "documentation": "https://github.com/gce-electronics/HA_RFPlayer",
