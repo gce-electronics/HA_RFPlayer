@@ -1,10 +1,12 @@
 """Constants for RfPlayer integration."""
 
+from custom_components.rfplayer.rfplayerlib import RECEIVER_MODES
+
 CONF_RECONNECT_INTERVAL = "reconnect_interval"
 CONF_VERBOSE_MODE = "verbose_mode"
 
 DEFAULT_RECONNECT_INTERVAL = 10
-DEFAULT_RECEIVER_PROTOCOLS: list[str] = []
+DEFAULT_RECEIVER_PROTOCOLS = RECEIVER_MODES
 
 CONF_DEVICE_SIMULATOR = "device_simulator"
 CONF_AUTOMATIC_ADD = "automatic_add"
@@ -18,7 +20,7 @@ ATTR_INFO_TYPE = "info_type"
 ATTR_INFOS = "infos"
 
 CONNECTION_TIMEOUT = 10
-INIT_COMMANDS_EMPTY = "-"
+INIT_COMMANDS_EMPTY = ""
 INIT_COMMANDS_SEPARATOR = ","
 
 SERVICE_SEND_RAW_COMMAND = "send_raw_command"

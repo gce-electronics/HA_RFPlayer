@@ -180,8 +180,6 @@ class RfPlayerClient:
         result = []
         if self.receiver_protocols:
             result.append(f"RECEIVER -* +{' +'.join(self.receiver_protocols)}")
-        else:
-            result.append("RECEIVER +*")
         if self.init_commands:
             result.extend(self.init_commands)
 

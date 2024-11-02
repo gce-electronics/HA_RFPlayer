@@ -120,43 +120,47 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
 
     async def async_step_configure_gateway(self, user_input: dict[str, Any] | None = None) -> FlowResult:
         """Prompt for gateway options."""
+        errors: dict[str, Any] = {}
 
         if user_input is not None:
             global_options = {
                 CONF_AUTOMATIC_ADD: user_input[CONF_AUTOMATIC_ADD],
                 CONF_RECONNECT_INTERVAL: user_input[CONF_RECONNECT_INTERVAL],
-                CONF_RECEIVER_PROTOCOLS: user_input[CONF_RECEIVER_PROTOCOLS] or None,
+                CONF_RECEIVER_PROTOCOLS: user_input[CONF_RECEIVER_PROTOCOLS],
                 CONF_INIT_COMMANDS: user_input.get(CONF_INIT_COMMANDS, INIT_COMMANDS_EMPTY),
-                CONF_VERBOSE_MODE: user_input.get(CONF_VERBOSE_MODE, False),
+                CONF_VERBOSE_MODE: user_input[CONF_VERBOSE_MODE],
             }
 
-            self.update_config_data(global_options=global_options)
+            if not user_input[CONF_RECEIVER_PROTOCOLS]:
+                errors.update({CONF_RECEIVER_PROTOCOLS: "no_receiver_protocol"})
 
-            return self.async_create_entry(title="", data={})
+            if not errors:
+                self.update_config_data(global_options=global_options)
+
+                return self.async_create_entry(title="", data={})
 
         data = self.config_entry.data
 
         options = {
             vol.Required(
                 CONF_AUTOMATIC_ADD,
-                default=data.get(CONF_AUTOMATIC_ADD, True),
+                default=data[CONF_AUTOMATIC_ADD],
             ): bool,
             vol.Required(
                 CONF_RECONNECT_INTERVAL,
-                default=data.get(CONF_RECONNECT_INTERVAL, DEFAULT_RECONNECT_INTERVAL),
+                default=data[CONF_RECONNECT_INTERVAL],
             ): int,
             vol.Required(
                 CONF_RECEIVER_PROTOCOLS,
-                default=data.get(CONF_RECEIVER_PROTOCOLS, []),
+                default=data[CONF_RECEIVER_PROTOCOLS],
             ): cv.multi_select(RECEIVER_MODES),
-            vol.Required(
-                CONF_INIT_COMMANDS,
-                default=data.get(CONF_INIT_COMMANDS, INIT_COMMANDS_EMPTY),
-            ): str,
-            vol.Required(CONF_VERBOSE_MODE, default=data.get(CONF_VERBOSE_MODE, False)): bool,
+            # Use suggested_value instead of default for optional because otherwise,
+            # if the form field is empty, default value is set instead of an empty value.
+            vol.Optional(CONF_INIT_COMMANDS, description={"suggested_value": data[CONF_INIT_COMMANDS]}): str,
+            vol.Required(CONF_VERBOSE_MODE, default=data[CONF_VERBOSE_MODE]): bool,
         }
 
-        return self.async_show_form(step_id="configure_gateway", data_schema=vol.Schema(options))
+        return self.async_show_form(step_id="configure_gateway", data_schema=vol.Schema(options), errors=errors)
 
     async def async_step_configure_rf_device(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Manage RF device options."""

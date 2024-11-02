@@ -33,6 +33,24 @@ from tests.rfplayer.constants import (
 )
 
 SOME_PROTOCOLS = ["ac", "arc"]
+ALL_RECEIVER_PROTOCOLS = [
+    "X10",
+    "RTS",
+    "VISONIC",
+    "BLYSS",
+    "CHACON",
+    "OREGONV1",
+    "OREGONV2",
+    "OREGONV3/OWL",
+    "DOMIA",
+    "X2D",
+    "KD101",
+    "PARROT",
+    "TIC",
+    "FS20",
+    "JAMMING",
+    "EDISIO",
+]
 
 
 def com_port():
@@ -82,8 +100,8 @@ async def test_setup_serial(serial_connection_mock: Mock, hass: HomeAssistant) -
         "device": port.device,
         "automatic_add": True,
         "reconnect_interval": 10,
-        "receiver_protocols": [],
-        "init_commands": "-",
+        "receiver_protocols": ALL_RECEIVER_PROTOCOLS,
+        "init_commands": "",
         "verbose_mode": False,
         "devices": {},
         "redirect_address": {},
@@ -108,8 +126,8 @@ async def test_setup_serial_simulator(serial_connection_mock: Mock, hass: HomeAs
         "device": "/simulator",
         "automatic_add": True,
         "reconnect_interval": 10,
-        "receiver_protocols": [],
-        "init_commands": "-",
+        "receiver_protocols": ALL_RECEIVER_PROTOCOLS,
+        "init_commands": "",
         "verbose_mode": False,
         "devices": {},
         "redirect_address": {},
@@ -174,7 +192,7 @@ async def test_options_gateway(serial_connection_mock: Mock, hass: HomeAssistant
     assert entry.data["automatic_add"]
     assert entry.data["reconnect_interval"] == 20
     assert entry.data["receiver_protocols"] == ["RTS"]
-    assert entry.data["init_commands"] == "-"
+    assert entry.data["init_commands"] == ""
     assert entry.data["verbose_mode"] is True
 
 
@@ -211,13 +229,8 @@ async def test_options_gateway_no_receiver_protocols(serial_connection_mock: Moc
         },
     )
 
-    assert result["type"] is FlowResultType.CREATE_ENTRY
-
-    await hass.async_block_till_done()
-
-    assert not entry.data["automatic_add"]
-
-    assert entry.data["receiver_protocols"] is None
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"receiver_protocols": "no_receiver_protocol"}
 
 
 @pytest.mark.asyncio
@@ -335,6 +348,7 @@ async def test_options_add_rf_device_bad_protocol(serial_connection_mock: Mock, 
         user_input=device_options,
     )
 
+    assert result["type"] is FlowResultType.FORM
     assert result["errors"] == {"protocol": "incompatible_protocol"}
 
 

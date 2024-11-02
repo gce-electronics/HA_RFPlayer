@@ -79,24 +79,6 @@ async def test_receiver_protocols(
 
 
 @pytest.mark.asyncio
-async def test_no_receiver_protocol(
-    test_client: RfPlayerClient,
-    test_protocol: RfplayerProtocol,
-    serial_connection_mock: Mock,
-):
-    # GIVEN
-    test_client.receiver_protocols = []
-
-    # WHEN
-    await test_client.connect()
-
-    # THEN
-    protocol_factory = serial_connection_mock.call_args[0][1]
-    protocol = protocol_factory()
-    assert protocol.init_script == ["FORMAT JSON", "RECEIVER +*", "PING", "HELLO"]
-
-
-@pytest.mark.asyncio
 async def test_send_command_connected(test_client: RfPlayerClient, test_protocol: RfplayerProtocol):
     # GIVEN
     await test_client.connect()

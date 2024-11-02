@@ -24,7 +24,7 @@
           "automatic_add": "Add device automatically when signal received",
           "reconnect_interval": "Reconnect interval",
           "receiver_protocols": "List of enabled receiver protocols",
-          "init_commands": "Commands executed at startup or - for empty list",
+          "init_commands": "Comma-separated list of commands executed at startup",
           "verbose_mode": "Enable verbose logging"
         }
       },
@@ -45,7 +45,8 @@
       }
     },
     "error": {
-      "incompatible_protocol": "Procotol and device profile are incompatible"
+      "incompatible_protocol": "Procotol and device profile are incompatible",
+      "no_receiver_protocol": "At least one receiver protocol must be selected"
     }
   },
   "services": {

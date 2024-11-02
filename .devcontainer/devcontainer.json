@@ -6,8 +6,7 @@
   "postCreateCommand": "scripts/setup",
   "containerEnv": {
     "PYTHONASYNCIODEBUG": "1",
-    "UV_PROJECT_ENVIRONMENT": "/home/vscode/.local/ha-venv",
-    "UV_CACHE_DIR": "/workspaces/HacsRfPlayer/.cache/uv"
+    "UV_PROJECT_ENVIRONMENT": "/home/vscode/.local/ha-venv"
   },
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {}

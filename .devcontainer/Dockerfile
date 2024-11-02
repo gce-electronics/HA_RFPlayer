@@ -2,11 +2,6 @@ FROM mcr.microsoft.com/devcontainers/python:1-3.12
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Copy any custom certificates if needed
-RUN mkdir -p certs
-COPY certs/. /usr/local/share/ca-certificates/
-RUN update-ca-certificates
-
 # Uninstall pre-installed formatting and linting tools
 # They would conflict with our pinned versions
 RUN \
