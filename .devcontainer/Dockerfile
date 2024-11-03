@@ -36,11 +36,21 @@ RUN \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv
+# Install uv system-wide
 RUN pip3 install uv
 
 USER vscode
-ENV VIRTUAL_ENV="/home/vscode/.local/ha-venv"
+ENV HOME=/home/vscode
+WORKDIR $HOME
+
+# Install node for semantic release
+ENV NVM_VERSION=v0.40.1
+ENV NVM_DIR=$HOME/.nvm
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh | bash
+RUN . "$NVM_DIR/nvm.sh" && nvm install --lts
+
+# Create default python virtual env
+ENV VIRTUAL_ENV="$HOME/.local/ha-venv"
 RUN uv venv ${VIRTUAL_ENV}
 ENV PATH="${VIRTUAL_ENV}/bin:$PATH"
 
