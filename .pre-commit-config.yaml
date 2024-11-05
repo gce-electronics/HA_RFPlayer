@@ -1,70 +1,48 @@
----
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
 repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.2.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.19.2 # Specify the desired version of Gitleaks
+    hooks:
+      - id: gitleaks
+
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.6.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args: []
+
   - repo: local
     hooks:
-      - id: ruff-check
-        name: 🐶 Ruff Linter
+      - id: lint
+        name: lint
+        entry: "uv run ruff check --fix"
         language: system
         types: [python]
-        entry: rye run ruff check --fix
-        require_serial: true
-        stages: [commit, push, manual]
-      - id: ruff-format
-        name: 🐶 Ruff Formatter
+      - id: format
+        name: format
+        entry: "uv run ruff format"
         language: system
         types: [python]
-        entry: rye run ruff format
-        require_serial: true
-        stages: [commit, push, manual]
-      - id: check-json
-        name: ｛ Check JSON files
-        language: system
-        types: [json]
-        entry: rye run check-json
-        ignore: .devcontainer/devcontainer.json
-      - id: check-toml
-        name: ✅ Check TOML files
-        language: system
-        types: [toml]
-        entry: rye run check-toml
-      - id: check-yaml
-        name: ✅ Check YAML files
-        language: system
-        types: [yaml]
-        entry: rye run check-yaml
-      - id: check-merge-conflict
-        name: 💥 Check for merge conflicts
-        language: system
-        types: [text]
-        entry: rye run check-merge-conflict
-      - id: check-symlinks
-        name: 🔗 Check for broken symlinks
-        language: system
-        types: [symlink]
-        entry: rye run check-symlinks
-      - id: end-of-file-fixer
-        name: ⮐  Fix End of Files
-        language: system
-        types: [text]
-        entry: rye run end-of-file-fixer
-        stages: [commit, push, manual]
-      - id: no-commit-to-branch
-        name: 🛑 Don't commit to main branch
-        language: system
-        entry: rye run no-commit-to-branch
-        pass_filenames: false
-        always_run: true
-        args:
-          - --branch=main
-      - id: pylint
-        name: 🌟 Starring code with pylint
-        language: system
-        types: [python]
-        entry: rye run pylint
-        ignore:
-          - R0913
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v2.7.1
+
+  - repo: local
     hooks:
-      - id: prettier
-        name: 🎨 Format using prettier
+      - id: mypy
+        name: mypy
+        entry: "uv run mypy"
+        language: system
+        types: [python]
+        # use require_serial so that script
+        # is only called once per commit
+        require_serial: true
+        # Print the number of files as a sanity-check
+        verbose: true

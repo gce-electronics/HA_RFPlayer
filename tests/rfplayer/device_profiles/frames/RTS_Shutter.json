@@ -1,0 +1,40 @@
+[
+  {
+    "given": {
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "cluster": "0",
+            "dataFlag": "0",
+            "rfLevel": "-71",
+            "floorNoise": "-98",
+            "rfQuality": "6",
+            "protocol": "9",
+            "protocolMeaning": "RTS",
+            "infoType": "3",
+            "frequency": "433920"
+          },
+          "infos": {
+            "subType": "0",
+            "subTypeMeaning": "Shutter",
+            "id": "3584297",
+            "qualifier": "1",
+            "qualifierMeaning": { "flags": ["Down/Off"] }
+          }
+        }
+      }
+    },
+    "then": {
+      "cover": {
+        "Shutter": { "state": "1" }
+      },
+      "sensor": {
+        "Rf Level": {
+          "value": "-71",
+          "unit": "dB"
+        }
+      }
+    }
+  }
+]

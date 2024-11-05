@@ -8,9 +8,16 @@ on:
 permissions: {}
 
 jobs:
+  lint:
+    uses: ./.github/workflows/lint.yml
+
+  validate:
+    uses: ./.github/workflows/validate.yml
+
   release:
     name: "Release"
     runs-on: "ubuntu-latest"
+    needs: [lint, validate]
     permissions:
       contents: write
     steps:

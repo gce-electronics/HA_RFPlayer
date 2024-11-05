@@ -1,65 +1,88 @@
 {
   "config": {
-    "abort": {
-      "already_configured": "Device is already configured",
-      "already_in_progress": "Configuration flow is already in progress",
-      "no_devices_found": "No USB device found.",
-      "single_instance_allowed": "Already configured. Only a single configuration possible.",
-      "unknown": "Unexpected error"
-    },
-    "error": {
-      "cannot_connect": "Failed to connect",
-      "device_missing": "A device must be specified from list or manually.",
-      "no_devices_found": "No USB device found."
-    },
     "step": {
       "user": {
+        "title": "GCE RfPlayer",
+        "description": "Select RfPlayer device",
         "data": {
           "device": "USB devices found",
-          "manual_device": "USB manual path",
-          "automatic_add": "Add device automatically when signal received",
-          "reconnect_interval": "Reconnect interval"
-        },
-        "description": "Configure RFPlayer integration"
+          "device_simulator": "Use RfPlayer simulator"
+        }
       }
+    },
+    "error": {},
+    "abort": {
+      "single_instance_allowed": "Already configured. Only a single configuration possible.",
+      "unknown": "Unexpected error"
     }
   },
   "options": {
     "step": {
-      "init": {
+      "configure_gateway": {
+        "title": "RFPlayer Options",
         "data": {
-          "automatic_add": "Add device automatically when signal received"
-        },
-        "title": "GCE RFPlayer Options"
+          "automatic_add": "Add device automatically when signal received",
+          "reconnect_interval": "Reconnect interval",
+          "receiver_protocols": "List of enabled receiver protocols",
+          "init_commands": "Comma-separated list of commands executed at startup",
+          "verbose_mode": "Enable verbose logging"
+        }
+      },
+      "add_rf_device": {
+        "title": "Add RF device",
+        "data": {
+          "protocol": "Device protocol",
+          "address": "Device address",
+          "profile_name": "Device profile"
+        }
+      },
+      "configure_rf_device": {
+        "title": "Configure RF device",
+        "data": {
+          "device": "Select RF device",
+          "redirect_address": "Redirect address"
+        }
       }
+    },
+    "error": {
+      "incompatible_protocol": "Procotol and device profile are incompatible",
+      "no_receiver_protocol": "At least one receiver protocol must be selected"
     }
   },
   "services": {
-    "send_command": {
-      "description": "Send device command through RFPlayer and facultativly add it as an entity.",
+    "send_raw_command": {
+      "name": "Send command",
+      "description": "Send a command to RF device.",
       "fields": {
-        "automatic_add": {
-          "description": "Create associated switch entity.",
-          "name": "Create entity"
-        },
         "command": {
-          "description": "The command to be sent.",
-          "name": "Command"
-        },
-        "device_address": {
-          "description": "Exclusive with device address (eg A1).",
-          "name": "Device address"
-        },
-        "device_id": {
-          "description": "Exclusive with device ID (eg 1).",
-          "name": "Device ID"
-        },
-        "protocol": {
-          "description": "RFPlayer compatible protocol.",
-          "name": "Protocol"
+          "name": "Command",
+          "description": "command using RFPlayer format."
         }
-      },
-      "name": "Send command"
+      }
+    },
+    "send_pairing_command": {
+      "name": "Send pairing command",
+      "description": "Send a pairing command to a RF device.",
+      "fields": {
+        "protocol": {
+          "name": "Protocol",
+          "description": "The RF device protocol."
+        },
+        "address": {
+          "name": "Address",
+          "description": "Device address. Do not use X10-form (e.g. 1 instead of A2)."
+        }
+      }
+    },
+    "simulate_event": {
+      "name": "Simulate event",
+      "description": "Simulate RF device event.",
+      "fields": {
+        "event_data": {
+          "name": "Event",
+          "description": "JSON event"
+        }
+      }
     }
   }
 }

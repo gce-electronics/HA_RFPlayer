@@ -1,0 +1,34 @@
+[
+  {
+    "given": {
+      "profile_name": "X10|CHACON|KD101|BLYSS|FS20 Switch",
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "dataFlag": "0",
+            "rfLevel": "-41",
+            "floorNoise": "-97",
+            "rfQuality": "10",
+            "protocol": "4",
+            "protocolMeaning": "CHACON",
+            "infoType": "1",
+            "frequency": "433920"
+          },
+          "infos": { "subType": "1", "id": "146139014", "subTypeMeaning": "ON" }
+        }
+      }
+    },
+    "then": {
+      "switch": {
+        "Switch": { "state": "ON" }
+      },
+      "sensor": {
+        "Rf Level": {
+          "value": "-41",
+          "unit": "dB"
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Setups the repository.
+
+# Stop on errors
+set -e
+
+cd $(dirname "${0}")/..
+
+uv sync --frozen
+uv run pre-commit install --install-hooks

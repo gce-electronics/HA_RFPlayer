@@ -1,0 +1,64 @@
+[
+  {
+    "given": {
+      "profile_name": "X10|CHACON|KD101|BLYSS|FS20 Lighting",
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "dataFlag": "0",
+            "rfLevel": "-41",
+            "floorNoise": "-97",
+            "rfQuality": "10",
+            "protocol": "4",
+            "protocolMeaning": "CHACON",
+            "infoType": "1",
+            "frequency": "433920"
+          },
+          "infos": { "subType": "1", "id": "146139014", "subTypeMeaning": "ON" }
+        }
+      }
+    },
+    "then": {
+      "light": {
+        "Light": { "state": "ON" }
+      }
+    }
+  },
+  {
+    "given": {
+      "profile_name": "X10|CHACON|KD101|BLYSS|FS20 Lighting",
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "dataFlag": "0",
+            "rfLevel": "-41",
+            "floorNoise": "-97",
+            "rfQuality": "10",
+            "protocol": "4",
+            "protocolMeaning": "CHACON",
+            "infoType": "1",
+            "frequency": "433920"
+          },
+          "infos": {
+            "subType": "3",
+            "id": "146139014",
+            "subTypeMeaning": "ALL_ON"
+          }
+        }
+      }
+    },
+    "then": {
+      "light": {
+        "Light": { "state": "ALL_ON" }
+      },
+      "sensor": {
+        "Rf Level": {
+          "value": "-41",
+          "unit": "dB"
+        }
+      }
+    }
+  }
+]

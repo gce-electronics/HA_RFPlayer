@@ -1,0 +1,56 @@
+[
+  {
+    "given": {
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "dataFlag": "0",
+            "rfLevel": "-71",
+            "floorNoise": "-98",
+            "rfQuality": "5",
+            "protocol": "5",
+            "protocolMeaning": "OREGON",
+            "infoType": "9",
+            "frequency": "433920"
+          },
+          "infos": {
+            "subType": "0",
+            "id_PHY": "0x2A19",
+            "id_PHYMeaning": "PCR800",
+            "adr_channel": "39168",
+            "adr": "153",
+            "channel": "0",
+            "qualifier": "48",
+            "lowBatt": "1",
+            "measures": [
+              { "type": "total rain", "value": "1040.1", "unit": "mm" },
+              { "type": "current rain", "value": "1.00", "unit": "mm/h" }
+            ]
+          }
+        }
+      }
+    },
+    "then": {
+      "binary_sensor": {
+        "Low Battery": {
+          "value": "1"
+        }
+      },
+      "sensor": {
+        "Total Rain": {
+          "value": "1040.1",
+          "unit": "mm"
+        },
+        "Current Rain": {
+          "value": "1.00",
+          "unit": "mm/h"
+        },
+        "Rf Level": {
+          "value": "-71",
+          "unit": "dB"
+        }
+      }
+    }
+  }
+]

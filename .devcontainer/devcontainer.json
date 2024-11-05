@@ -1,59 +1,40 @@
 {
-  "name": "Development environment",
-  "dockerFile": "./Dockerfile",
-  "features": {
-    "ghcr.io/devcontainers/features/github-cli:1": {
-      "installDirectlyFromGitHubRelease": true,
-      "version": "latest"
-    },
-    "ghcr.io/devcontainers/features/node:1": {
-      "nodeGypDependencies": false,
-      "version": "lts"
-    },
-    "ghcr.io/schlich/devcontainer-features/rye:1": {
-      "uv": true
-    }
-  },
-  "forwardPorts": [8123],
-  "portsAttributes": {
-    "8123": {
-      "label": "Home Assistant",
-      "onAutoForward": "openBrowserOnce"
-    }
-  },
-  "runArgs": [
-    "-e",
-    "GIT_EDITOR=code --wait",
-    "--userns=keep-id:uid=1000,gid=1000",
-    "--privileged",
-    "-v",
-    "/dev/ttyUSB0:/dev/ttyUSB0"
-  ],
-  "onCreateCommand": "rye config --set-bool behavior.use-uv=true && npm install -g mystmd",
-  "updateContentCommand": "rye sync",
+  "name": "Hacs integration",
+  "context": "..",
+  "dockerFile": "Dockerfile",
+  "privileged": true,
+  "postCreateCommand": "scripts/setup",
   "containerEnv": {
-    "DEVCONTAINER": "1",
-    "RYE_HOME": "/home/vscode/.rye"
+    "PYTHONASYNCIODEBUG": "1",
+    "UV_PROJECT_ENVIRONMENT": "/home/vscode/.local/ha-venv"
   },
-  "containerUser": "vscode",
-  "remoteUser": "vscode",
-  "updateRemoteUserUID": true,
+  "features": {
+    "ghcr.io/devcontainers/features/github-cli:1": {}
+  },
+  "mounts": [
+    "type=bind,source=/home/${localEnv:USER}/.ssh,target=/home/vscode/.ssh,readonly"
+  ],
+  // Port 5683 udp is used by Shelly integration
+  "appPort": ["8123:8123", "5683:5683/udp"],
+  "runArgs": ["-e", "GIT_EDITOR=code --wait"],
   "customizations": {
     "vscode": {
       "extensions": [
         "charliermarsh.ruff",
-        "esbenp.prettier-vscode",
-        "GitHub.copilot",
-        "GitHub.vscode-github-actions",
-        "GitHub.vscode-pull-request-github",
-        "ms-python.pylint",
-        "ms-python.python",
         "ms-python.vscode-pylance",
+        "visualstudioexptteam.vscodeintellicode",
         "redhat.vscode-yaml",
-        "tamasfe.even-better-toml",
-        "yzhang.markdown-all-in-one"
+        "esbenp.prettier-vscode",
+        "GitHub.vscode-pull-request-github",
+        "GitHub.copilot"
       ],
+      // Please keep this file in sync with settings in home-assistant/.vscode/settings.default.json
       "settings": {
+        "python.experiments.optOutFrom": ["pythonTestAdapter"],
+        "python.defaultInterpreterPath": "/home/vscode/.local/ha-venv/bin/python",
+        "python.pythonPath": "/home/vscode/.local/ha-venv/bin/python",
+        "python.terminal.activateEnvInCurrentTerminal": true,
+        "python.testing.pytestArgs": ["--no-cov"],
         "editor.formatOnPaste": false,
         "editor.formatOnSave": true,
         "editor.formatOnType": true,
@@ -72,6 +53,7 @@
           "!include_dir_merge_list scalar",
           "!include_dir_merge_named scalar"
         ],
+        "ruff.nativeServer": true,
         "[python]": {
           "editor.defaultFormatter": "charliermarsh.ruff"
         }

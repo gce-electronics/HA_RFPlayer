@@ -1,27 +1,55 @@
-send_command:
+send_raw_command:
+  description: Send a raw command to a RF device via the RfPlayer gateway.
   fields:
     command:
+      name: Command
+      description: The command to be sent.
       required: true
-      example: "ON"
+      example: "ON A3 RTS QUALIFIER 1"
       selector:
         text:
+send_pairing_command:
+  description: Pair a RF device with the RfPlayer gateway.
+  fields:
     protocol:
+      name: Protocol
+      description: The RF device protocol
       required: true
-      example: CHACON
       selector:
-        text:
+        select:
+          options:
+            - " "
+            - "BLYSS"
+            - "CHACON"
+            - "DOMIA"
+            - "EDISIO"
+            - "FS20"
+            - "KD101"
+            - "PARROT"
+            - "RTS"
+            - "VISONIC433"
+            - "VISONIC868"
+            - "X10"
+            - "X2D433"
+            - "X2D868"
+            - "X2DELEC"
+            - "X2DGAS"
+            - "X2DSHUTTER"
+            - " "
+          mode: dropdown
     device_address:
+      name: Device address
+      description: Device address. Do not use X10-form (e.g. 1 instead of A2).
       required: false
-      example: A1
+      example: "2"
       selector:
         text:
-    device_id:
-      required: false
-      example: 40
-      selector:
-        text:
-    automatic_add:
+simulate_event:
+  description: Simulate a RF device JSON event.
+  fields:
+    event_data:
+      name: Event data
+      description: The device event in JSON format without the ZIA header.
       required: true
-      default: false
       selector:
-        boolean:
+        text:

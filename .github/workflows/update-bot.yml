@@ -1,0 +1,47 @@
+name: update-bot
+
+# dependabot doesn't support uv lock, yet
+# using workaround from https://github.com/EdmundGoodman/update-bot/
+# Usage:
+# In your repository's "Settings>Actions>General" menu (https://github.com/USER/REPO/settings/actions),
+# select the "Allow GitHub Actions to create and approve pull requests" checkbox at the bottom of the page
+
+on:
+  workflow_dispatch:
+  # Set the schedule, at 08:00 on day-of-month 1
+  schedule:
+    - cron: 0 8 1 * *
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            **/pyproject.toml
+
+      - run: |
+          echo "\`\`\`" > uv_output.md
+          uv lock &>> uv_output.md
+          echo "\`\`\`" >> uv_output.md
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: Update uv lockfile
+          title: Update uv lockfile
+          body-path: uv_output.md
+          branch: update-uv
+          base: main
+          labels: install
+          delete-branch: true
+          add-paths: uv.lock

@@ -1,0 +1,41 @@
+[
+  {
+    "given": {
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "dataFlag": "0",
+            "rfLevel": "-41",
+            "floorNoise": "-97",
+            "rfQuality": "10",
+            "protocol": "8",
+            "protocolMeaning": "X2D",
+            "infoType": "11",
+            "frequency": "433920"
+          },
+          "infos": {
+            "subType": "0",
+            "id": "2095907073",
+            "subTypeMeaning": "Detector",
+            "qualifier": "1",
+            "qualifierMeaning": ["Tamper"]
+          }
+        }
+      }
+    },
+    "then": {
+      "binary_sensor": {
+        "Tamper": { "value": "1" },
+        "Alarm": { "value": "0" },
+        "Low Battery": { "value": "0" }
+      },
+      "sensor": {
+        "Rf Level": {
+          "value": "-41",
+          "unit": "dB"
+        }
+      }
+    }
+  }
+]

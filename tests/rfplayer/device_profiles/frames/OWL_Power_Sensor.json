@@ -1,0 +1,48 @@
+[
+  {
+    "given": {
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "dataFlag": "0",
+            "rfLevel": "-41",
+            "floorNoise": "-97",
+            "rfQuality": "10",
+            "protocol": "7",
+            "protocolMeaning": "OWL",
+            "infoType": "8",
+            "frequency": "433920"
+          },
+          "infos": {
+            "subType": "0",
+            "id_PHY": "0x0003",
+            "id_PHYMeaning": "CM180i",
+            "adr_channel": "784",
+            "adr": "49",
+            "channel": "0",
+            "qualifier": "6",
+            "lowBatt": "0",
+            "measures": [
+              { "type": "energy", "value": "45150", "unit": "Wh" },
+              { "type": "power", "value": "346", "unit": "W" },
+              { "type": "P1", "value": "345", "unit": "W" },
+              { "type": "P2", "value": "2", "unit": "W" },
+              { "type": "P3", "value": "3", "unit": "W" }
+            ]
+          }
+        }
+      }
+    },
+    "then": {
+      "sensor": {
+        "Energy": { "value": "45150", "unit": "Wh" },
+        "Power": { "value": "346", "unit": "W" },
+        "Power Phase1": { "value": "345", "unit": "W" },
+        "Power Phase2": { "value": "2", "unit": "W" },
+        "Power Phase3": { "value": "3", "unit": "W" },
+        "Rf Level": { "value": "-41", "unit": "dB" }
+      }
+    }
+  }
+]

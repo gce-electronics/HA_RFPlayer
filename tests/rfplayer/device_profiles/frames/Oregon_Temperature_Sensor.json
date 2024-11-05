@@ -1,0 +1,104 @@
+[
+  {
+    "given": {
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "cluster": "0",
+            "dataFlag": "0",
+            "rfLevel": "-85",
+            "floorNoise": "-97",
+            "rfQuality": "3",
+            "protocol": "5",
+            "protocolMeaning": "OREGON",
+            "infoType": "4",
+            "frequency": "433920"
+          },
+          "infos": {
+            "subType": "0",
+            "id_PHY": "0xEA4C",
+            "id_PHYMeaning": "THC238/268,THWR288,THRN122,THN122/132,AW129/131",
+            "adr_channel": "49156",
+            "adr": "192",
+            "channel": "4",
+            "qualifier": "32",
+            "lowBatt": "0",
+            "measures": [
+              { "type": "temperature", "value": "+21.8", "unit": "Celsius" },
+              { "type": "hygrometry", "value": "0", "unit": "%" }
+            ]
+          }
+        }
+      }
+    },
+    "then": {
+      "binary_sensor": {
+        "Low Battery": {
+          "value": "0"
+        }
+      },
+      "sensor": {
+        "Temperature": {
+          "value": "+21.8",
+          "unit": "°C"
+        },
+        "Rf Level": {
+          "value": "-85",
+          "unit": "dB"
+        }
+      }
+    }
+  },
+  {
+    "given": {
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "cluster": "0",
+            "dataFlag": "0",
+            "rfLevel": "-53",
+            "floorNoise": "-98",
+            "rfQuality": "10",
+            "protocol": "5",
+            "protocolMeaning": "OREGON",
+            "infoType": "4",
+            "frequency": "433920"
+          },
+          "infos": {
+            "subType": "0",
+            "id_PHY": "0xCA48",
+            "id_PHYMeaning": "THWR800",
+            "adr_channel": "61955",
+            "adr": "242",
+            "channel": "3",
+            "qualifier": "48",
+            "lowBatt": "0",
+            "measures": [
+              { "type": "temperature", "value": "+23.1", "unit": "Celsius" },
+              { "type": "hygrometry", "value": "0", "unit": "%" }
+            ]
+          }
+        }
+      }
+    },
+    "then": {
+      "binary_sensor": {
+        "Low Battery": {
+          "value": "0"
+        }
+      },
+      "sensor": {
+        "Temperature": {
+          "value": "+23.1",
+          "unit": "°C"
+        },
+        "Rf Level": {
+          "value": "-53",
+          "unit": "dB"
+        }
+      }
+    }
+  }
+]

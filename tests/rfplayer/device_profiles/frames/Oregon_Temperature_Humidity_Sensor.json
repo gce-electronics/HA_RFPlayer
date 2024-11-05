@@ -1,0 +1,57 @@
+[
+  {
+    "given": {
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "cluster": "0",
+            "dataFlag": "0",
+            "rfLevel": "-53",
+            "floorNoise": "-98",
+            "rfQuality": "10",
+            "protocol": "5",
+            "protocolMeaning": "OREGON",
+            "infoType": "4",
+            "frequency": "433920"
+          },
+          "infos": {
+            "subType": "0",
+            "id_PHY": "0x1A2D",
+            "id_PHYMeaning": "THGR122/228/238/268,THGN122/123/132",
+            "adr_channel": "32260",
+            "adr": "126",
+            "channel": "4",
+            "qualifier": "32",
+            "lowBatt": "0",
+            "measures": [
+              { "type": "temperature", "value": "+22.4", "unit": "Celsius" },
+              { "type": "hygrometry", "value": "58", "unit": "%" }
+            ]
+          }
+        }
+      }
+    },
+    "then": {
+      "binary_sensor": {
+        "Low Battery": {
+          "value": "0"
+        }
+      },
+      "sensor": {
+        "Temperature": {
+          "value": "+22.4",
+          "unit": "°C"
+        },
+        "Humidity": {
+          "value": "58",
+          "unit": "%"
+        },
+        "Rf Level": {
+          "value": "-53",
+          "unit": "dB"
+        }
+      }
+    }
+  }
+]

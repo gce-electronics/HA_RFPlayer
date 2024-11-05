@@ -1,0 +1,38 @@
+[
+  {
+    "given": {
+      "profile_name": "X10|CHACON|KD101|BLYSS|FS20 On/Off",
+      "event": {
+        "frame": {
+          "header": {
+            "frameType": "0",
+            "dataFlag": "0",
+            "rfLevel": "-41",
+            "floorNoise": "-97",
+            "rfQuality": "10",
+            "protocol": "3",
+            "protocolMeaning": "BLYSS",
+            "infoType": "1",
+            "frequency": "433920"
+          },
+          "infos": {
+            "subType": "0",
+            "id": "4261483730",
+            "subTypeMeaning": "OFF"
+          }
+        }
+      }
+    },
+    "then": {
+      "binary_sensor": {
+        "Status": { "value": "OFF" }
+      },
+      "sensor": {
+        "Rf Level": {
+          "value": "-41",
+          "unit": "dB"
+        }
+      }
+    }
+  }
+]
