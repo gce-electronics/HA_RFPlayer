@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 1.0.0
+
+- /!\ Complete rework, you need to remove your integration configuration and add it again, you will add to add your device again
+
 ## 0.7.1
 
 - Fix mixup between device ID and device address in english for send_command service
