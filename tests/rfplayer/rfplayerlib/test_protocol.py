@@ -1,5 +1,6 @@
 """Unit tests for rfplayer client."""
 
+import asyncio
 import json
 from typing import cast
 from unittest.mock import Mock, call
@@ -10,7 +11,8 @@ from pytest_mock import MockerFixture
 from custom_components.rfplayer.rfplayerlib.protocol import RfplayerProtocol
 
 
-def test_init_script(test_protocol: RfplayerProtocol):
+@pytest.mark.asyncio
+async def test_init_script(test_protocol: RfplayerProtocol):
     # GIVEN
     assert test_protocol.init_script == [
         "FORMAT JSON",
@@ -21,6 +23,9 @@ def test_init_script(test_protocol: RfplayerProtocol):
 
     # WHEN
     test_protocol.connection_made(transport)
+    pending = list(test_protocol._init_tasks)  # noqa: SLF001
+    while pending:
+        _, pending = await asyncio.wait(pending)
 
     transport.write.assert_has_calls(
         [
@@ -85,12 +90,30 @@ def test_received_invalid(test_protocol: RfplayerProtocol):
     cb.assert_not_called()
 
 
-def test_send_command(test_protocol: RfplayerProtocol):
+@pytest.mark.asyncio
+async def test_send_command(test_protocol: RfplayerProtocol):
     body = "FORMAT JSON"
-    test_protocol.send_raw_command(body)
+    await test_protocol.send_raw_command(body)
 
     tr = cast(Mock, test_protocol.transport)
     tr.write.assert_called_once_with(f"ZIA++{body}\n\r".encode())
+
+
+@pytest.mark.asyncio
+async def test_send_command_error(test_protocol: RfplayerProtocol, mocker: MockerFixture):
+    logger_mock = mocker.patch("custom_components.rfplayer.rfplayerlib.protocol._LOGGER")
+    tr = cast(Mock, test_protocol.transport)
+
+    def send_response(data):
+        test_protocol.data_received(b"ZIA--\n\rerror request number=0\n\rSyntax error: ON X2DELE A0 %3\n\r")
+
+    tr.write.side_effect = send_response
+
+    body = "ON X2DELE A0 %3"
+    await test_protocol.send_raw_request(body)
+
+    tr.write.assert_called_once_with(f"ZIA++{body}\n\r".encode())
+    logger_mock.warning.assert_called()
 
 
 @pytest.mark.asyncio
@@ -112,16 +135,16 @@ async def test_send_request(test_protocol: RfplayerProtocol):
 
 
 @pytest.mark.asyncio
-async def test_send_command_error(test_protocol: RfplayerProtocol, mocker: MockerFixture):
+async def test_send_request_error(test_protocol: RfplayerProtocol, mocker: MockerFixture):
     logger_mock = mocker.patch("custom_components.rfplayer.rfplayerlib.protocol._LOGGER")
     tr = cast(Mock, test_protocol.transport)
 
     def send_response(data):
-        test_protocol.data_received(b"ZIA--\n\rerror request number=0\n\rSyntax error: ON X2DELEC A0 %3\n\r")
+        test_protocol.data_received(b"ZIA--\n\rerror request number=0\n\rSyntax error: HELL\n\r")
 
     tr.write.side_effect = send_response
 
-    body = "ON X2DELEC A0 %3"
+    body = "HELL"
     actual = await test_protocol.send_raw_request(body)
 
     tr.write.assert_called_once_with(f"ZIA++{body}\n\r".encode())

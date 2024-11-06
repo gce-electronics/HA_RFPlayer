@@ -40,7 +40,7 @@ def test_protocol() -> RfplayerProtocol:
     transport = Mock(spec=asyncio.WriteTransport)
     event_callback = Mock(spec=callable)
     disconnect_callback = Mock(spec=callable)
-    loop = Mock()
+    loop = asyncio.get_event_loop()
     protocol = RfplayerProtocol(
         event_callback=event_callback,
         disconnect_callback=disconnect_callback,
