@@ -131,7 +131,7 @@ BLYSS_BINARY_SENSOR_SMOKE_FRIENDLY_NAME = f"BLYSS {BLYSS_SMOKE_ADDRESS} Smoke"
 # ===============
 
 CHACON_ADDRESS = "146139014"
-CHACON_UNIT_CODE = "6"
+CHACON_UNIT_CODE = "134"
 CHACON_ON_EVENT_DATA = {
     "frame": {
         "header": {
@@ -267,8 +267,8 @@ X2D_PRESET_MODE = "Comfort"
 # RTS Examples
 # ===============
 
-RTS_ADDRESS = "123"
-RTS_UNIT_CODE = "11"
+RTS_ADDRESS = "16"
+RTS_UNIT_CODE = "16"
 RTS_DOWN_EVENT_DATA = {
     "frame": {
         "header": {
