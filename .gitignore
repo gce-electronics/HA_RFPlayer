@@ -7,10 +7,7 @@ __pycache__
 reports
 .ruff_cache
 .mypy_cache
-
-# local config
-certs/
-
+*.zip
 
 # misc
 .coverage
