@@ -1,11 +1,11 @@
-name: "Release"
-
+name: Release
 on:
-  release:
-    types:
-      - "published"
+  push:
+    branches:
+      - main
 
-permissions: {}
+permissions:
+  contents: read # for checkout
 
 jobs:
   lint:
@@ -13,30 +13,28 @@ jobs:
 
   validate:
     uses: ./.github/workflows/validate.yml
-
   release:
-    name: "Release"
-    runs-on: "ubuntu-latest"
+    name: Release
+    runs-on: ubuntu-latest
     needs: [lint, validate]
     permissions:
-      contents: write
+      contents: write # to be able to publish a GitHub release
+      issues: write # to be able to comment on released issues
+      pull-requests: write # to be able to comment on released pull requests
+      id-token: write # to enable use of OIDC for npm provenance
     steps:
-      - name: "Checkout the repository"
-        uses: "actions/checkout@v4"
-
-      - name: "Adjust version number"
-        shell: "bash"
-        run: |
-          yq -i -o json '.version="${{ github.event.release.tag_name }}"' \
-            "${{ github.workspace }}/custom_components/rfplayer/manifest.json"
-
-      - name: "ZIP the integration directory"
-        shell: "bash"
-        run: |
-          cd "${{ github.workspace }}/custom_components/rfplayer"
-          zip rfplayer.zip -r ./
-
-      - name: "Upload the ZIP file to the release"
-        uses: softprops/action-gh-release@v2.0.8
+      - name: Checkout
+        uses: actions/checkout@v3
         with:
-          files: ${{ github.workspace }}/custom_components/rfplayer/rfplayer.zip
+          fetch-depth: 0
+      - name: Semantic Release
+        uses: cycjimmy/semantic-release-action@v4
+        with:
+          semantic_version: 19
+          # You can specify specifying version range for the extra plugins if you prefer.
+          extra_plugins: |
+            @semantic-release/git@10
+            @semantic-release/changelog@6
+            @semantic-release/exec@6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
