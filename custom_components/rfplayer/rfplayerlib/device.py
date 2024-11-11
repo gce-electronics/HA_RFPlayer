@@ -34,44 +34,19 @@ class RfDeviceId:
         return f"{self.protocol}-{self.address}"
 
     @property
-    def pairing_code(self) -> str | None:
-        """Group code extracted from address for protocols supporting group commands."""
-
-        if self.protocol == "X2D":  # thermostat only
-            return str((int(self.address) & 0xFFFFFFF0) >> 4)
-        if self.protocol == "CHACON":
-            return str((int(self.address) & 0xFFFFFFC0) >> 6)
-        if self.protocol == "VISIONIC":
-            return str((int(self.address) & 0xFFFF0000) >> 16)
-        if self.protocol in ("X10", "RTS"):
-            return str((int(self.address) & 0xFFFFFF00) >> 8)
-        return self.address
-
-    @property
     def group_code(self) -> str | None:
         """Group code extracted from address for protocols supporting group commands."""
 
-        if self.protocol == "CHACON":
-            return str((int(self.address) & 0x0000000F) >> 4)
-        if self.protocol == "VISIONIC":
-            return str((int(self.address) & 0x0000FF00) >> 8)
-        if self.protocol in ("X10", "RTS"):
-            return str((int(self.address) & 0x000000F0) >> 4)
-        return None
+        # Assume that everything but the last 2 bytes is a housecode / pairing id for all protocols
+        # and that any group command applies to the whole housecode
+        return str(int(self.address) & 0xFFFFFF00)
 
     @property
     def unit_code(self) -> str | None:
         """Unit code extracted from address for protocols supporting group commands."""
 
-        if self.protocol == "X2D":  # thermostat only
-            return str(int(self.address) & 0x0000000F)
-        if self.protocol == "CHACON":
-            return str(int(self.address) & 0x0000000F)
-        if self.protocol == "VISIONIC":
-            return str(int(self.address) & 0x000000FF)
-        if self.protocol in ("X10", "RTS"):
-            return str(int(self.address) & 0x0000000F)
-        return self.address
+        # RfPlayer ID for commands must be 0-255
+        return str(int(self.address) & 0x000000FF)
 
 
 @dataclass
