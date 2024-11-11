@@ -1,3 +1,21 @@
+# 1.0.0 (2024-11-11)
+
+
+### Bug Fixes
+
+* resolve empty init commands issue ([abb8309](https://github.com/gce-electronics/HA_RFPlayer/commit/abb8309dc8995edd68da41eceddddffe3c9f7f95))
+
+
+### Features
+
+* complete rewrite of the rfplayer integration ([1502ad8](https://github.com/gce-electronics/HA_RFPlayer/commit/1502ad80621fa2bd09d53b80dd2285330412d118))
+* empty string support for init commands and improved receiver mode configuration ([38003e2](https://github.com/gce-electronics/HA_RFPlayer/commit/38003e2c4efc1f9b5ce3c40e1dc558c324928e90))
+
+
+### BREAKING CHANGES
+
+* installing the new version will breaking any existing instance because the configuration is different and there is no migration support
+
 # CHANGELOG
 
 ## 1.0.0
