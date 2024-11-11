@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.0.0...v1.0.1) (2024-11-11)
+
+
+### Bug Fixes
+
+* resolves rts device address issue ([#97](https://github.com/gce-electronics/HA_RFPlayer/issues/97)) ([f83617b](https://github.com/gce-electronics/HA_RFPlayer/commit/f83617b9853b8a5322f677cf802cc81611490495))
+
 # 1.0.0 (2024-11-11)
 
 
