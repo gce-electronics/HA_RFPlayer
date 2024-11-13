@@ -1,3 +1,10 @@
+## [1.0.2](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.0.1...v1.0.2) (2024-11-13)
+
+
+### Bug Fixes
+
+* resolve command concurrency and pairing issues ([#103](https://github.com/gce-electronics/HA_RFPlayer/issues/103)) ([#102](https://github.com/gce-electronics/HA_RFPlayer/issues/102)) ([0acbfec](https://github.com/gce-electronics/HA_RFPlayer/commit/0acbfecc0d515d885eab29ddded8ef6799c689a8))
+
 ## [1.0.1](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.0.0...v1.0.1) (2024-11-11)
 
 
