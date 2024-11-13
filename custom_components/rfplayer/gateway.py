@@ -246,22 +246,22 @@ class Gateway:
             _LOGGER.warning("Disconnected from RfPlayer, reconnecting")
             self.hass.async_create_task(self._connect_gateway(), eager_start=False)
 
-    def _send_raw_command(self, call: ServiceCall) -> None:
+    async def _send_raw_command(self, call: ServiceCall) -> None:
         client = self._get_client()
         if not client.connected:
             raise PlatformNotReady("RfPlayer not connected")
 
         command = call.data[ATTR_COMMAND]
-        client.send_raw_command(command)
+        await client.send_raw_command(command)
 
-    def _send_pairing_command(self, call: ServiceCall) -> None:
+    async def _send_pairing_command(self, call: ServiceCall) -> None:
         client = self._get_client()
         if not client.connected:
             raise PlatformNotReady("RfPlayer not connected")
 
         protocol = call.data[CONF_PROTOCOL]
         address = call.data[CONF_ADDRESS]
-        client.send_raw_command(f"ASSOC {protocol} ID {address}")
+        await client.send_raw_command(f"ASSOC {protocol} ID {address}")
 
     async def _simulate_event(self, call: ServiceCall) -> None:
         client = self._get_client()

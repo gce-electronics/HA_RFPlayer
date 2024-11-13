@@ -45,17 +45,20 @@ class RfplayerProtocol(asyncio.Protocol):
         complete_init_script = list(MINIMUM_SCRIPT)
         complete_init_script.extend(init_script or [])
         self.init_script = complete_init_script
+        self._init_tasks: set[asyncio.Task] = set()
         self.verbose = verbose
         self.buffer = ""
-        self.request_lock = asyncio.Lock()
-        self.response_event = asyncio.Event()
-        self.response_packet = ""
+        self.command_lock = asyncio.Lock()
+        self.command_event = asyncio.Event()
+        self.response_message = ""
 
     def connection_made(self, transport: asyncio.BaseTransport) -> None:
         """Just logging for now."""
         self.transport = cast(asyncio.WriteTransport, transport)
         for command in self.init_script:
-            self.send_raw_command(command)
+            task = self.loop.create_task(self.send_raw_command(command))
+            self._init_tasks.add(task)
+            task.add_done_callback(self._init_tasks.discard)
 
     def data_received(self, data: bytes) -> None:
         """Add incoming data to buffer."""
@@ -78,7 +81,7 @@ class RfplayerProtocol(asyncio.Protocol):
             if _valid_packet(line):
                 _LOGGER.debug("packet received: %s", line)
                 self.handle_raw_packet(line)
-            else:
+            elif line:
                 _LOGGER.warning("dropping invalid data: %s", line)
 
     def handle_raw_packet(self, raw_packet: str) -> None:
@@ -86,8 +89,8 @@ class RfplayerProtocol(asyncio.Protocol):
         header = raw_packet[0:5]
         body = raw_packet[5:]
         if header == "ZIA--":
-            self.response_packet = body
-            self.response_event.set()
+            self.response_message = body
+            self.command_event.set()
         elif header == "ZIA33":
             try:
                 self.event_callback(cast(RfPlayerEventData, json.loads(body)))
@@ -101,21 +104,34 @@ class RfplayerProtocol(asyncio.Protocol):
         else:
             _LOGGER.warning("dropping invalid packet: %s", raw_packet)
 
-    def send_raw_command(self, command: str) -> None:
+    async def _do_send_raw_command(self, command: str) -> None:
         """Encode and put packet string onto write buffer."""
+        self.response_message = ""
+        self.command_event.clear()
         data = bytes(f"ZIA++{command}{END_OF_LINE}", "utf-8")
         _LOGGER.debug("sending raw packet: %s", repr(data))
-        assert self.transport is not None
-        self.transport.write(data)
+        if self.transport:
+            self.transport.write(data)
+        else:
+            _LOGGER.warning("Command not sent: not connected")
+
+    async def send_raw_command(self, command: str) -> None:
+        """Send a command but expect no response."""
+        async with self.command_lock:
+            await self._do_send_raw_command(command)
+            # A command has no ack packet.
+            # RfPlayer only sends an error packet if the command is invalid.
+            # We could have waited before returning to try to catch the error packet.
+            # But the required delay to make sure we always receive
+            # the errors is too long to be usable (~5s)
 
     async def send_raw_request(self, request: str) -> str:
         """Send a request and wait for a response."""
-        async with self.request_lock:
-            self.send_raw_command(command=request)
+        async with self.command_lock:
+            await self._do_send_raw_command(command=request)
             async with asyncio.timeout(60):
-                await self.response_event.wait()
-                self.response_event.clear()
-                return self.response_packet[:]
+                await self.command_event.wait()
+                return self.response_message[:]
 
     def connection_lost(self, exc: Exception | None) -> None:
         """Forward to disconnect callback."""

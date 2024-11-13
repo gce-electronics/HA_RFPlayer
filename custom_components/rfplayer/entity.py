@@ -205,9 +205,9 @@ class RfDeviceEntity(RestoreEntity):
             _LOGGER.debug("%s availability updated %s", self.entity_id, str(available))
         self.async_write_ha_state()
 
-    async def _send_command(self, command: str):
+    async def _send_command(self, command: str) -> None:
         client = cast(RfPlayerClient, self.hass.data[DOMAIN][RFPLAYER_CLIENT])
-        await self.hass.async_add_executor_job(client.send_raw_command, command)
+        await client.send_raw_command(command)
 
     def _command_parameters(self, **kwargs) -> dict:
         params = {

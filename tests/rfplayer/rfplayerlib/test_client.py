@@ -48,7 +48,7 @@ async def test_simulator(mocker: MockerFixture):
 
     # WHEN
     await test_client.connect()
-    test_client.send_raw_command("a command")
+    await test_client.send_raw_command("a command")
     await test_client.simulate_event(OREGON_EVENT_DATA)
 
     # THEN
@@ -85,20 +85,21 @@ async def test_send_command_connected(test_client: RfPlayerClient, test_protocol
 
     # WHEN
     body = "FORMAT JSON"
-    test_client.send_raw_command(body)
+    await test_client.send_raw_command(body)
 
     # THEN
     tr = cast(Mock, test_protocol.transport)
     tr.write.assert_called_once_with(b"ZIA++FORMAT JSON\n\r")
 
 
-def test_send_command_disconnected(test_client: RfPlayerClient):
+@pytest.mark.asyncio
+async def test_send_command_disconnected(test_client: RfPlayerClient):
     # GIVEN
     assert not test_client.connected
 
     with pytest.raises(RfPlayerException):
         # WHEN
-        test_client.send_raw_command("")
+        await test_client.send_raw_command("")
 
         # THEN raise
 
@@ -110,19 +111,20 @@ async def test_send_request_connected(test_client: RfPlayerClient, test_protocol
 
     # WHEN
     body = "HELLO"
-    test_client.send_raw_command(body)
+    await test_client.send_raw_command(body)
 
     # THEN
     tr = cast(Mock, test_protocol.transport)
     tr.write.assert_called_once_with(b"ZIA++HELLO\n\r")
 
 
-def test_send_request_disconnected(test_client: RfPlayerClient):
+@pytest.mark.asyncio
+async def test_send_request_disconnected(test_client: RfPlayerClient):
     # GIVEN
     assert not test_client.connected
 
     with pytest.raises(RfPlayerException):
         # WHEN
-        test_client.send_raw_command("")
+        await test_client.send_raw_command("")
 
         # THEN raise

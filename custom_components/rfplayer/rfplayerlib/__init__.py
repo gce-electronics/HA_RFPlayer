@@ -132,7 +132,7 @@ class RfPlayerClient:
             self._protocol.transport.close()
         self._protocol = None
 
-    def send_raw_command(self, command: str) -> None:
+    async def send_raw_command(self, command: str) -> None:
         """Send a raw command."""
 
         if self.port == SIMULATOR_PORT:
@@ -142,7 +142,7 @@ class RfPlayerClient:
         if not self._protocol or not self._protocol.transport:
             raise RfPlayerException("Not connected")
 
-        self._protocol.send_raw_command(command)
+        await self._protocol.send_raw_command(command)
 
     async def send_raw_request(self, command: str) -> str:
         """Send a raw request and return response."""
