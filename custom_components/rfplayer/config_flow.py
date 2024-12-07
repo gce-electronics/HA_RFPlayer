@@ -14,7 +14,6 @@ from custom_components.rfplayer.rfplayerlib.device import RfDeviceId
 from homeassistant.config_entries import HANDLERS, ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
 from homeassistant.const import CONF_ADDRESS, CONF_DEVICE, CONF_DEVICES, CONF_PROFILE_NAME, CONF_PROTOCOL
 from homeassistant.core import callback
-from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers import config_validation as cv, device_registry as dr
 from homeassistant.helpers.device_registry import DeviceEntry
 
@@ -105,7 +104,7 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
         """Initialize."""
         self.config_entry = config_entry
 
-    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_init(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Manage the options."""
         self.device_registry = dr.async_get(self.hass)
 
@@ -118,7 +117,7 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
             },
         )
 
-    async def async_step_configure_gateway(self, user_input: dict[str, Any] | None = None) -> FlowResult:
+    async def async_step_configure_gateway(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Prompt for gateway options."""
         errors: dict[str, Any] = {}
 
