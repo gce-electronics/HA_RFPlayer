@@ -39,7 +39,7 @@ send_pairing_command:
           mode: dropdown
     address:
       name: Device address
-      description: Device address. Do not use X10-form (e.g. 1 instead of A2).
+      description: Device address. Both decimal (1) and X10 (A2) notations are supported.
       required: true
       example: "2"
       selector:

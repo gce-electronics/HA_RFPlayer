@@ -121,15 +121,26 @@ async def test_send_raw_command(
 async def test_send_pairing_command(
     serial_connection_mock: Mock, hass: HomeAssistant, test_protocol: RfplayerProtocol
 ) -> None:
-    """Test configuration."""
     await setup_rfplayer_test_cfg(hass, device="/dev/null", devices={})
 
     await hass.services.async_call(
-        "rfplayer", "send_pairing_command", {"protocol": "CHACON", "address": "1"}, blocking=True
+        "rfplayer", "send_pairing_command", {"protocol": "CHACON", "address": "A1"}, blocking=True
     )
 
     tr = cast(Mock, test_protocol.transport)
-    tr.write.assert_called_once_with(bytearray(b"ZIA++ASSOC CHACON ID 1\n\r"))
+    tr.write.assert_called_once_with(bytearray(b"ZIA++ASSOC CHACON ID 0\n\r"))
+
+
+@pytest.mark.asyncio
+async def test_send_pairing_command_bad_address(
+    serial_connection_mock: Mock, hass: HomeAssistant, test_protocol: RfplayerProtocol
+) -> None:
+    await setup_rfplayer_test_cfg(hass, device="/dev/null", devices={})
+
+    with pytest.raises(ValueError, match="Invalid address"):
+        await hass.services.async_call(
+            "rfplayer", "send_pairing_command", {"protocol": "CHACON", "address": "A17"}, blocking=True
+        )
 
 
 @pytest.mark.asyncio

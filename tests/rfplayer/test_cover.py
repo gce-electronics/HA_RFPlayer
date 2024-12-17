@@ -23,13 +23,13 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant, State
 from tests.rfplayer.conftest import create_rfplayer_test_cfg, setup_rfplayer_test_cfg
 from tests.rfplayer.constants import (
-    RTS_ADDRESS,
     RTS_DEVICE_INFO,
     RTS_DOWN_EVENT_DATA,
     RTS_ENTITY_ID,
     RTS_FRIENDLY_NAME,
     RTS_ID_STRING,
     RTS_UNIT_CODE,
+    RTS_X10_ADDRESS,
 )
 
 
@@ -102,7 +102,7 @@ async def test_automatic_add(serial_connection_mock: Mock, hass: HomeAssistant, 
     client = cast(RfPlayerClient, hass.data[DOMAIN][RFPLAYER_CLIENT])
     client.event_callback(
         RfDeviceEvent(
-            device=RfDeviceId(protocol="RTS", address=RTS_ADDRESS),
+            device=RfDeviceId(protocol="RTS", address=RTS_X10_ADDRESS),
             data=RfPlayerEventData(RTS_DOWN_EVENT_DATA),
         )
     )

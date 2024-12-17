@@ -46,6 +46,7 @@
     },
     "error": {
       "incompatible_protocol": "Procotol and device profile are incompatible",
+      "invalid_address": "Address must be a positive integer, a X10 address (e.g. A1) or an hexadecimal value prefixed with x (e.g. xBEEF)",
       "no_receiver_protocol": "At least one receiver protocol must be selected"
     }
   },

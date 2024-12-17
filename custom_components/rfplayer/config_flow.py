@@ -32,6 +32,7 @@ from .const import (
 )
 
 SELECT_DEVICE_EXCLUSION = "select_device"
+DEFAULT_VALID_ADDRESS = "0"
 
 
 @HANDLERS.register(DOMAIN)
@@ -163,28 +164,33 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
 
     async def async_step_configure_rf_device(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Manage RF device options."""
+        errors: dict[str, Any] = {}
 
         if user_input is not None:
-            entry_id = user_input[CONF_DEVICE]
-            entry = self.device_registry.async_get(entry_id)
-            assert entry
+            if not RfDeviceId.is_valid_address(user_input.get(CONF_REDIRECT_ADDRESS, DEFAULT_VALID_ADDRESS)):
+                errors.update({CONF_REDIRECT_ADDRESS: "invalid_address"})
 
-            id_string = get_device_id_string_from_identifiers(entry.identifiers)
-            assert id_string
+            if not errors:
+                entry_id = user_input[CONF_DEVICE]
+                entry = self.device_registry.async_get(entry_id)
+                assert entry
 
-            devices: dict[str, dict[str, Any]] = {id_string: user_input}
-            devices[id_string].setdefault(CONF_REDIRECT_ADDRESS, None)
+                id_string = get_device_id_string_from_identifiers(entry.identifiers)
+                assert id_string
 
-            self.update_config_data(devices=devices)
+                devices: dict[str, dict[str, Any]] = {id_string: user_input}
+                devices[id_string].setdefault(CONF_REDIRECT_ADDRESS, None)
 
-            return self.async_create_entry(title="", data={})
+                self.update_config_data(devices=devices)
+
+                return self.async_create_entry(title="", data={})
 
         option_schema = {
             vol.Required(CONF_DEVICE): vol.In(self._list_rf_devices()),
             vol.Optional(CONF_REDIRECT_ADDRESS): str,
         }
 
-        return self.async_show_form(step_id="configure_rf_device", data_schema=vol.Schema(option_schema))
+        return self.async_show_form(step_id="configure_rf_device", data_schema=vol.Schema(option_schema), errors=errors)
 
     async def async_step_add_rf_device(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Add manuall a RF device."""
@@ -194,15 +200,17 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
 
         if user_input is not None:
             # New device
-            id_string = RfDeviceId(protocol=user_input[CONF_PROTOCOL], address=user_input[CONF_ADDRESS]).id_string
-
-            device_info = user_input.copy()
-            device_info[CONF_REDIRECT_ADDRESS] = None
-
             if not profile_registry.is_valid_protocol(user_input[CONF_PROFILE_NAME], user_input[CONF_PROTOCOL]):
                 errors.update({CONF_PROTOCOL: "incompatible_protocol"})
 
+            if not RfDeviceId.is_valid_address(user_input[CONF_ADDRESS]):
+                errors.update({CONF_ADDRESS: "invalid_address"})
+
             if not errors:
+                id_string = RfDeviceId(protocol=user_input[CONF_PROTOCOL], address=user_input[CONF_ADDRESS]).id_string
+
+                device_info = user_input.copy()
+                device_info[CONF_REDIRECT_ADDRESS] = None
                 self.update_config_data(devices={id_string: device_info})
 
                 return self.async_create_entry(title="", data={})

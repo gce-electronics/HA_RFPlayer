@@ -11,7 +11,7 @@ import voluptuous as vol
 from custom_components.rfplayer.device_profiles import async_get_profile_registry
 from custom_components.rfplayer.helpers import build_device_info_from_event, get_device_id_string_from_identifiers
 from custom_components.rfplayer.rfplayerlib import COMMAND_PROTOCOLS, RfPlayerClient, RfPlayerException
-from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent
+from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_DEVICE_ID,
@@ -259,9 +259,8 @@ class Gateway:
         if not client.connected:
             raise PlatformNotReady("RfPlayer not connected")
 
-        protocol = call.data[CONF_PROTOCOL]
-        address = call.data[CONF_ADDRESS]
-        await client.send_raw_command(f"ASSOC {protocol} ID {address}")
+        device_id = RfDeviceId(protocol=call.data[CONF_PROTOCOL], address=call.data[CONF_ADDRESS])
+        await client.send_raw_command(f"ASSOC {device_id.protocol} ID {device_id.integer_address}")
 
     async def _simulate_event(self, call: ServiceCall) -> None:
         client = self._get_client()
