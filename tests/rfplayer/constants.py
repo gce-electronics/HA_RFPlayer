@@ -268,6 +268,7 @@ X2D_PRESET_MODE = "Comfort"
 # ===============
 
 RTS_ADDRESS = "16"
+RTS_X10_ADDRESS = "B1"
 RTS_UNIT_CODE = "16"
 RTS_DOWN_EVENT_DATA = {
     "frame": {
@@ -293,9 +294,9 @@ RTS_DOWN_EVENT_DATA = {
 }
 RTS_ID_STRING = f"RTS-{RTS_ADDRESS}"
 RTS_ENTITY_ID = f"cover.rts_{RTS_ADDRESS}_shutter"
-RTS_FRIENDLY_NAME = f"RTS {RTS_ADDRESS} Shutter"
+RTS_FRIENDLY_NAME = f"RTS {RTS_X10_ADDRESS} Shutter"
 RTS_DEVICE_INFO = {
     "protocol": "RTS",
-    "address": RTS_ADDRESS,
+    "address": RTS_X10_ADDRESS,
     "profile_name": "RTS Shutter",
 }
