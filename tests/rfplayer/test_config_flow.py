@@ -16,7 +16,7 @@ from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDevic
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
-from homeassistant.const import STATE_OFF, STATE_UNKNOWN
+from homeassistant.const import STATE_OFF, STATE_OPEN, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import device_registry as dr
@@ -30,6 +30,10 @@ from tests.rfplayer.constants import (
     OREGON_EVENT_DATA,
     OREGON_ID_STRING,
     OREGON_REDIRECT_ADDRESS,
+    RTS_DEVICE_INFO,
+    RTS_ENTITY_ID,
+    RTS_FRIENDLY_NAME,
+    RTS_ID_STRING,
 )
 
 SOME_PROTOCOLS = ["ac", "arc"]
@@ -297,8 +301,7 @@ async def test_options_add_rf_device(serial_connection_mock: Mock, hass: HomeAss
     assert result["type"] is FlowResultType.FORM
     assert result["step_id"] == "add_rf_device"
 
-    device_options = OREGON_DEVICE_INFO.copy()
-    device_options.update({"profile_name": OREGON_DEVICE_INFO["profile_name"]})
+    device_options = RTS_DEVICE_INFO.copy()
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input=device_options,
@@ -308,21 +311,19 @@ async def test_options_add_rf_device(serial_connection_mock: Mock, hass: HomeAss
 
     await hass.async_block_till_done()
 
-    device_options = entry.data["devices"][OREGON_ID_STRING]
+    device_options = entry.data["devices"][RTS_ID_STRING]
 
     assert not device_options["redirect_address"]
-    assert device_options["profile_name"] == OREGON_DEVICE_INFO["profile_name"]
+    assert device_options["profile_name"] == RTS_DEVICE_INFO["profile_name"]
 
-    state = hass.states.get(OREGON_BINARY_SENSOR_ENTITY_ID)
+    state = hass.states.get(RTS_ENTITY_ID)
     assert state
-    assert state.state == STATE_UNKNOWN
-    assert state.attributes.get("friendly_name") == OREGON_BINARY_SENSOR_FRIENDLY_NAME
+    assert state.state == STATE_OPEN
+    assert state.attributes.get("friendly_name") == RTS_FRIENDLY_NAME
 
 
 @pytest.mark.asyncio
 async def test_options_add_rf_device_bad_protocol(serial_connection_mock: Mock, hass: HomeAssistant) -> None:
-    """Test we can add a device."""
-
     entry = MockConfigEntry(
         domain=DOMAIN,
         data=create_rfplayer_test_cfg(),
@@ -350,6 +351,38 @@ async def test_options_add_rf_device_bad_protocol(serial_connection_mock: Mock, 
 
     assert result["type"] is FlowResultType.FORM
     assert result["errors"] == {"protocol": "incompatible_protocol"}
+
+
+@pytest.mark.asyncio
+async def test_options_add_rf_device_bad_address(serial_connection_mock: Mock, hass: HomeAssistant) -> None:
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data=create_rfplayer_test_cfg(),
+        unique_id=DOMAIN,
+    )
+    result = await start_options_flow(hass, entry)
+
+    assert result["type"] is FlowResultType.MENU
+    assert result["step_id"] == "init"
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={"next_step_id": "add_rf_device"},
+    )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "add_rf_device"
+
+    device_options = OREGON_DEVICE_INFO.copy()
+    device_options["address"] = "A17"
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input=device_options,
+    )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"address": "invalid_address"}
 
 
 @pytest.mark.asyncio

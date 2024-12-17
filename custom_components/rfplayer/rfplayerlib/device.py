@@ -3,6 +3,7 @@
 from collections.abc import Callable
 from dataclasses import dataclass
 import logging
+import re
 from typing import Any
 
 from .protocol import RfPlayerEventData
@@ -16,9 +17,14 @@ UNKNOWN_INFO = "unknown"
 class RfDeviceId:
     """Identifiers of a RF device or the RfPlayer gateway itself."""
 
+    X10_PATTERN = re.compile("([A-P])(1[0-6]|[1-9])")
+    HEX_PATTERN = re.compile("X([0-9A-F]+)")
+    DEC_PATTERN = re.compile("[0-9]+")
+
     protocol: str
-    address: str
     model: str | None
+    _address: str
+    _integer_address: int
 
     def __init__(self, protocol: str, address: str, *, model: str | None = None):
         """Create a new RF device id."""
@@ -28,10 +34,27 @@ class RfDeviceId:
         self.model = model
 
     @property
+    def address(self) -> str:
+        """The device address."""
+
+        return self._address
+
+    @address.setter
+    def address(self, value: str) -> None:
+        self._address = value
+        self._integer_address = self._address_to_integer(value)
+
+    @property
+    def integer_address(self) -> int:
+        """Read-only integer device address."""
+
+        return self._integer_address
+
+    @property
     def id_string(self) -> str:
         """Build a unique device id for the device."""
 
-        return f"{self.protocol}-{self.address}"
+        return f"{self.protocol}-{self.integer_address}"
 
     @property
     def group_code(self) -> str | None:
@@ -39,14 +62,39 @@ class RfDeviceId:
 
         # Assume that everything but the last 2 bytes is a housecode / pairing id for all protocols
         # and that any group command applies to the whole housecode
-        return str(int(self.address) & 0xFFFFFF00)
+        return str(self.integer_address & 0xFFFFFF00)
 
     @property
     def unit_code(self) -> str | None:
         """Unit code extracted from address for protocols supporting group commands."""
 
         # RfPlayer ID for commands must be 0-255
-        return str(int(self.address) & 0x000000FF)
+        return str(self.integer_address & 0x000000FF)
+
+    @staticmethod
+    def is_valid_address(address: str) -> bool:
+        """Check if the address is valid."""
+
+        try:
+            RfDeviceId._address_to_integer(address)
+        except ValueError:
+            return False
+        else:
+            return True
+
+    @staticmethod
+    def _address_to_integer(address: str) -> int:
+        upper_address = address.upper()
+        m = RfDeviceId.DEC_PATTERN.fullmatch(upper_address)
+        if m:
+            return int(upper_address)
+        m = RfDeviceId.X10_PATTERN.fullmatch(upper_address)
+        if m:
+            return ((ord(m.group(1)) - ord("A")) * 16 + int(m.group(2))) - 1
+        m = RfDeviceId.HEX_PATTERN.fullmatch(upper_address)
+        if m:
+            return int(m.group(1), 16)
+        raise ValueError("Invalid address")
 
 
 @dataclass
