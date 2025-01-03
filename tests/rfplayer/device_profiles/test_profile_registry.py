@@ -27,8 +27,9 @@ def _get_platform_tests(
     expectation: FrameExpectation, platform: Platform
 ) -> tuple[RfPlayerEventData, list[AnyRfpPlatformConfig], dict[str, AnyTest]]:
     given = expectation.given
-    profile_name = given.profile_name or REGISTRY.get_profile_name_from_event(given.event)
-    assert profile_name, f"Could not find a matching profile for event {given.event}"
+    event = RfPlayerEventData(given.event)
+    profile_name = given.profile_name or REGISTRY.get_profile_name_from_event(event)
+    assert profile_name, f"Could not find a matching profile for event {event}"
 
     all_config = REGISTRY.get_platform_config(profile_name, platform)
     assert all_config, f"Could not find platform {platform} for profile {profile_name}"
@@ -38,7 +39,7 @@ def _get_platform_tests(
     # same number of entities / platform
     assert len(all_config) == len(tests)
 
-    return (given.event, all_config, tests)
+    return (event, all_config, tests)
 
 
 def test_binary_sensor(profile: str, binary_sensor_expectation: FrameExpectation):
