@@ -9,7 +9,7 @@ from pathlib import Path
 import re
 
 from jsonpath_ng.ext import parse
-from pydantic import BaseConfig, BaseModel, parse_obj_as
+from pydantic import BaseModel, TypeAdapter
 import yaml
 
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
@@ -25,10 +25,10 @@ _LOGGER = logging.getLogger(__name__)
 class BaseValueConfig(BaseModel):
     """Base value extractor."""
 
-    bit_mask: int | None
-    bit_offset: int | None
-    map: dict[str, str] | None
-    factor: float | None
+    bit_mask: int | None = None
+    bit_offset: int | None = None
+    map: dict[str, str] | None = None
+    factor: float | None = None
 
     def _convert(self, value: str) -> str:
         """Convert a raw value."""
@@ -49,7 +49,7 @@ class JsonValueConfig(BaseValueConfig):
     """Generic json value extraction configuration."""
 
     value_path: str
-    unit_path: str | None
+    unit_path: str | None = None
 
     def get_value(self, event_data: RfPlayerEventData) -> str | None:
         """Extract value from json event."""
@@ -73,21 +73,16 @@ class RfpPlatformConfig(BaseModel):
     """Base class for all platform configurations."""
 
     name: str
-    device_class: str | None
-    category: EntityCategory | None
-    unit: str | None
-
-    class Config(BaseConfig):
-        """Enable private properties for map caching."""
-
-        underscore_attrs_are_private = True
+    device_class: str | None = None
+    category: EntityCategory | None = None
+    unit: str | None = None
 
 
 class RfpSensorConfig(RfpPlatformConfig):
     """Sensor platform configuration."""
 
     state: JsonValueConfig
-    state_class: str | None
+    state_class: str | None = None
 
     def event_unit(self, event_data: RfPlayerEventData | None) -> str | None:
         """Return unit from event of static unit."""
@@ -114,7 +109,7 @@ class RfpClimateConfig(RfpPlatformConfig):
     preset_modes: dict[str, str]
     cmd_turn_on: str
     cmd_turn_off: str
-    cmd_set_mode: str | None
+    cmd_set_mode: str | None = None
     _preset_modes_cache: dict[str, str] | None = None
 
     def make_cmd_turn_on(self, **kwargs):
@@ -151,11 +146,11 @@ class CoverState(StrEnum):
 class RfpCoverConfig(RfpPlatformConfig):
     """Climate platform configuration."""
 
-    state: JsonValueConfig | None
+    state: JsonValueConfig | None = None
     states: dict[str, CoverState]
     cmd_open: str
     cmd_close: str
-    cmd_stop: str | None
+    cmd_stop: str | None = None
 
     def make_cmd_open(self, **kwargs):
         """Format the open command with address."""
@@ -211,12 +206,12 @@ class RfpPlatformConfigMap(BaseModel):
     Remove deserialization ambiguity with union and avoid using pydantic discriminator.
     """
 
-    binary_sensor: list[RfpSensorConfig] | None
-    climate: list[RfpClimateConfig] | None
-    cover: list[RfpCoverConfig] | None
-    light: list[RfpLightConfig] | None
-    sensor: list[RfpSensorConfig] | None
-    switch: list[RfpSwitchConfig] | None
+    binary_sensor: list[RfpSensorConfig] | None = None
+    climate: list[RfpClimateConfig] | None = None
+    cover: list[RfpCoverConfig] | None = None
+    light: list[RfpLightConfig] | None = None
+    sensor: list[RfpSensorConfig] | None = None
+    switch: list[RfpSwitchConfig] | None = None
 
     def get(self, platform: Platform) -> list[AnyRfpPlatformConfig]:
         """Return the config for the given platform."""
@@ -228,8 +223,8 @@ class RfPDeviceMatch(BaseModel):
 
     protocol: str
     info_type: str
-    sub_type: str | None
-    id_phy: str | None
+    sub_type: str | None = None
+    id_phy: str | None = None
 
 
 class RfpDeviceProfile(BaseModel):
@@ -254,7 +249,8 @@ class ProfileRegistry:
         """Add new yaml device profiles into the registry."""
 
         obj = yaml.safe_load(content)
-        items = parse_obj_as(list[RfpDeviceProfile], obj)
+        adapter = TypeAdapter(list[RfpDeviceProfile])
+        items = adapter.validate_python(obj)
         self._registry.extend(items)
 
     def get_profile_name_from_event(self, event_data: RfPlayerEventData) -> str | None:
