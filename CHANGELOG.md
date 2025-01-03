@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.0.2...v1.1.0) (2025-01-03)
+
+
+### Features
+
+* add support for X10 address ([#108](https://github.com/gce-electronics/HA_RFPlayer/issues/108)) ([fc9b2d4](https://github.com/gce-electronics/HA_RFPlayer/commit/fc9b2d4fcec6143622e1fdeb0d5f792a52087c3c))
+
 ## [1.0.2](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.0.1...v1.0.2) (2024-11-13)
 
 
