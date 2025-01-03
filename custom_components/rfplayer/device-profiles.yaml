@@ -463,11 +463,11 @@
         preset_mode:
           value_path: "$.frame.infos.state"
         preset_modes:
-          0: Eco
-          3: Comfort
-          4: Stop
-          5: Out of frost
-          7: Auto
+          "0": Eco
+          "3": Comfort
+          "4": Stop
+          "5": Out of frost
+          "7": Auto
         cmd_turn_on: ON X2DELEC ID {unit_code} %{preset_mode}
         cmd_turn_off: OFF X2DELEC ID {unit_code} %{preset_mode}
         cmd_set_mode: ON X2DELEC ID {unit_code} %{preset_mode}

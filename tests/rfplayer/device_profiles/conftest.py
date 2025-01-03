@@ -5,7 +5,6 @@ from pathlib import Path
 
 from pydantic import BaseModel, parse_obj_as
 
-from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
 from homeassistant.const import Platform
 
 _LOGGER = logging.getLogger(__name__)
@@ -15,13 +14,13 @@ FRAMES_PATH = Path(os.path.abspath(__file__)).parent / "frames"
 
 class SensorTest(BaseModel):
     value: str
-    unit: str | None
+    unit: str | None = None
 
 
 class ClimateTest(BaseModel):
     event_type: str
-    state: str | None
-    preset_mode: str | None
+    state: str | None = None
+    preset_mode: str | None = None
 
 
 class StateTest(BaseModel):
@@ -29,20 +28,20 @@ class StateTest(BaseModel):
 
 
 class GivenContext(BaseModel):
-    event: RfPlayerEventData
-    profile_name: str | None
+    event: dict
+    profile_name: str | None = None
 
 
 AnyTest = ClimateTest | SensorTest | StateTest
 
 
 class PlatformTestMap(BaseModel):
-    binary_sensor: dict[str, SensorTest] | None
-    climate: dict[str, ClimateTest] | None
-    cover: dict[str, StateTest] | None
-    light: dict[str, StateTest] | None
-    sensor: dict[str, SensorTest] | None
-    switch: dict[str, StateTest] | None
+    binary_sensor: dict[str, SensorTest] | None = None
+    climate: dict[str, ClimateTest] | None = None
+    cover: dict[str, StateTest] | None = None
+    light: dict[str, StateTest] | None = None
+    sensor: dict[str, SensorTest] | None = None
+    switch: dict[str, StateTest] | None = None
 
     def get(self, platform: Platform) -> dict[str, AnyTest]:
         """Return a dictionary of tests for the given platform."""
