@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   lint:
-    uses: ./.github/workflows/lint.yml
+    uses: ./.github/workflows/test.yml
 
   validate:
     uses: ./.github/workflows/validate.yml
