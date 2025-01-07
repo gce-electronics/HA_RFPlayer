@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.1.0...v1.2.0) (2025-01-07)
+
+
+### Features
+
+* upgrade to pydantic v2 ([#112](https://github.com/gce-electronics/HA_RFPlayer/issues/112)) ([0562a0e](https://github.com/gce-electronics/HA_RFPlayer/commit/0562a0e6114c024c5743cf4e9b0ec30abb091655))
+
 # [1.1.0](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.0.2...v1.1.0) (2025-01-03)
 
 
