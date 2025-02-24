@@ -1,10 +1,9 @@
 [project]
 name = "RfPlayer"
-requires-python = ">= 3.12"
+requires-python = ">= 3.13"
 dynamic = ["version"]
 dependencies = [
-    "homeassistant~=2025.1.0",
-    "aiohasupervisor~=0.2.2b5",
+    "homeassistant~=2025.1",
     "pydantic~=2.0",
     "pyserial~=3.5",
     "pyserial-asyncio~=0.6",

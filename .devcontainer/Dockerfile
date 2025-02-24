@@ -33,6 +33,7 @@ RUN \
         libxml2 \
         git \
         cmake \
+        clang \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
