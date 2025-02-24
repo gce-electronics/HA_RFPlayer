@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.2.0...v1.2.1) (2025-02-24)
+
+
+### Bug Fixes
+
+* **deps:** update uv lockfile ([040db83](https://github.com/gce-electronics/HA_RFPlayer/commit/040db832a19defee829700c5440a96ece506a786))
+
 # [1.2.0](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.1.0...v1.2.0) (2025-01-07)
 
 
