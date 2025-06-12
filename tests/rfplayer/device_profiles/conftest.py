@@ -3,7 +3,7 @@ import logging
 import os
 from pathlib import Path
 
-from pydantic import BaseModel, parse_obj_as
+from pydantic import BaseModel, TypeAdapter
 
 from homeassistant.const import Platform
 
@@ -59,7 +59,8 @@ def _load_expectations(platform: Platform) -> list[tuple[str, FrameExpectation]]
         with open(filename, encoding="utf-8") as f:
             obj = json.load(f)
             try:
-                expectations = parse_obj_as(list[FrameExpectation], obj)
+                adapter = TypeAdapter(list[FrameExpectation])
+                expectations = adapter.validate_python(obj)
             except Exception:
                 _LOGGER.exception("Failed to load frame file %s", filename)
                 raise
