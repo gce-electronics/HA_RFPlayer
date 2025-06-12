@@ -15,7 +15,6 @@ from custom_components.rfplayer.rfplayerlib.device import RfDeviceId
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
 from homeassistant.components.climate import (
     ATTR_PRESET_MODE,
-    STATE_ON,
     ClimateEntity,
     ClimateEntityDescription,
     ClimateEntityFeature,
@@ -23,7 +22,7 @@ from homeassistant.components.climate import (
     UnitOfTemperature,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
+from homeassistant.const import STATE_ON, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
