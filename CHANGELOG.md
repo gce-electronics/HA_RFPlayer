@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.2.1...v1.2.2) (2025-06-12)
+
+
+### Bug Fixes
+
+* change import for state on in climate [#120](https://github.com/gce-electronics/HA_RFPlayer/issues/120) ([eb5af07](https://github.com/gce-electronics/HA_RFPlayer/commit/eb5af07c2470f32752adf0ba8fb4848cbdf182f4))
+
 ## [1.2.1](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.2.0...v1.2.1) (2025-02-24)
 
 
