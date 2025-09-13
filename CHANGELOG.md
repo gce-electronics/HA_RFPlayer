@@ -1,3 +1,10 @@
+## [1.2.3](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.2.2...v1.2.3) (2025-09-13)
+
+
+### Bug Fixes
+
+* solve config flow warning ([bf1838d](https://github.com/gce-electronics/HA_RFPlayer/commit/bf1838d89f22450929644bc80edd9bb97d8489d5))
+
 ## [1.2.2](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.2.1...v1.2.2) (2025-06-12)
 
 
