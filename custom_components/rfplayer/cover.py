@@ -3,16 +3,11 @@
 import logging
 from typing import Any, cast
 
-from custom_components.rfplayer.device_profiles import (
-    AnyRfpPlatformConfig,
-    CoverState,
-    RfpCoverConfig,
-    RfpPlatformConfig,
-)
+from custom_components.rfplayer.device_profiles import AnyRfpPlatformConfig, RfpCoverConfig, RfpPlatformConfig
 from custom_components.rfplayer.entity import RfDeviceEntity, async_setup_platform_entry
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceId
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
-from homeassistant.components.cover import STATE_OPEN, CoverEntity, CoverEntityDescription, CoverEntityFeature
+from homeassistant.components.cover import CoverEntity, CoverEntityDescription, CoverEntityFeature, CoverState
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
@@ -87,7 +82,7 @@ class RfPlayerCover(RfDeviceEntity, CoverEntity):
         if self._event_data is None:
             old_state = await self.async_get_last_state()
             if old_state is not None:
-                self._attr_is_closed = old_state.state != STATE_OPEN
+                self._attr_is_closed = old_state.state != CoverState.OPEN
 
     async def async_open_cover(self, **kwargs: Any) -> None:
         """Open cover."""
