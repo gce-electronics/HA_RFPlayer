@@ -14,8 +14,9 @@ import yaml
 
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
 from homeassistant.components.binary_sensor import BinarySensorDeviceClass
+from homeassistant.components.cover import CoverState
 from homeassistant.components.sensor import SensorDeviceClass
-from homeassistant.const import STATE_CLOSED, STATE_OPEN, EntityCategory, Platform
+from homeassistant.const import EntityCategory, Platform
 from homeassistant.core import HomeAssistant
 
 RfDeviceClass = SensorDeviceClass | BinarySensorDeviceClass
@@ -134,13 +135,6 @@ class RfpClimateConfig(RfpPlatformConfig):
         if not self._preset_modes_cache:
             self._preset_modes_cache = {value: key for (key, value) in self.preset_modes.items()}
         return self._preset_modes_cache[mode] if mode else list(self._preset_modes_cache.values())[0]
-
-
-class CoverState(StrEnum):
-    """Allowed cover states."""
-
-    OPEN = STATE_OPEN
-    CLOSED = STATE_CLOSED
 
 
 class RfpCoverConfig(RfpPlatformConfig):
