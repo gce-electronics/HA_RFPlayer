@@ -1,3 +1,10 @@
+## [1.2.4](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.2.3...v1.2.4) (2025-11-01)
+
+
+### Bug Fixes
+
+* use CoverState from HA since constant are removed from HA 202511 ([353b924](https://github.com/gce-electronics/HA_RFPlayer/commit/353b9247f505fe8e2cf245256f330f6f1270dde7))
+
 ## [1.2.3](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.2.2...v1.2.3) (2025-09-13)
 
 
