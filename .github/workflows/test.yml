@@ -42,7 +42,7 @@ jobs:
           mkdir -p reports
           uv run pytest --cov-report html:reports/coverage  --html=reports/test.html --cov=custom_components.rfplayer  tests/
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v6
         with:
           name: test-reports
           path: reports
