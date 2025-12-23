@@ -1,6 +1,6 @@
 [project]
 name = "RfPlayer"
-requires-python = ">= 3.13"
+requires-python = ">= 3.13.2"
 dynamic = ["version"]
 dependencies = [
     "homeassistant~=2025.1",
@@ -29,16 +29,14 @@ classifiers = [
 
 [tool.uv]
 dev-dependencies = [
-    "pre-commit~=3.8",
-    "pytest~=8.2",
-    "pytest-cov~=6.0",
+    "pre-commit~=4.5",
+    "pytest-cov~=7.0",
     "pytest-homeassistant-custom-component~=0.13",
-    "pytest-asyncio~=0.23",
-    "pytest-mock~=3.14",
+    "pytest-mock~=3.15",
     "pytest-html~=4.1",
     "colorlog~=6.8",
-    "ruff~=0.4",
-    "mypy~=1.10",
+    "ruff<1.0",
+    "mypy~=1.19",
     "types-PyYAML~=6.0"
 ]
 constraint-dependencies = ["uv>=0.4"]

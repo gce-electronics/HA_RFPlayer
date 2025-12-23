@@ -1,0 +1,31 @@
+name: "Test with Latest Home Assistant"
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 3 * * 1"
+
+jobs:
+  test:
+    name: "Test"
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: "Checkout the repository"
+        uses: "actions/checkout@v6"
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            **/uv.lock
+
+      - name: "Tests against latest home assistant"
+        run: |
+          uv lock --prerelease=allow -P homeassistant -P pytest-homeassistant-custom-component
+          uv sync --frozen
+          uv run pytest tests/
