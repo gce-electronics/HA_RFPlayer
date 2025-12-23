@@ -23,12 +23,11 @@
         "charliermarsh.ruff",
         "ms-python.vscode-pylance",
         "ms-azuretools.vscode-docker",
-        "visualstudioexptteam.vscodeintellicode",
         "redhat.vscode-yaml",
         "esbenp.prettier-vscode",
         "GitHub.vscode-pull-request-github",
         "github.vscode-github-actions",
-        "GitHub.copilot"
+        "github.copilot-chat"
       ],
       // Please keep this file in sync with settings in home-assistant/.vscode/settings.default.json
       "settings": {

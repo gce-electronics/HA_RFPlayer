@@ -8,7 +8,7 @@ import logging
 from typing import cast
 
 from serial import SerialException
-from serial_asyncio import create_serial_connection
+from serial_asyncio_fast import create_serial_connection
 
 from .device import RfDeviceEvent, RfDeviceEventAdapter
 from .protocol import RfPlayerEventData, RfplayerProtocol
