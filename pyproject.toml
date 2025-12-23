@@ -3,11 +3,10 @@ name = "RfPlayer"
 requires-python = ">= 3.13.2"
 dynamic = ["version"]
 dependencies = [
-    "homeassistant~=2025.1",
+    "homeassistant~=2025.12",
     "pydantic~=2.0",
-    "pyserial~=3.5",
-    "pyserial-asyncio~=0.6",
     "jsonpath-ng~=1.6",
+    "pyserial-asyncio-fast<1.0",
 ]
 classifiers = [
   # How mature is this project? Common values are
@@ -27,9 +26,10 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
 ]
 
-[tool.uv]
-dev-dependencies = [
+[dependency-groups]
+dev = [
     "pre-commit~=4.5",
+    "pytest~=9.0",
     "pytest-cov~=7.0",
     "pytest-homeassistant-custom-component~=0.13",
     "pytest-mock~=3.15",
@@ -39,7 +39,6 @@ dev-dependencies = [
     "mypy~=1.19",
     "types-PyYAML~=6.0"
 ]
-constraint-dependencies = ["uv>=0.4"]
 
 [build-system]
 requires = ["setuptools >= 61.0"]
