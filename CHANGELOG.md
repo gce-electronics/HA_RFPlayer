@@ -1,3 +1,10 @@
+## [1.2.5](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.2.4...v1.2.5) (2026-01-03)
+
+
+### Bug Fixes
+
+* **deps:** use pyserial-asyncio-fast [#139](https://github.com/gce-electronics/HA_RFPlayer/issues/139) ([3dd76de](https://github.com/gce-electronics/HA_RFPlayer/commit/3dd76de03e62bf55886c23357fcbc4723b138c49))
+
 ## [1.2.4](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.2.3...v1.2.4) (2025-11-01)
 
 
