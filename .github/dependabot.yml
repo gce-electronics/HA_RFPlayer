@@ -6,10 +6,20 @@ updates:
     schedule:
       interval: "weekly"
     commit-message:
-      prefix: "ci(deps): github-actions "
+      prefix: "ci(github-actions): "
   - package-ecosystem: "uv"
     directory: "/"
     schedule:
       interval: "weekly"
     commit-message:
-      prefix: "ci(deps): uv-lock "
+      prefix: "ci(python): "
+    groups:
+      patch-and-minor-updates:
+        update-types: ["patch", "minor"]
+      major-updates:
+        update-types: ["major"]
+    open-pull-requests-limit: 4
+    cooldown:
+      semver-patch-days: 5
+      semver-minor-days: 15
+      semver-major-days: 30
