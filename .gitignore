@@ -19,3 +19,4 @@ config/*
 !config/configuration.yaml
 .venv
 venv
+manifest.json
