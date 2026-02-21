@@ -3,7 +3,7 @@ from typing import cast
 from unittest.mock import Mock
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry, mock_restore_cache
+from pytest_homeassistant_custom_component.common import mock_restore_cache
 
 from custom_components.rfplayer.const import ATTR_EVENT_DATA, DOMAIN, RFPLAYER_CLIENT
 from custom_components.rfplayer.rfplayerlib import RfPlayerClient
@@ -25,7 +25,7 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import HomeAssistant, State
-from tests.rfplayer.conftest import create_rfplayer_test_cfg, setup_rfplayer_test_cfg
+from tests.rfplayer.conftest import setup_rfplayer_test_cfg
 from tests.rfplayer.constants import (
     X2D_ADDRESS,
     X2D_COMFORT_EVENT_DATA,
@@ -43,19 +43,12 @@ from tests.rfplayer.constants import (
 async def test_climate(serial_connection_mock: Mock, hass: HomeAssistant, test_protocol: RfplayerProtocol):
     tr = cast(Mock, test_protocol.transport)
 
-    entry_data = create_rfplayer_test_cfg(
+    await setup_rfplayer_test_cfg(
+        hass,
         devices={
             X2D_ID_STRING: X2D_DEVICE_INFO,
-        }
+        },
     )
-
-    mock_entry = MockConfigEntry(domain=DOMAIN, unique_id=DOMAIN, data=entry_data)
-
-    mock_entry.add_to_hass(hass)
-
-    await hass.config_entries.async_setup(mock_entry.entry_id)
-    await hass.async_block_till_done()
-    await hass.async_start()
 
     state = hass.states.get(X2D_ENTITY_ID)
     assert state
@@ -168,17 +161,12 @@ async def test_state_restore(serial_connection_mock: Mock, hass: HomeAssistant) 
         ],
     )
 
-    entry_data = create_rfplayer_test_cfg(
+    await setup_rfplayer_test_cfg(
+        hass,
         devices={
             X2D_ID_STRING: X2D_DEVICE_INFO,
-        }
+        },
     )
-    mock_entry = MockConfigEntry(domain=DOMAIN, unique_id=DOMAIN, data=entry_data)
-
-    mock_entry.add_to_hass(hass)
-
-    await hass.config_entries.async_setup(mock_entry.entry_id)
-    await hass.async_block_till_done()
 
     state = hass.states.get(X2D_ENTITY_ID)
     assert state

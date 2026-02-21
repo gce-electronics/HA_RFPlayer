@@ -40,7 +40,7 @@ class RfplayerConfigFlow(ConfigFlow):
     """Handle a rfplayer config flow."""
 
     VERSION = 1
-    MINOR_VERSION = 1
+    MINOR_VERSION = 2
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Config flow started from UI."""

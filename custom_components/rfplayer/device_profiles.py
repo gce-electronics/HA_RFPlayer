@@ -20,6 +20,7 @@ from homeassistant.const import EntityCategory, Platform
 from homeassistant.core import HomeAssistant
 
 RfDeviceClass = SensorDeviceClass | BinarySensorDeviceClass
+
 _LOGGER = logging.getLogger(__name__)
 
 

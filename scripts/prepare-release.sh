@@ -18,6 +18,6 @@ PYPROJECT="${ROOT}/pyproject.toml"
 SCRIPT_DIR="$(dirname "$0")"
 
 # Sync dependencies from pyproject.toml to manifest.json
-python3 "${SCRIPT_DIR}/sync_manifest_deps.py" "${PYPROJECT}" "${MANIFEST}" "${NEXT_VERSION}"
+python3 "${SCRIPT_DIR}/update_manifest.py" "${PYPROJECT}" "${MANIFEST}" "${NEXT_VERSION}"
 
 cd "${RFPLAYER_COMPONENT}" && zip ${ZIPFILE} -x "*.pyc" -r ./

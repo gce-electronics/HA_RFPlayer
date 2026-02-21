@@ -105,12 +105,15 @@ async def setup_rfplayer_test_cfg(  # noqa: PLR0913
     devices: dict[str, dict] | None = None,
     protocols: list[str] | None = None,
     init_commands: str | None = INIT_COMMANDS_EMPTY,
+    minor_version=2,
 ) -> ConfigEntry:
     """Construct a rfplayer config entry."""
     entry_data = create_rfplayer_test_cfg(
         device=device, automatic_add=automatic_add, devices=devices, protocols=protocols, init_commands=init_commands
     )
-    mock_entry = MockConfigEntry(domain="rfplayer", unique_id="a_player", data=entry_data)
+    mock_entry = MockConfigEntry(
+        domain="rfplayer", unique_id="a_player", data=entry_data, version=1, minor_version=minor_version
+    )
     mock_entry.supports_remove_device = True
     mock_entry.add_to_hass(hass)
 

@@ -293,7 +293,7 @@ RTS_DOWN_EVENT_DATA = {
     }
 }
 RTS_ID_STRING = f"RTS-{RTS_ADDRESS}"
-RTS_ENTITY_ID = f"cover.rts_{RTS_ADDRESS}_shutter"
+RTS_ENTITY_ID = f"cover.rts_{RTS_X10_ADDRESS.lower()}_shutter"
 RTS_FRIENDLY_NAME = f"RTS {RTS_X10_ADDRESS} Shutter"
 RTS_DEVICE_INFO = {
     "protocol": "RTS",

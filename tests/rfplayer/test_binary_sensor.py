@@ -3,7 +3,7 @@ from typing import cast
 from unittest.mock import Mock
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry, mock_restore_cache
+from pytest_homeassistant_custom_component.common import mock_restore_cache
 
 from custom_components.rfplayer.const import ATTR_EVENT_DATA, DOMAIN, RFPLAYER_CLIENT
 from custom_components.rfplayer.rfplayerlib import RfPlayerClient
@@ -11,7 +11,7 @@ from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDevic
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
 from homeassistant.const import ATTR_FRIENDLY_NAME, STATE_OFF, STATE_ON, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant, State
-from tests.rfplayer.conftest import create_rfplayer_test_cfg, setup_rfplayer_test_cfg
+from tests.rfplayer.conftest import setup_rfplayer_test_cfg
 from tests.rfplayer.constants import (
     BLYSS_BINARY_SENSOR_MOTION_ENTITY_ID,
     BLYSS_BINARY_SENSOR_MOTION_FRIENDLY_NAME,
@@ -41,21 +41,14 @@ from tests.rfplayer.constants import (
 
 @pytest.mark.asyncio
 async def test_binary_sensor(serial_connection_mock: Mock, hass: HomeAssistant):
-    entry_data = create_rfplayer_test_cfg(
+    await setup_rfplayer_test_cfg(
+        hass,
         devices={
             OREGON_ID_STRING: OREGON_DEVICE_INFO,
             BLYSS_MOTION_ID_STRING: BLYSS_MOTION_DEVICE_INFO,
             BLYSS_SMOKE_ID_STRING: BLYSS_SMOKE_DEVICE_INFO,
-        }
+        },
     )
-
-    mock_entry = MockConfigEntry(domain=DOMAIN, unique_id=DOMAIN, data=entry_data)
-
-    mock_entry.add_to_hass(hass)
-
-    await hass.config_entries.async_setup(mock_entry.entry_id)
-    await hass.async_block_till_done()
-    await hass.async_start()
 
     state = hass.states.get(JAMMING_BINARY_SENSOR_ENTITY_ID)
     assert state
@@ -100,19 +93,12 @@ async def test_automatic_add(serial_connection_mock: Mock, hass: HomeAssistant):
 
 @pytest.mark.asyncio
 async def test_group_command(serial_connection_mock: Mock, hass: HomeAssistant):
-    entry_data = create_rfplayer_test_cfg(
+    await setup_rfplayer_test_cfg(
+        hass,
         devices={
             CHACON_ID_STRING: CHACON_BINARY_SENSOR_DEVICE_INFO,
-        }
+        },
     )
-
-    mock_entry = MockConfigEntry(domain=DOMAIN, unique_id=DOMAIN, data=entry_data)
-
-    mock_entry.add_to_hass(hass)
-
-    await hass.config_entries.async_setup(mock_entry.entry_id)
-    await hass.async_block_till_done()
-    await hass.async_start()
 
     state = hass.states.get(CHACON_BINARY_SENSOR_ENTITY_ID)
     assert state
@@ -149,17 +135,12 @@ async def test_state_restore(serial_connection_mock: Mock, hass: HomeAssistant) 
         ],
     )
 
-    entry_data = create_rfplayer_test_cfg(
+    await setup_rfplayer_test_cfg(
+        hass,
         devices={
             OREGON_ID_STRING: OREGON_DEVICE_INFO,
-        }
+        },
     )
-    mock_entry = MockConfigEntry(domain=DOMAIN, unique_id=DOMAIN, data=entry_data)
-
-    mock_entry.add_to_hass(hass)
-
-    await hass.config_entries.async_setup(mock_entry.entry_id)
-    await hass.async_block_till_done()
 
     state = hass.states.get(OREGON_BINARY_SENSOR_ENTITY_ID)
     assert state
