@@ -3,7 +3,7 @@ from typing import cast
 from unittest.mock import Mock
 
 import pytest
-from pytest_homeassistant_custom_component.common import MockConfigEntry, mock_restore_cache
+from pytest_homeassistant_custom_component.common import mock_restore_cache
 from pytest_mock import MockerFixture
 
 from custom_components.rfplayer.const import ATTR_EVENT_DATA, DOMAIN, RFPLAYER_CLIENT
@@ -22,7 +22,7 @@ from homeassistant.const import (
     Platform,
 )
 from homeassistant.core import HomeAssistant, State
-from tests.rfplayer.conftest import create_rfplayer_test_cfg, setup_rfplayer_test_cfg
+from tests.rfplayer.conftest import setup_rfplayer_test_cfg
 from tests.rfplayer.constants import (
     CHACON_ADDRESS,
     CHACON_ID_STRING,
@@ -38,19 +38,12 @@ from tests.rfplayer.constants import (
 async def test_light(serial_connection_mock: Mock, hass: HomeAssistant, test_protocol: RfplayerProtocol):
     tr = cast(Mock, test_protocol.transport)
 
-    entry_data = create_rfplayer_test_cfg(
+    await setup_rfplayer_test_cfg(
+        hass,
         devices={
             CHACON_ID_STRING: CHACON_LIGHT_DEVICE_INFO,
-        }
+        },
     )
-
-    mock_entry = MockConfigEntry(domain=DOMAIN, unique_id=DOMAIN, data=entry_data)
-
-    mock_entry.add_to_hass(hass)
-
-    await hass.config_entries.async_setup(mock_entry.entry_id)
-    await hass.async_block_till_done()
-    await hass.async_start()
 
     state = hass.states.get(CHACON_LIGHT_ENTITY_ID)
     assert state
@@ -137,17 +130,12 @@ async def test_state_restore(serial_connection_mock: Mock, hass: HomeAssistant) 
         ],
     )
 
-    entry_data = create_rfplayer_test_cfg(
+    await setup_rfplayer_test_cfg(
+        hass,
         devices={
             CHACON_ID_STRING: CHACON_LIGHT_DEVICE_INFO,
-        }
+        },
     )
-    mock_entry = MockConfigEntry(domain=DOMAIN, unique_id=DOMAIN, data=entry_data)
-
-    mock_entry.add_to_hass(hass)
-
-    await hass.config_entries.async_setup(mock_entry.entry_id)
-    await hass.async_block_till_done()
 
     state = hass.states.get(CHACON_LIGHT_ENTITY_ID)
     assert state

@@ -4,8 +4,8 @@ requires-python = ">= 3.13.2"
 dynamic = ["version"]
 dependencies = [
     "homeassistant~=2026.1",
-    "pydantic~=2.0",
-    "jsonpath-ng~=1.6",
+    "pydantic~=2.12",
+    "jsonpath-ng~=1.7",
     "pyserial-asyncio-fast<1.0",
 ]
 classifiers = [

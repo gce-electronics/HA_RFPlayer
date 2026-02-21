@@ -43,24 +43,16 @@ def extract_dependencies(pyproject_path: Path) -> list[str]:
     return deps
 
 
-def create_manifest(manifest_path: Path, requirements: list[str], version: str) -> None:
-    """Create manifest.json with given requirements and version."""
+def update_manifest(manifest_path: Path, requirements: list[str], version: str) -> None:
+    """Update manifest.json with given requirements and version."""
 
-    manifest = {
-        "domain": "rfplayer",
-        "name": "GCE RF Player",
-        "codeowners": ["@racletteparty", "@Aohzan"],
-        "config_flow": True,
-        "documentation": "https://github.com/gce-electronics/HA_RFPlayer",
-        "integration_type": "hub",
-        "iot_class": "local_push",
-        "issue_tracker": "https://github.com/gce-electronics/HA_RFPlayer/issues",
-        "loggers": ["rfplayer"],
-        "requirements": requirements,
-        "version": version,
-    }
+    with manifest_path.open("r") as f:
+        manifest = json.load(f)
 
-    with open(manifest_path, "w") as f:
+    manifest["requirements"] = requirements
+    manifest["version"] = version
+
+    with manifest_path.open("w") as f:
         json.dump(manifest, f, indent=2)
         f.write("\n")  # Add trailing newline
 
@@ -69,7 +61,7 @@ def main():
     """Sync dependencies from pyproject.toml to manifest.json."""
 
     if len(sys.argv) != 4:
-        print("Usage: sync_manifest_deps.py <pyproject.toml> <manifest.json> <version>")  # noqa: T201
+        print("Usage: update_manifest.py <pyproject.toml> <manifest.json> <version>")  # noqa: T201
         sys.exit(1)
 
     pyproject_path = Path(sys.argv[1])
@@ -82,7 +74,7 @@ def main():
 
     try:
         requirements = extract_dependencies(pyproject_path)
-        create_manifest(manifest_path, requirements, version)
+        update_manifest(manifest_path, requirements, version)
         print(f"✓ Updated {manifest_path.name}")  # noqa: T201
         print(f"  Version: {version}")  # noqa: T201
         print(f"  Requirements: {', '.join(requirements)}")  # noqa: T201

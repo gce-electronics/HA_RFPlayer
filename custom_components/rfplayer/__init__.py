@@ -1,17 +1,14 @@
 """Support for RfPlayer gateway."""
 
-import logging
 from typing import cast
 
 from custom_components.rfplayer.const import DOMAIN, RFPLAYER_GATEWAY
 from custom_components.rfplayer.gateway import Gateway
+from custom_components.rfplayer.migration import async_migrate_version_1_2
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
-
-_LOGGER = logging.getLogger(__name__)
-
 
 PLATFORMS = [Platform.BINARY_SENSOR, Platform.SENSOR, Platform.LIGHT, Platform.CLIMATE, Platform.COVER, Platform.SWITCH]
 
@@ -52,4 +49,11 @@ async def async_remove_config_entry_device(
 
     The actual cleanup is done in the device registry event
     """
+    return True
+
+
+async def async_migrate_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Migrate old entry."""
+    if entry.version == 1 and entry.minor_version <= 3:
+        return await async_migrate_version_1_2(hass, entry)
     return True

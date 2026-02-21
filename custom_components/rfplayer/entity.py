@@ -5,8 +5,6 @@ import json
 import logging
 from typing import cast
 
-import slugify
-
 from custom_components.rfplayer.device_profiles import AnyRfpPlatformConfig, async_get_profile_registry
 from custom_components.rfplayer.helpers import (
     build_device_id_from_device_info,
@@ -25,6 +23,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import Entity
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
+from homeassistant.util import slugify
 
 from .const import (
     ATTR_EVENT_DATA,
@@ -125,8 +124,14 @@ class RfDeviceEntity(RestoreEntity):
     _device_id: RfDeviceId
     _event_data: RfPlayerEventData | None
 
-    def __init__(self, device_id: RfDeviceId, name: str, event_data: RfPlayerEventData | None, verbose: bool) -> None:
-        """Initialize the device."""
+    def __init__(
+        self, device_id: RfDeviceId, profile_name: str, event_data: RfPlayerEventData | None, verbose: bool
+    ) -> None:
+        """Initialize the device.
+
+        profile_name must be a stable identifier from the device profile to ensure correct behavior
+        for unique_id generation and device registry. It is not intended to be user modified.
+        """
         self._attr_device_info = DeviceInfo(
             identifiers=get_identifiers_from_device_id(device_id),
             manufacturer=device_id.protocol,
@@ -135,11 +140,11 @@ class RfDeviceEntity(RestoreEntity):
             if device_id.model
             else f"{device_id.protocol} {device_id.address}",
         )
-        self.name = name
-        self._attr_unique_id = slugify.slugify(f"{device_id.id_string}.{name}")
+        self._attr_name = profile_name
+        self._attr_unique_id = slugify(f"{device_id.id_string}_{profile_name}")
+        # HA will generate the entity_id
         self._event_data = event_data
         self._device_id = device_id
-        self.entity_id = f"{DOMAIN}.{device_id.id_string}.{name}"
         self._verbose = verbose
 
     async def async_added_to_hass(self) -> None:

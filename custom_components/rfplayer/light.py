@@ -69,7 +69,7 @@ class RfPlayerLight(RfDeviceEntity, LightEntity):
         verbose: bool,
     ) -> None:
         """Initialize the RfPlayer light."""
-        super().__init__(device_id=device, name=platform_config.name, event_data=event_data, verbose=verbose)
+        super().__init__(device_id=device, profile_name=platform_config.name, event_data=event_data, verbose=verbose)
         self.entity_description = entity_description
         assert isinstance(platform_config, RfpLightConfig)
         self._config = cast(RfpLightConfig, platform_config)
