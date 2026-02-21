@@ -14,6 +14,10 @@ NEXT_VERSION="$1"
 RFPLAYER_COMPONENT="${ROOT}/custom_components/rfplayer"
 MANIFEST=${RFPLAYER_COMPONENT}/manifest.json
 ZIPFILE="${ROOT}/rfplayer.zip"
+PYPROJECT="${ROOT}/pyproject.toml"
+SCRIPT_DIR="$(dirname "$0")"
 
-cat <<< $(jq ".version=\"${NEXT_VERSION}\"" "${MANIFEST}") > "${MANIFEST}"
-cd "${RFPLAYER_COMPONENT}" && zip ${ZIPFILE} -r ./
+# Sync dependencies from pyproject.toml to manifest.json
+python3 "${SCRIPT_DIR}/sync_manifest_deps.py" "${PYPROJECT}" "${MANIFEST}" "${NEXT_VERSION}"
+
+cd "${RFPLAYER_COMPONENT}" && zip ${ZIPFILE} -x "*.pyc" -r ./
