@@ -8,6 +8,6 @@
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/gce-electronics/HA_RFPlayer/issues",
   "loggers": ["custom_components.rfplayer"],
-  "requirements": ["pyserial", "pyserial-asyncio", "jsonpath-ng"],
+  "requirements": ["pyserial", "pyserial-asyncio-fast", "jsonpath-ng"],
   "version": "0.0.0"
 }

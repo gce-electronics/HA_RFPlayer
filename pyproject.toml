@@ -3,7 +3,7 @@ name = "RfPlayer"
 requires-python = ">= 3.13.2"
 dynamic = ["version"]
 dependencies = [
-    "homeassistant~=2026.1",
+    "homeassistant~=2026.2",
     "pydantic~=2.12",
     "jsonpath-ng~=1.7",
     "pyserial-asyncio-fast<1.0",

@@ -1,4 +1,5 @@
 {
+  // Imported from home-assistant/.vscode/settings.default.json
   "editor.defaultFormatter": "esbenp.prettier-vscode",
   "python.testing.unittestEnabled": false,
   "python.testing.pytestEnabled": true,
@@ -10,5 +11,13 @@
       "source.organizeImports": "explicit"
     }
   },
-  "python.testing.pytestArgs": ["tests"]
+  "python.testing.pytestArgs": ["tests"],
+  // Use the project's virtualenv python for the Python extension and debugger
+  "python.defaultInterpreterPath": "/home/vscode/.local/ha-venv/bin/python",
+  "python.terminal.activateEnvironment": true,
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  "editor.formatOnPaste": false,
+  "editor.formatOnSave": true,
+  "editor.formatOnType": true,
+  "files.trimTrailingWhitespace": true,
 }

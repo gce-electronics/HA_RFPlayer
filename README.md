@@ -21,6 +21,10 @@ Services:
 - `send command`
 - `simulate event`
 
+Bus Events:
+
+- `rfplayer_edisio_event`
+
 ## Installation
 
 ### HACS
@@ -64,6 +68,10 @@ Some generic RF devices can match several device profiles (e.g. Blyss devices). 
 
 Some RF devices like Oregon sensors will renew their addresses after changing the battery. This integration provides a RF device option named _redirect address_ to redirect events with a new address to the device entities created with the initial address. This is useful to keep the current user configuration of the device (area, labels...) while still being able to receive events with the new device address.
 
+### _RF Player_ TCP proxy (Experimental)
+
+It is possible to access a remote _RF Player_ serial device via a TCP proxy. When configuring the _RF Player_ settings just provide host IP address and port instead of a serial port name.
+
 ### Simulation
 
 It is possible to emulate a _RF Player_ to try the integration without real hardware. When the _RF Player_ integration is added, simply select the simulator device instead of a real USB device.
@@ -103,6 +111,28 @@ List of device profiles verification with real devices:
 | X2D Detector/Sensor                         | ❌             | ❌               |
 | X2D Shutter                                 | ❌             | ❌               |
 | Edisio Temperature Sensor                   | ✅             |                  | No humidity sensor support |
+
+## Bus Events
+
+### Edisio Events (Experimental)
+
+Edisio devices cannot easily be mapped to Home Assistant platforms like sensor or light because it is highly configurable and lacks proper discovery.
+Instead, this integration sends a Home Assistant event `rfplayer_edisio_event` that can be consumed by scripts to provide customizable logic.
+The event stucture looks like this:
+
+```
+{
+    "device_id": "3514999432",
+    "channel": "1",
+    "command": "ON",
+    "model": "EDS-100",
+    "battery": "3.6V",
+    "add0": "0",
+    "add1": "0",
+}
+```
+
+You can use this event to trigger an automation. Event properties are available in the automation script as `{{ trigger.event.data.command }}`
 
 ## Future improvements
 

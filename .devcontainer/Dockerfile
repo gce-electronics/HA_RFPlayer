@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/devcontainers/python:1-3.12
+FROM mcr.microsoft.com/devcontainers/python:3.13
 
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
@@ -37,8 +37,8 @@ RUN \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv system-wide
-RUN pip3 install uv
+# Install uv for managing python dependencies and virtual environments
+RUN pipx install uv
 
 USER vscode
 ENV HOME=/home/vscode

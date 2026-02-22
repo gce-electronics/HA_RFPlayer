@@ -5,12 +5,17 @@
         "title": "GCE RfPlayer",
         "description": "Select RfPlayer device",
         "data": {
-          "device": "USB devices found",
+          "device_serial": "USB devices found",
+          "ip_address": "IP address (if serial device not used)",
+          "port": "Port",
           "device_simulator": "Use RfPlayer simulator"
         }
       }
     },
-    "error": {},
+    "error": {
+      "device_missing": "Unable to connect to the specified device",
+      "multiple_device": "Select either a serial device or an IP address/port."
+    },
     "abort": {
       "single_instance_allowed": "Already configured. Only a single configuration possible.",
       "unknown": "Unexpected error"

@@ -2,7 +2,7 @@
   "name": "Hacs integration",
   "context": "..",
   "dockerFile": "Dockerfile",
-  "privileged": true,
+  "privileged": true, // required to access real hardware for testing
   "postCreateCommand": "scripts/setup",
   "containerEnv": {
     "PYTHONASYNCIODEBUG": "1",
@@ -14,8 +14,8 @@
   "mounts": [
     "type=bind,source=/home/${localEnv:USER}/.ssh,target=/home/vscode/.ssh,readonly"
   ],
-  // Port 5683 udp is used by Shelly integration
-  "appPort": ["8123:8123", "5683:5683/udp"],
+  "appPort": ["8123:8123"],
+  "forwardPorts": [8123],
   "runArgs": ["-e", "GIT_EDITOR=code --wait"],
   "customizations": {
     "vscode": {
@@ -29,17 +29,7 @@
         "github.vscode-github-actions",
         "github.copilot-chat"
       ],
-      // Please keep this file in sync with settings in home-assistant/.vscode/settings.default.json
       "settings": {
-        "python.experiments.optOutFrom": ["pythonTestAdapter"],
-        "python.defaultInterpreterPath": "/home/vscode/.local/ha-venv/bin/python",
-        "python.pythonPath": "/home/vscode/.local/ha-venv/bin/python",
-        "python.terminal.activateEnvInCurrentTerminal": true,
-        "python.testing.pytestArgs": ["--no-cov"],
-        "editor.formatOnPaste": false,
-        "editor.formatOnSave": true,
-        "editor.formatOnType": true,
-        "files.trimTrailingWhitespace": true,
         "terminal.integrated.profiles.linux": {
           "zsh": {
             "path": "/usr/bin/zsh"
@@ -54,10 +44,7 @@
           "!include_dir_merge_list scalar",
           "!include_dir_merge_named scalar"
         ],
-        "ruff.nativeServer": true,
-        "[python]": {
-          "editor.defaultFormatter": "charliermarsh.ruff"
-        }
+        "ruff.nativeServer": true
       }
     }
   }

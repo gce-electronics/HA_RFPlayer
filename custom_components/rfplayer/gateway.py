@@ -8,7 +8,8 @@ from typing import cast
 
 import voluptuous as vol
 
-from custom_components.rfplayer.device_profiles import async_get_profile_registry
+from custom_components.rfplayer.device_profiles import UNDEFINED_PROFILE, async_get_profile_registry
+from custom_components.rfplayer.device_publishers import get_bus_publisher
 from custom_components.rfplayer.helpers import build_device_info_from_event, get_device_id_string_from_identifiers
 from custom_components.rfplayer.rfplayerlib import COMMAND_PROTOCOLS, RfPlayerClient, RfPlayerException
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
@@ -78,6 +79,7 @@ class Gateway:
 
         self.verbose = self.config.get(CONF_VERBOSE_MODE, False)
         self.profile_registry = await async_get_profile_registry(self.hass, self.verbose)
+        self.bus_publisher = get_bus_publisher()
 
         # Initialize library
         client = RfPlayerClient(
@@ -151,11 +153,13 @@ class Gateway:
         # Callback to HA registered components.
         async_dispatcher_send(self.hass, SIGNAL_RFPLAYER_EVENT, event)  # type: ignore[has-type]
 
+        self.hass.async_create_task(self.bus_publisher.async_fire(self.hass, event))
+
     @callback
     def _add_rf_device(self, event: RfDeviceEvent) -> None:
         device_info = build_device_info_from_event(self.profile_registry, event)
-        if not device_info[CONF_PROFILE_NAME]:
-            _LOGGER.info("No matching profile for device %s", event.device.id_string)
+        if device_info[CONF_PROFILE_NAME] == UNDEFINED_PROFILE:
+            _LOGGER.debug("No matching profile for device %s event %s", event.device.id_string, json.dumps(event.data))
             return
 
         data = self.entry.data.copy()

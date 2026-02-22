@@ -1,24 +1,16 @@
 """Config flow for RfPlayer integration."""
 
 import copy
+import ipaddress
 import os
 from typing import Any, cast
 
-import serial
+from serial.tools import list_ports
 import voluptuous as vol
 
-from custom_components.rfplayer.device_profiles import async_get_profile_registry
-from custom_components.rfplayer.helpers import build_device_id_from_device_info, get_device_id_string_from_identifiers
-from custom_components.rfplayer.rfplayerlib import DEVICE_PROTOCOLS, RECEIVER_MODES, SIMULATOR_PORT
-from custom_components.rfplayer.rfplayerlib.device import RfDeviceId
-from homeassistant.config_entries import HANDLERS, ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
-from homeassistant.const import CONF_ADDRESS, CONF_DEVICE, CONF_DEVICES, CONF_PROFILE_NAME, CONF_PROTOCOL
-from homeassistant.core import callback
-from homeassistant.helpers import config_validation as cv, device_registry as dr
-from homeassistant.helpers.device_registry import DeviceEntry
-
-from .const import (
+from custom_components.rfplayer.const import (
     CONF_AUTOMATIC_ADD,
+    CONF_DEVICE_SERIAL,
     CONF_DEVICE_SIMULATOR,
     CONF_INIT_COMMANDS,
     CONF_RECEIVER_PROTOCOLS,
@@ -30,6 +22,24 @@ from .const import (
     DOMAIN,
     INIT_COMMANDS_EMPTY,
 )
+from custom_components.rfplayer.device_profiles import async_get_profile_registry
+from custom_components.rfplayer.helpers import build_device_id_from_device_info, get_device_id_string_from_identifiers
+from custom_components.rfplayer.rfplayerlib import DEVICE_PROTOCOLS, RECEIVER_MODES, SIMULATOR_PORT
+from custom_components.rfplayer.rfplayerlib.device import RfDeviceId
+from homeassistant.config_entries import HANDLERS, ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
+from homeassistant.const import (
+    CONF_ADDRESS,
+    CONF_DEVICE,
+    CONF_DEVICES,
+    CONF_IP_ADDRESS,
+    CONF_PORT,
+    CONF_PROFILE_NAME,
+    CONF_PROTOCOL,
+)
+from homeassistant.core import callback
+from homeassistant.helpers import device_registry as dr
+import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.device_registry import DeviceEntry
 
 SELECT_DEVICE_EXCLUSION = "select_device"
 DEFAULT_VALID_ADDRESS = "0"
@@ -52,12 +62,24 @@ class RfplayerConfigFlow(ConfigFlow):
         schema_errors: dict[str, Any] = {}
 
         if user_input is not None:
-            if user_input.get(CONF_DEVICE):
-                device_port = await self.hass.async_add_executor_job(get_serial_by_id, user_input[CONF_DEVICE])
-            elif user_input.get(CONF_DEVICE_SIMULATOR):
-                device_port = SIMULATOR_PORT
-            else:
-                schema_errors.update({CONF_DEVICE: "device_missing"})
+            if len(user_input.keys() & {CONF_DEVICE_SERIAL, CONF_IP_ADDRESS, CONF_DEVICE_SIMULATOR}) > 1:
+                schema_errors.update({CONF_DEVICE_SERIAL: "multiple_device"})
+            if len(user_input.keys() & {CONF_DEVICE_SERIAL, CONF_IP_ADDRESS, CONF_DEVICE_SIMULATOR}) == 0:
+                schema_errors.update({CONF_DEVICE_SERIAL: "device_missing"})
+
+            if not schema_errors:
+                if user_input.get(CONF_DEVICE_SERIAL):
+                    device_port = await self.hass.async_add_executor_job(
+                        get_serial_by_id, user_input[CONF_DEVICE_SERIAL]
+                    )
+                elif user_input.get(CONF_IP_ADDRESS):
+                    try:
+                        ipaddress.ip_address(user_input[CONF_IP_ADDRESS])
+                        device_port = f"tcp://{user_input[CONF_IP_ADDRESS]}:{user_input[CONF_PORT]}"
+                    except ValueError:
+                        schema_errors.update({CONF_IP_ADDRESS: "invalid_ip_address"})
+                elif user_input.get(CONF_DEVICE_SIMULATOR):
+                    device_port = SIMULATOR_PORT
 
             if not schema_errors:
                 entry_data = {
@@ -72,7 +94,7 @@ class RfplayerConfigFlow(ConfigFlow):
                 }
                 return self.async_create_entry(title=device_port, data=entry_data)
 
-        ports = await self.hass.async_add_executor_job(serial.tools.list_ports.comports)
+        ports = await self.hass.async_add_executor_job(list_ports.comports)
         list_of_ports = {}
         for port in ports:
             list_of_ports[port.device] = f"{port}, s/n: {port.serial_number or 'n/a'}" + (
@@ -80,8 +102,10 @@ class RfplayerConfigFlow(ConfigFlow):
             )
 
         data_schema = {
-            vol.Exclusive(CONF_DEVICE, group_of_exclusion=SELECT_DEVICE_EXCLUSION): vol.In(list_of_ports),
-            vol.Exclusive(CONF_DEVICE_SIMULATOR, group_of_exclusion=SELECT_DEVICE_EXCLUSION): bool,
+            vol.Optional(CONF_DEVICE_SERIAL): vol.In(list_of_ports),
+            vol.Optional(CONF_IP_ADDRESS): str,
+            vol.Optional(CONF_PORT): int,
+            vol.Optional(CONF_DEVICE_SIMULATOR): bool,
         }
         return self.async_show_form(
             step_id="user",
