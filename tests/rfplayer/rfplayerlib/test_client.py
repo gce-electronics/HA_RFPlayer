@@ -13,7 +13,7 @@ from tests.rfplayer.constants import OREGON_ADDRESS, OREGON_EVENT_DATA
 
 
 @pytest.mark.asyncio
-async def test_connect(
+async def test_connect_serial(
     test_client: RfPlayerClient,
     test_protocol: RfplayerProtocol,
     serial_connection_mock: Mock,
@@ -28,6 +28,24 @@ async def test_connect(
     assert test_client.protocol == test_protocol
     assert test_client.connected
     serial_connection_mock.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_connect_tcp(
+    test_client: RfPlayerClient,
+    test_protocol: RfplayerProtocol,
+    tcp_connection_mock: Mock,
+):
+    # GIVEN
+    test_client.port = "tcp://localhost:1234"
+
+    # WHEN
+    await test_client.connect()
+
+    # THEN
+    assert test_client.protocol == test_protocol
+    assert test_client.connected
+    tcp_connection_mock.assert_called_once()
 
 
 @pytest.mark.asyncio
