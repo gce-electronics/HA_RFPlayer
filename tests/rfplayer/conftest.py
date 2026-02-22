@@ -63,6 +63,13 @@ def serial_connection_mock(mocker: MockerFixture, test_protocol: RfplayerProtoco
 
 
 @pytest.fixture
+def tcp_connection_mock(mocker: MockerFixture, test_client: RfPlayerClient, test_protocol: RfplayerProtocol) -> Mock:
+    """Patch create_tcp_connection to return mock protocol."""
+
+    return mocker.patch.object(test_client.loop, "create_connection", return_value=test_protocol)
+
+
+@pytest.fixture
 def test_client(serial_connection_mock: Mock, test_protocol: RfplayerProtocol) -> RfPlayerClient:
     """Create a rfclient with patch serial connection."""
 

@@ -119,11 +119,11 @@ class RfPlayerClient:
             init_script=self._init_script(),
             verbose=self.verbose,
         )
-        try:
-            (_, protocol) = await create_serial_connection(self.loop, protocol_factory, self.port, RFPLAYER_BAUD_RATE)
-        except (SerialException, OSError) as err:
-            raise RfPlayerException("Failed to create serial connection") from err
-        self._protocol = cast(RfplayerProtocol, protocol)
+
+        if self.port.startswith("tcp://"):
+            self._protocol = await self._make_tcp_protocol(protocol_factory)
+        else:
+            self._protocol = await self._make_serial_protocol(protocol_factory)
 
     def close(self) -> None:
         """Close connection if open."""
@@ -171,6 +171,30 @@ class RfPlayerClient:
         """The underlying asyncio protocol."""
 
         return self._protocol
+
+    async def _make_serial_protocol(self, protocol_factory: Callable[[], RfplayerProtocol]) -> RfplayerProtocol:
+        try:
+            (_, protocol) = await create_serial_connection(self.loop, protocol_factory, self.port, RFPLAYER_BAUD_RATE)
+            return cast(RfplayerProtocol, protocol)
+        except (SerialException, OSError) as err:
+            raise RfPlayerException("Failed to create serial connection") from err
+
+    async def _make_tcp_protocol(self, protocol_factory: Callable[[], RfplayerProtocol]) -> RfplayerProtocol:
+        host_port = self.port.removeprefix("tcp://")
+        if ":" not in host_port:
+            raise RfPlayerException("Invalid TCP port, expected format tcp://host:port")
+
+        host, port_str = host_port.split(":", 1)
+        try:
+            port = int(port_str)
+        except ValueError as err:
+            raise RfPlayerException("Invalid TCP port, port must be an integer") from err
+
+        try:
+            protocol = await self.loop.create_connection(protocol_factory, host, port)
+            return cast(RfplayerProtocol, protocol)
+        except OSError as err:
+            raise RfPlayerException("Failed to create TCP connection") from err
 
     def _disconnect_callback_internal(self, ex: Exception | None) -> None:
         self.close()
