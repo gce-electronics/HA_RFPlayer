@@ -95,7 +95,7 @@ async def test_fire_event(
 
     device_blyss = device_registry.async_get_device(identifiers={(DOMAIN, BLYSS_ID_STRING)})
     assert device_blyss is not None
-    assert device_blyss.model is None
+    assert device_blyss.model == ""
     assert device_blyss.manufacturer == "BLYSS"
     assert device_blyss.name == f"BLYSS {BLYSS_ADDRESS}"
 

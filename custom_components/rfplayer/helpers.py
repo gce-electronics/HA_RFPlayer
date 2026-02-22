@@ -38,14 +38,14 @@ def build_event_data_from_device_info(device_info: dict) -> RfPlayerEventData | 
     return RfPlayerEventData(json.loads(event_json_data)) if event_json_data else None
 
 
-def build_device_info_from_event(profile_registy: ProfileRegistry, event: RfDeviceEvent) -> dict[str, str | None]:
+def build_device_info_from_event(profile_registy: ProfileRegistry, event: RfDeviceEvent) -> dict[str, str]:
     """Create a device info map from a RF device event."""
 
-    device_info: dict[str, str | None] = {}
+    device_info: dict[str, str] = {}
     device_info[CONF_PROTOCOL] = event.device.protocol
     device_info[CONF_ADDRESS] = event.device.address
-    device_info[CONF_MODEL] = event.device.model
-    device_info[CONF_REDIRECT_ADDRESS] = None
+    device_info[CONF_MODEL] = event.device.model or ""
+    device_info[CONF_REDIRECT_ADDRESS] = ""
     device_info[CONF_PROFILE_NAME] = profile_registy.get_profile_name_from_event(event.data)
     device_info[CONF_EVENT_DATA] = json.dumps(event.data)
     return device_info

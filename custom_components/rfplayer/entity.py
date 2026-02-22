@@ -5,7 +5,11 @@ import json
 import logging
 from typing import cast
 
-from custom_components.rfplayer.device_profiles import AnyRfpPlatformConfig, async_get_profile_registry
+from custom_components.rfplayer.device_profiles import (
+    UNDEFINED_PROFILE,
+    AnyRfpPlatformConfig,
+    async_get_profile_registry,
+)
 from custom_components.rfplayer.helpers import (
     build_device_id_from_device_info,
     build_device_info_from_event,
@@ -66,9 +70,9 @@ async def async_setup_platform_entry(
             )
             continue
 
-        profile_name = device_info.get(CONF_PROFILE_NAME)
-        if profile_name is None:
-            _LOGGER.warning("Missing profile in device info for %s", id_string)
+        profile_name = device_info.get(CONF_PROFILE_NAME, UNDEFINED_PROFILE)
+        if profile_name == UNDEFINED_PROFILE:
+            _LOGGER.debug("Device %s has undefined profile, skipping", id_string)
             continue
 
         platform_config = profile_registry.get_platform_config(profile_name, platform)
@@ -98,7 +102,8 @@ async def async_setup_platform_entry(
 
             device_info = build_device_info_from_event(profile_registry, event)
             device_id = build_device_id_from_device_info(device_info)
-            platform_config = profile_registry.get_platform_config(device_info[CONF_PROFILE_NAME], platform)
+            profile_name = device_info.get(CONF_PROFILE_NAME, UNDEFINED_PROFILE)
+            platform_config = profile_registry.get_platform_config(profile_name, platform)
             if not platform_config:
                 _LOGGER.debug("Device %s does not support platform %s", event.device.id_string, platform)
                 return

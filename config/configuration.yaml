@@ -1,4 +1,6 @@
 # https://www.home-assistant.io/integrations/default_config/
+# Install the default Home Assistant components. Will fail if any core component is missing (e.g. hassil, home-assistant-intents).
+# This is a good way to ensure that you have all the core components installed.
 default_config:
 
 # https://www.home-assistant.io/integrations/logger/

@@ -569,6 +569,7 @@
   match:
     protocol: EDISIO
     info_type: "15"
+    sub_type: "25"
   platforms:
     sensor:
       - name: "Temperature"

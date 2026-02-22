@@ -2,7 +2,6 @@
 
 from enum import StrEnum
 import functools
-import json
 import logging
 import os
 from pathlib import Path
@@ -22,6 +21,8 @@ from homeassistant.core import HomeAssistant
 RfDeviceClass = SensorDeviceClass | BinarySensorDeviceClass
 
 _LOGGER = logging.getLogger(__name__)
+
+UNDEFINED_PROFILE = "undefined"
 
 
 class BaseValueConfig(BaseModel):
@@ -248,18 +249,17 @@ class ProfileRegistry:
         items = adapter.validate_python(obj)
         self._registry.extend(items)
 
-    def get_profile_name_from_event(self, event_data: RfPlayerEventData) -> str | None:
+    def get_profile_name_from_event(self, event_data: RfPlayerEventData) -> str:
         """Get a plaform config matching an event."""
         matching_profiles = (entry for entry in self._registry if self._event_is_matching(event_data, entry))
 
         profile = next(matching_profiles, None)
 
         if not profile:
-            _LOGGER.info("No matching profile for event %s", json.dumps(event_data))
-            return None
+            return UNDEFINED_PROFILE
         return profile.name
 
-    def get_platform_config(self, profile_name: str | None, platform: Platform) -> list[AnyRfpPlatformConfig]:
+    def get_platform_config(self, profile_name: str, platform: Platform) -> list[AnyRfpPlatformConfig]:
         """Get a plaform config matching an event."""
         platform_config: list[AnyRfpPlatformConfig] = []
 
@@ -285,9 +285,8 @@ class ProfileRegistry:
 
         return re.match(profile.match.protocol, protocol) is not None
 
-    def _get_profile(self, profile_name: str | None) -> RfpDeviceProfile | None:
-        if not profile_name:
-            _LOGGER.warning("No profile name provided")
+    def _get_profile(self, profile_name: str) -> RfpDeviceProfile | None:
+        if profile_name == UNDEFINED_PROFILE:
             return None
 
         matching_profiles = (entry for entry in self._registry if entry.name == profile_name)

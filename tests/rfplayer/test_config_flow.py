@@ -6,7 +6,6 @@ from unittest.mock import MagicMock, Mock, patch, sentinel
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
-import serial.tools.list_ports
 
 from custom_components.rfplayer import DOMAIN, config_flow
 from custom_components.rfplayer.const import INIT_COMMANDS_EMPTY, RFPLAYER_CLIENT
@@ -59,7 +58,8 @@ ALL_RECEIVER_PROTOCOLS = [
 
 def com_port():
     """Mock of a serial port."""
-    port = serial.tools.list_ports_common.ListPortInfo("/dev/ttyUSB1234")
+    port = Mock()
+    port.device = "/dev/ttyUSB1234"
     port.serial_number = "1234"
     port.manufacturer = "Virtual serial port"
     port.device = "/dev/ttyUSB1234"
@@ -94,7 +94,7 @@ async def test_setup_serial(serial_connection_mock: Mock, hass: HomeAssistant) -
         result = await hass.config_entries.flow.async_configure(
             result["flow_id"],
             {
-                "device": port.device,
+                "device_serial": port.device,
             },
         )
 
@@ -128,6 +128,34 @@ async def test_setup_serial_simulator(serial_connection_mock: Mock, hass: HomeAs
     assert result["title"] == "/simulator"
     assert result["data"] == {
         "device": "/simulator",
+        "automatic_add": True,
+        "reconnect_interval": 10,
+        "receiver_protocols": ALL_RECEIVER_PROTOCOLS,
+        "init_commands": "",
+        "verbose_mode": False,
+        "devices": {},
+        "redirect_address": {},
+    }
+
+
+@pytest.mark.asyncio
+async def test_setup_tcp(serial_connection_mock: Mock, hass: HomeAssistant) -> None:
+    """Test we can setup serial with manual entry."""
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "user"
+    assert result["errors"] == {}
+
+    with patch("custom_components.rfplayer.async_setup_entry", return_value=True):
+        result = await hass.config_entries.flow.async_configure(
+            result["flow_id"], {"ip_address": "192.168.1.100", "port": 1234}
+        )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert result["title"] == "tcp://192.168.1.100:1234"
+    assert result["data"] == {
+        "device": "tcp://192.168.1.100:1234",
         "automatic_add": True,
         "reconnect_interval": 10,
         "receiver_protocols": ALL_RECEIVER_PROTOCOLS,
