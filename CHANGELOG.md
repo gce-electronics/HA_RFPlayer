@@ -1,3 +1,12 @@
+# [1.3.0](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.2.5...v1.3.0) (2026-02-25)
+
+
+### Features
+
+* add tcp port support [#138](https://github.com/gce-electronics/HA_RFPlayer/issues/138) ([6df83d0](https://github.com/gce-electronics/HA_RFPlayer/commit/6df83d078cb2c9bc4042cbc16e23a8171c0d94f6))
+* Compliant device entity IDs ([729d88d](https://github.com/gce-electronics/HA_RFPlayer/commit/729d88d8520f5c1d25daeb33dfe9c959f41a1a76)), closes [#148](https://github.com/gce-electronics/HA_RFPlayer/issues/148) [#149](https://github.com/gce-electronics/HA_RFPlayer/issues/149)
+* Fire HA bus events for Edisio devices ([41e2916](https://github.com/gce-electronics/HA_RFPlayer/commit/41e291669c659094b681119da18a86da34f9cfc0)), closes [#98](https://github.com/gce-electronics/HA_RFPlayer/issues/98) [#129](https://github.com/gce-electronics/HA_RFPlayer/issues/129)
+
 ## [1.2.5](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.2.4...v1.2.5) (2026-01-03)
 
 
