@@ -28,7 +28,7 @@ classifiers = [
 
 [dependency-groups]
 dev = [
-    "pre-commit~=4.5",
+    "pre-commit~=4.6",
     "pytest~=9.0",
     "pytest-cov~=7.0",
     "pytest-homeassistant-custom-component~=0.13",
@@ -36,7 +36,7 @@ dev = [
     "pytest-html~=4.1",
     "colorlog~=6.8",
     "ruff<1.0",
-    "mypy~=1.19",
+    "mypy~=1.20",
     "types-PyYAML~=6.0"
 ]
 
