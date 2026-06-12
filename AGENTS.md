@@ -108,7 +108,7 @@ All platforms share common setup via `async_forward_entry_setups(entry, PLATFORM
 
 - **Home Assistant**: ≥2025.1.0 (from hacs.json)
 - **Python**: ≥3.13.2 (from pyproject.toml)
-- **Key libs**: pydantic (data validation), jsonpath-ng (device profile queries), pyserial-asyncio-fast (USB communication)
+- **Key libs**: pydantic (data validation), jsonpath-ng (device profile queries), serialx (USB communication)
 - USB device detection via `serial.tools.list_ports.comports()`
 
 ## Common Gotchas

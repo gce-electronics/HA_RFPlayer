@@ -5,7 +5,7 @@ import ipaddress
 import os
 from typing import Any, cast
 
-from serial.tools import list_ports
+from serialx.tools import list_ports
 import voluptuous as vol
 
 from custom_components.rfplayer.const import (

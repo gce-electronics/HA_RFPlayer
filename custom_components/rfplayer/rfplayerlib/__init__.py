@@ -7,8 +7,7 @@ from functools import partial
 import logging
 from typing import cast
 
-from serial import SerialException
-from serial_asyncio_fast import create_serial_connection
+from serialx import SerialException, create_serial_connection
 
 from .device import RfDeviceEvent, RfDeviceEventAdapter
 from .protocol import RfPlayerEventData, RfplayerProtocol
@@ -176,7 +175,7 @@ class RfPlayerClient:
         try:
             (_, protocol) = await create_serial_connection(self.loop, protocol_factory, self.port, RFPLAYER_BAUD_RATE)
             return cast(RfplayerProtocol, protocol)
-        except (SerialException, OSError) as err:
+        except (SerialException, FileNotFoundError, OSError) as err:
             raise RfPlayerException("Failed to create serial connection") from err
 
     async def _make_tcp_protocol(self, protocol_factory: Callable[[], RfplayerProtocol]) -> RfplayerProtocol:
