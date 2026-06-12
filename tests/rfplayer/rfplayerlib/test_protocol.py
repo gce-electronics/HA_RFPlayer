@@ -23,9 +23,10 @@ async def test_init_script(test_protocol: RfplayerProtocol):
 
     # WHEN
     test_protocol.connection_made(transport)
-    pending = list(test_protocol._init_tasks)  # noqa: SLF001
-    while pending:
-        _, pending = await asyncio.wait(pending)
+    tasks = list(test_protocol._init_tasks)  # noqa: SLF001
+    while tasks:
+        _, pending = await asyncio.wait(tasks)
+        tasks = list(pending)
 
     transport.write.assert_has_calls(
         [
