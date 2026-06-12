@@ -79,7 +79,7 @@ async def start_options_flow(hass: HomeAssistant, entry: MockConfigEntry) -> Con
 
 
 @pytest.mark.asyncio
-@patch("serial.tools.list_ports.comports", return_value=[com_port()])
+@patch("serialx.tools.list_ports.comports", return_value=[com_port()])
 async def test_setup_serial(serial_connection_mock: Mock, hass: HomeAssistant) -> None:
     """Test we can setup serial."""
     port = com_port()

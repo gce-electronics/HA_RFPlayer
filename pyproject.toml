@@ -6,7 +6,7 @@ dependencies = [
     "homeassistant~=2026.6",
     "pydantic~=2.12",
     "jsonpath-ng~=1.7",
-    "pyserial-asyncio-fast<1.0",
+    "serialx>=1.8.2",
 ]
 classifiers = [
   # How mature is this project? Common values are

@@ -9,7 +9,7 @@ from unittest.mock import ANY, Mock
 import pytest
 from pytest_homeassistant_custom_component.typing import WebSocketGenerator
 from pytest_mock import MockerFixture
-from serial import SerialException
+from serialx import SerialException
 
 from custom_components.rfplayer.const import DOMAIN, RFPLAYER_CLIENT, SIGNAL_RFPLAYER_EVENT
 from custom_components.rfplayer.rfplayerlib import RfPlayerClient
