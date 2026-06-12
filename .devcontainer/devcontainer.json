@@ -26,8 +26,7 @@
         "redhat.vscode-yaml",
         "esbenp.prettier-vscode",
         "GitHub.vscode-pull-request-github",
-        "github.vscode-github-actions",
-        "github.copilot-chat"
+        "github.vscode-github-actions"
       ],
       "settings": {
         "terminal.integrated.profiles.linux": {
