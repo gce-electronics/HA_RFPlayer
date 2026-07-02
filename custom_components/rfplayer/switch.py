@@ -1,7 +1,7 @@
 """Support for RfPlayer lights."""
 
 import logging
-from typing import Any, cast
+from typing import Any
 
 from custom_components.rfplayer.const import COMMAND_GROUP_LIST, COMMAND_OFF_LIST, COMMAND_ON_LIST
 from custom_components.rfplayer.device_profiles import AnyRfpPlatformConfig, RfpPlatformConfig, RfpSwitchConfig
@@ -69,7 +69,7 @@ class RfPlayerSwitch(RfDeviceEntity, SwitchEntity):
         super().__init__(device_id=device, profile_name=platform_config.name, event_data=event_data, verbose=verbose)
         self.entity_description = entity_description
         assert isinstance(platform_config, RfpSwitchConfig)
-        self._config = cast(RfpSwitchConfig, platform_config)
+        self._config = platform_config
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the device on."""

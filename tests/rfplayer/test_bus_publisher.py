@@ -3,6 +3,7 @@ from unittest.mock import Mock
 import pytest
 
 from custom_components.rfplayer.bus_publisher import BusPublisher, DeviceHandler
+from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
 from homeassistant.core import EventBus, HomeAssistant
 
 
@@ -20,7 +21,7 @@ async def test_bus_publisher():
     publisher.register_handler(non_matching_handler)
 
     # Create a mock event
-    event = {"key": "value"}
+    event = RfDeviceEvent(device=RfDeviceId("protocol", "1"), data={"foo": "bar"})
 
     # Set up the handlers
     non_matching_handler.match.return_value = False

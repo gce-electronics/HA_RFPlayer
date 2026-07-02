@@ -74,7 +74,7 @@ RFPlayer is a Home Assistant integration for the GCE RF Player gateway. It provi
 ### Setup
 
 ```bash
-source /home/vscode/.local/ha-venv/bin/activate
+source .venv/bin/activate
 cd /workspaces/HacsRfPlayer
 ```
 

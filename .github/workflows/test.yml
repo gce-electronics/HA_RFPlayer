@@ -35,7 +35,7 @@ jobs:
 
       - name: "Typing"
         run: |
-          uv run mypy custom_components tests
+          uv run ty check custom_components tests
 
       - name: "Tests"
         run: |

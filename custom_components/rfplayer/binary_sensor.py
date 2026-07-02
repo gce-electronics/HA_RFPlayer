@@ -1,7 +1,6 @@
 """Support for RfPlayer binary sensors."""
 
 import logging
-from typing import cast
 
 from custom_components.rfplayer.const import COMMAND_GROUP_LIST, COMMAND_OFF_LIST, COMMAND_ON_LIST
 from custom_components.rfplayer.device_profiles import AnyRfpPlatformConfig, RfpPlatformConfig, RfpSensorConfig
@@ -78,7 +77,7 @@ class RfPlayerBinarySensor(RfDeviceEntity, BinarySensorEntity):
         super().__init__(device_id=device, profile_name=platform_config.name, event_data=event_data, verbose=verbose)
         self.entity_description = entity_description
         assert isinstance(platform_config, RfpSensorConfig)
-        self._config = cast(RfpSensorConfig, platform_config)
+        self._config = platform_config
         self._event_data = event_data
 
     def _apply_event(self, event_data: RfPlayerEventData) -> bool:

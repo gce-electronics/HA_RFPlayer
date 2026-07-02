@@ -1,7 +1,7 @@
 """Unit tests for rfplayer client."""
 
 from typing import cast
-from unittest.mock import Mock
+from unittest.mock import ANY, Mock
 
 import pytest
 from pytest_mock import MockerFixture
@@ -19,7 +19,7 @@ async def test_connect_serial(
     serial_connection_mock: Mock,
 ):
     # GIVEN
-    # test_client
+    test_client.port = "/dev/ttyUSB0"
 
     # WHEN
     await test_client.connect()
@@ -27,7 +27,7 @@ async def test_connect_serial(
     # THEN
     assert test_client.protocol == test_protocol
     assert test_client.connected
-    serial_connection_mock.assert_called_once()
+    serial_connection_mock.assert_called_with(test_client.loop, ANY, "/dev/ttyUSB0", 115200)
 
 
 @pytest.mark.asyncio
@@ -45,7 +45,7 @@ async def test_connect_tcp(
     # THEN
     assert test_client.protocol == test_protocol
     assert test_client.connected
-    tcp_connection_mock.assert_called_once()
+    tcp_connection_mock.assert_called_with(ANY, "localhost", 1234)
 
 
 @pytest.mark.asyncio

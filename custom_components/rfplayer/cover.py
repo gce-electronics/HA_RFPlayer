@@ -1,7 +1,7 @@
 """Support for RfPlayer covers."""
 
 import logging
-from typing import Any, cast
+from typing import Any
 
 from custom_components.rfplayer.device_profiles import AnyRfpPlatformConfig, RfpCoverConfig, RfpPlatformConfig
 from custom_components.rfplayer.entity import RfDeviceEntity, async_setup_platform_entry
@@ -70,10 +70,13 @@ class RfPlayerCover(RfDeviceEntity, CoverEntity):
         super().__init__(device_id=device, profile_name=platform_config.name, event_data=event_data, verbose=verbose)
         self.entity_description = entity_description
         assert isinstance(platform_config, RfpCoverConfig)
-        self._config = cast(RfpCoverConfig, platform_config)
+        self._config = platform_config
         self._event_data = event_data
         if self._config.cmd_stop:
-            self._attr_supported_features |= CoverEntityFeature.STOP
+            if self._attr_supported_features is None:
+                self._attr_supported_features = CoverEntityFeature.STOP
+            else:
+                self._attr_supported_features |= CoverEntityFeature.STOP
 
     async def async_added_to_hass(self) -> None:
         """Restore device state."""
