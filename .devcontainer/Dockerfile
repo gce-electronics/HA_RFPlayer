@@ -50,11 +50,6 @@ ENV NVM_DIR=$HOME/.nvm
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/${NVM_VERSION}/install.sh | bash
 RUN . "$NVM_DIR/nvm.sh" && nvm install --lts
 
-# Create default python virtual env
-ENV VIRTUAL_ENV="$HOME/.local/ha-venv"
-RUN uv venv ${VIRTUAL_ENV}
-ENV PATH="${VIRTUAL_ENV}/bin:$PATH"
-
 WORKDIR /workspaces/HacsRfPlayer
 
 # Set the default shell to bash instead of sh

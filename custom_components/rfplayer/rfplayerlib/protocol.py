@@ -4,7 +4,7 @@ import asyncio
 from collections.abc import Callable
 import json
 import logging
-from typing import cast
+from typing import Any, cast
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -13,8 +13,8 @@ PACKET_HEADER_LEN = 5
 MINIMUM_SCRIPT = ["FORMAT JSON"]
 
 
-class RfPlayerEventData(dict):
-    """RfPlayer JSON packet event data."""
+RfPlayerEventData = dict[str, Any]
+"""RfPlayer JSON packet event data."""
 
 
 def _valid_packet(line: str):

@@ -12,12 +12,11 @@
     }
   },
   "python.testing.pytestArgs": ["tests"],
-  // Use the project's virtualenv python for the Python extension and debugger
-  "python.defaultInterpreterPath": "/home/vscode/.local/ha-venv/bin/python",
   "python.terminal.activateEnvironment": true,
   "python.terminal.activateEnvInCurrentTerminal": true,
   "editor.formatOnPaste": false,
   "editor.formatOnSave": true,
   "editor.formatOnType": true,
   "files.trimTrailingWhitespace": true,
+  "python-envs.defaultEnvManager": "ms-python.python:venv"
 }

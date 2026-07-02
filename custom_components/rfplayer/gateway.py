@@ -2,6 +2,7 @@
 
 import asyncio
 import copy
+from datetime import datetime
 import json
 import logging
 from typing import cast
@@ -224,7 +225,10 @@ class Gateway:
             # Connection to RfPlayer gateway is lost, make entities unavailable
             async_dispatcher_send(self.hass, SIGNAL_RFPLAYER_AVAILABILITY, False)  # type: ignore[has-type]
 
-            reconnect_job = HassJob(self._reconnect_gateway, "RfPlayer reconnect", cancel_on_shutdown=True)
+            async def connect_target(when: datetime) -> None:
+                await self._connect_gateway()
+
+            reconnect_job = HassJob(target=connect_target, name="RfPlayer reconnect", cancel_on_shutdown=True)
             async_call_later(self.hass, reconnect_interval, reconnect_job)
 
             raise ConfigEntryNotReady(f"Failed to connect gateway: {exc!s}") from exc

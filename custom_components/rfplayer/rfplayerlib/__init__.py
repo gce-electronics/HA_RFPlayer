@@ -190,8 +190,8 @@ class RfPlayerClient:
             raise RfPlayerException("Invalid TCP port, port must be an integer") from err
 
         try:
-            protocol = await self.loop.create_connection(protocol_factory, host, port)
-            return cast(RfplayerProtocol, protocol)
+            (_, protocol) = await self.loop.create_connection(protocol_factory, host, port)
+            return cast(RfplayerProtocol, protocol)  # ty: ignore[redundant-cast]
         except OSError as err:
             raise RfPlayerException("Failed to create TCP connection") from err
 

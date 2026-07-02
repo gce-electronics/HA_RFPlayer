@@ -1,7 +1,6 @@
 """Support for RfPlayer lights."""
 
 import logging
-from typing import cast
 
 from custom_components.rfplayer.const import COMMAND_OFF_LIST, COMMAND_ON_LIST
 from custom_components.rfplayer.device_profiles import (
@@ -89,7 +88,7 @@ class RfPlayerClimate(RfDeviceEntity, ClimateEntity):
         super().__init__(device_id=device, profile_name=platform_config.name, event_data=event_data, verbose=verbose)
         self.entity_description = entity_description
         assert isinstance(platform_config, RfpClimateConfig)
-        self._config = cast(RfpClimateConfig, platform_config)
+        self._config = platform_config
         self._event_data = event_data
         self._attr_preset_modes = list(self._config.preset_modes.values())
         self._attr_preset_mode = None

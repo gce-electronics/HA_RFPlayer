@@ -1,7 +1,7 @@
 """Support for RfPlayer lights."""
 
 import logging
-from typing import Any, cast
+from typing import Any
 
 from custom_components.rfplayer.const import COMMAND_GROUP_LIST, COMMAND_OFF_LIST, COMMAND_ON_LIST
 from custom_components.rfplayer.device_profiles import AnyRfpPlatformConfig, RfpLightConfig, RfpPlatformConfig
@@ -72,7 +72,7 @@ class RfPlayerLight(RfDeviceEntity, LightEntity):
         super().__init__(device_id=device, profile_name=platform_config.name, event_data=event_data, verbose=verbose)
         self.entity_description = entity_description
         assert isinstance(platform_config, RfpLightConfig)
-        self._config = cast(RfpLightConfig, platform_config)
+        self._config = platform_config
         self._event_data = event_data
 
     async def async_added_to_hass(self) -> None:

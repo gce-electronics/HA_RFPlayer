@@ -5,8 +5,7 @@
   "privileged": true, // required to access real hardware for testing
   "postCreateCommand": "scripts/setup",
   "containerEnv": {
-    "PYTHONASYNCIODEBUG": "1",
-    "UV_PROJECT_ENVIRONMENT": "/home/vscode/.local/ha-venv"
+    "PYTHONASYNCIODEBUG": "1"
   },
   "features": {
     "ghcr.io/devcontainers/features/github-cli:1": {}
