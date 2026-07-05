@@ -1,3 +1,15 @@
+# [1.5.0](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.4.0...v1.5.0) (2026-07-05)
+
+
+### Bug Fixes
+
+* create tcp connection [#165](https://github.com/gce-electronics/HA_RFPlayer/issues/165) ([9a0b86e](https://github.com/gce-electronics/HA_RFPlayer/commit/9a0b86e1ab1c8d43d9c9ae635d1e62076e3f1672))
+
+
+### Features
+
+* serialx migration [#156](https://github.com/gce-electronics/HA_RFPlayer/issues/156) ([18ebf5a](https://github.com/gce-electronics/HA_RFPlayer/commit/18ebf5a7c112f08a540277ed350b580973afaaa1))
+
 # [1.4.0](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.3.0...v1.4.0) (2026-06-12)
 
 
