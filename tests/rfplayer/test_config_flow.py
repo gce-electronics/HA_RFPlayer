@@ -438,7 +438,9 @@ async def test_options_configure_rf_device(
     assert result["step_id"] == "configure_rf_device"
 
     device_id = RfDeviceId(protocol="OREGON", address=OREGON_ADDRESS)
-    device_entry = device_registry.async_get_device(identifiers=get_identifiers_from_device_id(device_id))
+    device_entry = device_registry.async_get_device_by_identifier(
+        identifier=get_identifiers_from_device_id(device_id), config_entry_id=entry.entry_id
+    )
     assert device_entry
 
     result = await hass.config_entries.options.async_configure(

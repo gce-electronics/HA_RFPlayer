@@ -49,8 +49,8 @@ Every AppDaemon app is a Python class that inherits from `Hass`:
 ```python
 from appdaemon.plugins.hass import Hass
 
-class MyApp(Hass):
 
+class MyApp(Hass):
     def initialize(self):
         """Called once when AppDaemon starts or the app is reloaded."""
         # Register callbacks here — not in __init__
@@ -82,19 +82,16 @@ def initialize(self):
     self.listen_state(self.on_temp_change, "sensor.living_room_temperature")
 
     # Fire when a specific attribute changes
-    self.listen_state(
-        self.on_brightness_change,
-        "light.living_room",
-        attribute="brightness"
-    )
+    self.listen_state(self.on_brightness_change, "light.living_room", attribute="brightness")
 
     # Fire after entity has been in state for a duration (seconds)
     self.listen_state(
         self.on_motion_timeout,
         "binary_sensor.hallway_motion",
         new="off",
-        duration=300  # 5 minutes
+        duration=300,  # 5 minutes
     )
+
 
 def on_door_open(self, entity, attribute, old, new, **kwargs):
     self.log(f"{entity} changed from {old} to {new}")
@@ -108,9 +105,10 @@ def initialize(self):
         self.on_motion,
         "binary_sensor.hallway_motion",
         new="on",
-        light="light.hallway", # custom kwarg passed through to callback
-        brightness_pct=80
+        light="light.hallway",  # custom kwarg passed through to callback
+        brightness_pct=80,
     )
+
 
 def on_motion(self, entity, attribute, old, new, **kwargs):
     self.turn_on(kwargs["light"], brightness_pct=kwargs["brightness_pct"])
@@ -120,7 +118,7 @@ def on_motion(self, entity, attribute, old, new, **kwargs):
 
 ```python
 # Get state value
-state = self.get_state("binary_sensor.door") # "on" / "off"
+state = self.get_state("binary_sensor.door")  # "on" / "off"
 
 # Get a specific attribute
 brightness = self.get_state("light.living_room", attribute="brightness")
@@ -139,11 +137,8 @@ if temp not in (None, "unavailable", "unknown"):
 ```python
 def initialize(self):
     # ZHA button event
-    self.listen_event(
-        self.on_zha_event,
-        "zha_event",
-        device_ieee="00:15:8d:00:07:26:f2:8a"
-    )
+    self.listen_event(self.on_zha_event, "zha_event", device_ieee="00:15:8d:00:07:26:f2:8a")
+
 
 def on_zha_event(self, event_name, data, **kwargs):
     command = data.get("command")
@@ -172,36 +167,20 @@ Use `call_service` for any domain/service not covered by convenience methods.
 
 ```python
 # Climate
-self.call_service(
-    "climate/set_temperature",
-    entity_id="climate.living_room",
-    temperature=22,
-    hvac_mode="heat"
-)
+self.call_service("climate/set_temperature", entity_id="climate.living_room", temperature=22, hvac_mode="heat")
 
 # Notify
-self.call_service(
-    "notify/mobile_app_phone",
-    title="Motion Detected",
-    message=f"Motion in hallway"
-)
+self.call_service("notify/mobile_app_phone", title="Motion Detected", message=f"Motion in hallway")
 
 # Cover
-self.call_service(
-    "cover/set_cover_position",
-    entity_id="cover.living_room_blinds",
-    position=50
-)
+self.call_service("cover/set_cover_position", entity_id="cover.living_room_blinds", position=50)
 ```
 
 ### Targeting Areas
 
 ```python
 # Turn off all lights in an area
-self.call_service(
-    "light/turn_off",
-    area_id="living_room"
-)
+self.call_service("light/turn_off", area_id="living_room")
 ```
 
 ## Scheduling and Timers
@@ -213,12 +192,14 @@ def initialize(self):
     self._off_handle = None
     self.listen_state(self.on_motion, "binary_sensor.hallway_motion", new="on")
 
+
 def on_motion(self, entity, attribute, old, new, **kwargs):
     # Cancel previous timer before scheduling a new one
     if self._off_handle:
         self.cancel_timer(self._off_handle)
     self.turn_on("light.hallway")
-    self._off_handle = self.run_in(self.turn_off_cb, 300) # 300 seconds
+    self._off_handle = self.run_in(self.turn_off_cb, 300)  # 300 seconds
+
 
 def turn_off_cb(self, **kwargs):
     self.turn_off("light.hallway")
@@ -241,7 +222,7 @@ def initialize(self):
 
     # Sunrise / sunset with optional offset (seconds)
     self.run_at_sunrise(self.on_sunrise)
-    self.run_at_sunset(self.on_sunset, offset=-1800) # 30 min before sunset
+    self.run_at_sunset(self.on_sunset, offset=-1800)  # 30 min before sunset
 ```
 
 ### Cancelling Handles
@@ -250,6 +231,7 @@ def initialize(self):
 def initialize(self):
     self._state_handle = self.listen_state(self.on_change, "binary_sensor.door")
     self._timer_handle = self.run_in(self.timeout_cb, 60)
+
 
 def cancel_manually(self):
     if self._state_handle:
@@ -270,7 +252,8 @@ mid-run based on logic conditions.
 
 ```python
 def initialize(self):
-    self._count = 0 # Reset on every app reload / daemon restart
+    self._count = 0  # Reset on every app reload / daemon restart
+
 
 def on_trigger(self, entity, attribute, old, new, **kwargs):
     self._count += 1
@@ -288,17 +271,10 @@ raw_count = self.get_state("input_number.motion_counter")
 count = int(float(raw_count)) if raw_count not in (None, "unavailable", "unknown") else 0
 
 # Write
-self.call_service(
-    "input_number/set_value",
-    entity_id="input_number.motion_counter",
-    value=count + 1
-)
+self.call_service("input_number/set_value", entity_id="input_number.motion_counter", value=count + 1)
 
 # Boolean flag
-self.call_service(
-    "input_boolean/turn_on",
-    entity_id="input_boolean.presence_confirmed"
-)
+self.call_service("input_boolean/turn_on", entity_id="input_boolean.presence_confirmed")
 ```
 
 ### Inter-App Communication via Events
@@ -307,9 +283,11 @@ self.call_service(
 # App A: fire a custom event (flat kwargs)
 self.fire_event("MY_APP_EVENT", source="app_a", value=42)
 
+
 # App B: subscribe to it
 def initialize(self):
     self.listen_event(self.on_custom_event, "MY_APP_EVENT")
+
 
 def on_custom_event(self, event_name, data, **kwargs):
     self.log(f"Received from {data['source']}: {data['value']}")
@@ -318,7 +296,7 @@ def on_custom_event(self, event_name, data, **kwargs):
 ## Logging
 
 ```python
-self.log("Normal operational message") # INFO (default)
+self.log("Normal operational message")  # INFO (default)
 self.log("Detailed debug info", level="DEBUG")
 self.log("Something unexpected happened", level="WARNING")
 self.log("Action failed", level="ERROR")
@@ -356,22 +334,18 @@ Define the logic once in Python, instantiate multiple times in `apps.yaml`:
 # motion_light.py
 from appdaemon.plugins.hass import Hass
 
-class MotionLight(Hass):
 
+class MotionLight(Hass):
     def initialize(self):
         # Ensure required args are present
         for required in ("entity_light", "entity_motion"):
             if required not in self.args:
                 self.log(f"{required} is required in apps.yaml", level="ERROR")
                 return
-        self._light   = self.args["entity_light"]
+        self._light = self.args["entity_light"]
         self._timeout = self.args.get("timeout", 180)
         self._off_handle = None
-        self.listen_state(
-            self.on_motion,
-            self.args["entity_motion"],
-            new="on"
-        )
+        self.listen_state(self.on_motion, self.args["entity_motion"], new="on")
 
     def on_motion(self, entity, attribute, old, new, **kwargs):
         if self._off_handle:
@@ -437,7 +411,7 @@ def get_temperature(self):
         return None
     try:
         return float(raw)
-    except (ValueError, TypeError):
+    except ValueError, TypeError:
         self.log(f"Unexpected temperature value: {raw!r}", level="ERROR")
         return None
 ```
@@ -447,7 +421,7 @@ def get_temperature(self):
 ```python
 def initialize(self):
     # Use .get() with a default rather than direct key access
-    self._timeout   = self.args.get("timeout", 180)
+    self._timeout = self.args.get("timeout", 180)
     self._log_level = self.args.get("log_level", "INFO")
 
     # Required args: fail loudly with a clear message
@@ -467,15 +441,13 @@ def initialize(self):
     # ...existing code...
     self._verify_handle = None
 
+
 def set_thermostat(self, temp):
-    self.call_service(
-        "climate/set_temperature",
-        entity_id="climate.living_room",
-        temperature=temp
-    )
+    self.call_service("climate/set_temperature", entity_id="climate.living_room", temperature=temp)
     if hasattr(self, "_verify_handle") and self._verify_handle:
         self.cancel_timer(self._verify_handle)
     self._verify_handle = self.run_in(self.verify_thermostat, 5, expected=temp)
+
 
 def verify_thermostat(self, **kwargs):
     actual = self.get_state("climate.living_room", attribute="temperature")
@@ -487,11 +459,7 @@ def verify_thermostat(self, **kwargs):
         self.log("verify_thermostat called without expected — cannot verify", level="ERROR")
         return
     if abs(float(actual) - float(expected)) > 0.5:
-        self.log(
-            f"Thermostat did not accept setpoint {expected} "
-            f"(actual: {actual})",
-            level="WARNING"
-        )
+        self.log(f"Thermostat did not accept setpoint {expected} (actual: {actual})", level="WARNING")
 ```
 
 ## AppDaemon-Specific Anti-Patterns
