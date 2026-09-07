@@ -19,9 +19,9 @@ def get_device_id_string_from_identifiers(
 
 def get_identifiers_from_device_id(
     device: RfDeviceId,
-) -> set[tuple[str, str]]:
+) -> tuple[str, str]:
     """Calculate the device identifier from a device id."""
-    return {(DOMAIN, device.id_string)}
+    return (DOMAIN, device.id_string)
 
 
 def build_device_id_from_device_info(device_info: dict) -> RfDeviceId:

@@ -138,7 +138,7 @@ class RfDeviceEntity(RestoreEntity):
         for unique_id generation and device registry. It is not intended to be user modified.
         """
         self._attr_device_info = DeviceInfo(
-            identifiers=get_identifiers_from_device_id(device_id),
+            identifiers={get_identifiers_from_device_id(device_id)},
             manufacturer=device_id.protocol,
             model=device_id.model,
             name=f"{device_id.protocol} {device_id.model} {device_id.address}"
