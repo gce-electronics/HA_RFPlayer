@@ -1,11 +1,8 @@
-from typing import cast
 from unittest.mock import Mock
 
 import pytest
 
-from custom_components.rfplayer.const import DOMAIN, RFPLAYER_CLIENT
 from custom_components.rfplayer.device_publishers import EdisioHandler
-from custom_components.rfplayer.rfplayerlib import RfPlayerClient
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
 from homeassistant.core import Event, HomeAssistant
@@ -64,13 +61,13 @@ def test_edisio_handler():
 
 @pytest.mark.asyncio
 async def test_gateway_publisher(serial_connection_mock: Mock, hass: HomeAssistant):
-    await setup_rfplayer_test_cfg(
+    entry = await setup_rfplayer_test_cfg(
         hass,
     )
     events_received: list[Event] = []
     hass.bus.async_listen("rfplayer_edisio_event", events_received.append)
 
-    client = cast(RfPlayerClient, hass.data[DOMAIN][RFPLAYER_CLIENT])
+    client = entry.runtime_data.gateway.client
     client.event_callback(
         RfDeviceEvent(
             device=RfDeviceId(protocol="EDISIO", address="3514999432"),

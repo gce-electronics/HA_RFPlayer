@@ -1,5 +1,6 @@
 """Unit tests for rfplayer client."""
 
+import asyncio
 from typing import cast
 from unittest.mock import ANY, Mock
 
@@ -27,7 +28,7 @@ async def test_connect_serial(
     # THEN
     assert test_client.protocol == test_protocol
     assert test_client.connected
-    serial_connection_mock.assert_called_with(test_client.loop, ANY, "/dev/ttyUSB0", 115200)
+    serial_connection_mock.assert_called_with(asyncio.get_running_loop(), ANY, "/dev/ttyUSB0", 115200)
 
 
 @pytest.mark.asyncio
@@ -45,7 +46,23 @@ async def test_connect_tcp(
     # THEN
     assert test_client.protocol == test_protocol
     assert test_client.connected
-    tcp_connection_mock.assert_called_with(ANY, "localhost", 1234)
+    tcp_connection_mock.assert_called_once_with(ANY, "localhost", 1234)
+
+
+def test_disconnect_callback_closes_client(
+    test_client: RfPlayerClient,
+    test_protocol: RfplayerProtocol,
+    mocker: MockerFixture,
+) -> None:
+    """Test protocol disconnect closes the client before notifying."""
+    callback = mocker.patch.object(test_client, "disconnect_callback")
+
+    test_client._protocol = test_protocol  # noqa: SLF001
+
+    test_client._disconnect_callback_internal(None)  # noqa: SLF001
+
+    assert test_client.protocol is None
+    callback.assert_called_once_with(None)
 
 
 @pytest.mark.asyncio
@@ -56,7 +73,6 @@ async def test_simulator(mocker: MockerFixture):
     test_client = RfPlayerClient(
         event_callback=event_callback,
         disconnect_callback=Mock(),
-        loop=Mock(),
         port="/simulator",
         receiver_protocols=[],
         init_commands=[],

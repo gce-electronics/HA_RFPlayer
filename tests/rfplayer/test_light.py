@@ -6,9 +6,8 @@ import pytest
 from pytest_homeassistant_custom_component.common import mock_restore_cache
 from pytest_mock import MockerFixture
 
-from custom_components.rfplayer.const import ATTR_EVENT_DATA, DOMAIN, RFPLAYER_CLIENT
+from custom_components.rfplayer.const import ATTR_EVENT_DATA
 from custom_components.rfplayer.device_profiles import _get_profile_registry
-from custom_components.rfplayer.rfplayerlib import RfPlayerClient
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData, RfplayerProtocol
 from homeassistant.components.light import ATTR_BRIGHTNESS, STATE_ON
@@ -93,14 +92,14 @@ async def test_light(serial_connection_mock: Mock, hass: HomeAssistant, test_pro
 
 
 async def test_automatic_add(serial_connection_mock: Mock, hass: HomeAssistant, mocker: MockerFixture):
-    await setup_rfplayer_test_cfg(hass, device="/dev/serial/by-id/usb-rfplayer-port0", automatic_add=True)
+    entry = await setup_rfplayer_test_cfg(hass, device="/dev/serial/by-id/usb-rfplayer-port0", automatic_add=True)
 
     # Force profile cause there is no first match for lighting devices for now
     mocker.patch.object(
         _get_profile_registry(True), "get_profile_name_from_event", return_value="X10|CHACON|KD101|BLYSS|FS20 Lighting"
     )
 
-    client = cast(RfPlayerClient, hass.data[DOMAIN][RFPLAYER_CLIENT])
+    client = entry.runtime_data.gateway.client
     client.event_callback(
         RfDeviceEvent(
             device=RfDeviceId(protocol="CHACON", address=CHACON_ADDRESS),

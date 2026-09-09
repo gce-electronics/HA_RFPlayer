@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from unittest.mock import Mock
+
 from custom_components.rfplayer.entity import RfDeviceEntity
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceId
 
@@ -10,10 +12,11 @@ def test_unique_id_normalization() -> None:
     """Test that unique_id follows Home Assistant 2026.2+ requirements."""
     device = RfDeviceId(protocol="BLYSS", address="4261483730")
     entity = RfDeviceEntity(
-        device_id=device,
+        config_entry=Mock(),
+        device_entry=Mock(),
+        rf_device_id=device,
         profile_name="Motion Detector",
         event_data=None,
-        verbose=False,
     )
 
     unique_id = entity.unique_id

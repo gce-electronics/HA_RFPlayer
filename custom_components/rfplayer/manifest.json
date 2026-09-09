@@ -1,13 +1,22 @@
 {
   "domain": "rfplayer",
   "name": "GCE RF Player",
-  "codeowners": ["@racletteparty", "@Aohzan"],
+  "codeowners": [
+    "@racletteparty",
+    "@Aohzan"
+  ],
   "config_flow": true,
   "documentation": "https://github.com/gce-electronics/HA_RFPlayer",
   "integration_type": "hub",
   "iot_class": "local_push",
   "issue_tracker": "https://github.com/gce-electronics/HA_RFPlayer/issues",
-  "loggers": ["custom_components.rfplayer"],
-  "requirements": ["pydantic", "serialx", "jsonpath-ng"],
-  "version": "0.0.0"
+  "loggers": [
+    "custom_components.rfplayer"
+  ],
+  "requirements": [
+    "pydantic~=2.13",
+    "jsonpath-ng~=1.8",
+    "serialx>=1.10"
+  ],
+  "version": "1.6.0-rc1"
 }

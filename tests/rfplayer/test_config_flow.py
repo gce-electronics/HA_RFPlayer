@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, Mock, patch, sentinel
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 
-from custom_components.rfplayer import DOMAIN, config_flow
-from custom_components.rfplayer.const import INIT_COMMANDS_EMPTY, RFPLAYER_CLIENT
+from custom_components.rfplayer import config_flow
+from custom_components.rfplayer.const import DOMAIN, INIT_COMMANDS_EMPTY
 from custom_components.rfplayer.helpers import get_identifiers_from_device_id
 from custom_components.rfplayer.rfplayerlib import RfPlayerClient
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
@@ -460,7 +460,7 @@ async def test_options_configure_rf_device(
     assert state.state == STATE_UNKNOWN
     assert state.attributes.get("friendly_name") == OREGON_BINARY_SENSOR_FRIENDLY_NAME
 
-    client = cast(RfPlayerClient, hass.data[DOMAIN][RFPLAYER_CLIENT])
+    client = cast(RfPlayerClient, entry.runtime_data.gateway.client)
 
     client.event_callback(
         RfDeviceEvent(
