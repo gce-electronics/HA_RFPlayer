@@ -2,12 +2,11 @@
 
 import json
 
+from custom_components.rfplayer.const import CONF_REDIRECT_ADDRESS, DOMAIN
 from custom_components.rfplayer.device_profiles import ProfileRegistry
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
 from homeassistant.const import CONF_ADDRESS, CONF_EVENT_DATA, CONF_MODEL, CONF_PROFILE_NAME, CONF_PROTOCOL
-
-from .const import CONF_REDIRECT_ADDRESS, DOMAIN
 
 
 def get_device_id_string_from_identifiers(

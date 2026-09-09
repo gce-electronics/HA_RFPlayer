@@ -1,37 +1,13 @@
 """RfPlayer gateway."""
 
 import asyncio
+import contextlib
 import copy
-from datetime import datetime
 import json
 import logging
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
-import voluptuous as vol
-
-from custom_components.rfplayer.device_profiles import UNDEFINED_PROFILE, async_get_profile_registry
-from custom_components.rfplayer.device_publishers import get_bus_publisher
-from custom_components.rfplayer.helpers import build_device_info_from_event, get_device_id_string_from_identifiers
-from custom_components.rfplayer.rfplayerlib import COMMAND_PROTOCOLS, RfPlayerClient, RfPlayerException
-from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    ATTR_DEVICE_ID,
-    CONF_ADDRESS,
-    CONF_DEVICE,
-    CONF_DEVICES,
-    CONF_PROFILE_NAME,
-    CONF_PROTOCOL,
-    EVENT_HOMEASSISTANT_STOP,
-)
-from homeassistant.core import CoreState, Event, HassJob, HomeAssistant, ServiceCall, callback
-from homeassistant.exceptions import ConfigEntryNotReady, PlatformNotReady
-from homeassistant.helpers import device_registry as dr
-from homeassistant.helpers.device_registry import EventDeviceRegistryUpdatedData
-from homeassistant.helpers.dispatcher import async_dispatcher_send
-from homeassistant.helpers.event import async_call_later
-
-from .const import (
+from custom_components.rfplayer.const import (
     ATTR_COMMAND,
     ATTR_EVENT_DATA,
     CONF_AUTOMATIC_ADD,
@@ -41,22 +17,27 @@ from .const import (
     CONF_REDIRECT_ADDRESS,
     CONF_VERBOSE_MODE,
     CONNECTION_TIMEOUT,
-    DOMAIN,
     INIT_COMMANDS_EMPTY,
     INIT_COMMANDS_SEPARATOR,
-    RFPLAYER_CLIENT,
-    SERVICE_SEND_PAIRING_COMMAND,
-    SERVICE_SEND_RAW_COMMAND,
-    SERVICE_SIMULATE_EVENT,
     SIGNAL_RFPLAYER_AVAILABILITY,
     SIGNAL_RFPLAYER_EVENT,
 )
+from custom_components.rfplayer.device_profiles import UNDEFINED_PROFILE, async_get_profile_registry
+from custom_components.rfplayer.device_publishers import get_bus_publisher
+from custom_components.rfplayer.helpers import build_device_info_from_event
+from custom_components.rfplayer.rfplayerlib import RfPlayerClient, RfPlayerException
+from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
+from homeassistant.const import CONF_ADDRESS, CONF_DEVICE, CONF_DEVICES, CONF_PROFILE_NAME, CONF_PROTOCOL
+from homeassistant.core import CoreState, HomeAssistant, ServiceCall, callback
+from homeassistant.exceptions import ConfigEntryNotReady, PlatformNotReady
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.dispatcher import async_dispatcher_send
+
+if TYPE_CHECKING:
+    from custom_components.rfplayer.runtime import RfPlayerConfigEntry
 
 _LOGGER = logging.getLogger(__name__)
 
-SERVICE_SEND_RAW_COMMAND_SCHEMA = vol.Schema({ATTR_COMMAND: str})
-SERVICE_SEND_PAIRING_COMMAND_SCHEMA = vol.Schema({CONF_PROTOCOL: vol.In(COMMAND_PROTOCOLS), CONF_ADDRESS: str})
-SERVICE_SIMULATE_EVENT_SCHEMA = vol.Schema({ATTR_EVENT_DATA: dict})
 
 JAMMING_DEVICE_ID_STRING = "JAMMING_0"
 JAMMING_DEVICE_INFO = {CONF_PROTOCOL: "JAMMING", CONF_ADDRESS: "0", CONF_PROFILE_NAME: "Jamming Detector"}
@@ -65,15 +46,16 @@ JAMMING_DEVICE_INFO = {CONF_PROTOCOL: "JAMMING", CONF_ADDRESS: "0", CONF_PROFILE
 class Gateway:
     """RfPlayer gateway."""
 
-    def __init__(self, hass: HomeAssistant, entry: ConfigEntry):
+    def __init__(self, hass: HomeAssistant, entry: RfPlayerConfigEntry):
         """Create a new RfPlayer gateway."""
 
         self.hass = hass
         self.entry = entry
         self.config = entry.data
-        self.device_registry = dr.async_get(hass)
         # All RfPlayer gateways are configured by default with a Jamming detector
         self.config[CONF_DEVICES].update({JAMMING_DEVICE_ID_STRING: JAMMING_DEVICE_INFO})
+        self._reconnect_task: asyncio.Task[None] | None = None
+        self._unloading = False
 
     async def async_setup(self):
         """Load a RfPlayer gateway."""
@@ -83,50 +65,33 @@ class Gateway:
         self.bus_publisher = get_bus_publisher()
 
         # Initialize library
-        client = RfPlayerClient(
+        self.client = RfPlayerClient(
             event_callback=self._async_handle_receive,
             disconnect_callback=self._reconnect_gateway,
-            loop=self.hass.loop,
             port=self.config[CONF_DEVICE],
             receiver_protocols=self.config[CONF_RECEIVER_PROTOCOLS],
             init_commands=self._prepare_init_commands(),
             verbose=self.verbose,
         )
-        self.hass.data[DOMAIN][RFPLAYER_CLIENT] = client
 
-        await self.entry.async_create_task(self.hass, self._connect_gateway())
-
-        self.entry.async_on_unload(
-            self.hass.bus.async_listen(dr.EVENT_DEVICE_REGISTRY_UPDATED, self._updated_rf_device)
-        )
-
-        self.entry.async_on_unload(self.hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, lambda _: client.close()))
-
-        self.hass.services.async_register(
-            DOMAIN,
-            SERVICE_SEND_RAW_COMMAND,
-            self._send_raw_command,
-            schema=SERVICE_SEND_RAW_COMMAND_SCHEMA,
-        )
-        self.hass.services.async_register(
-            DOMAIN,
-            SERVICE_SEND_PAIRING_COMMAND,
-            self._send_pairing_command,
-            schema=SERVICE_SEND_PAIRING_COMMAND_SCHEMA,
-        )
-        self.hass.services.async_register(
-            DOMAIN,
-            SERVICE_SIMULATE_EVENT,
-            self._simulate_event,
-            schema=SERVICE_SIMULATE_EVENT_SCHEMA,
-        )
+        try:
+            await self._connect_gateway()
+        except (
+            RfPlayerException,
+            TimeoutError,
+        ) as exc:
+            raise ConfigEntryNotReady(f"Failed to setup gateway: {exc!s}") from exc
 
     async def async_unload(self):
         """Unload a RfPlayer gateway."""
+        self._unloading = True
 
-        self.hass.services.async_remove(DOMAIN, SERVICE_SEND_RAW_COMMAND)
+        await self._cancel_reconnect_task()
+        self.client.close()
 
-        await self.hass.async_add_executor_job(self._get_client().close)
+    def is_stopping(self) -> bool:
+        """Return True if HA is stopping or the gateway is unloading."""
+        return self._unloading or self.hass.state is CoreState.stopping
 
     def _prepare_init_commands(self) -> list[str]:
         command_string = cast(str, self.config[CONF_INIT_COMMANDS])
@@ -175,8 +140,12 @@ class Gateway:
             event.device.model,
         )
 
-    @callback
-    def _remove_rf_device(self, id_string: str) -> None:
+    async def async_remove_rf_device(self, device_entry: dr.DeviceEntry) -> bool:
+        """Remove a device from the config entry."""
+        if len(device_entry.identifiers) != 1:
+            _LOGGER.warning("Device %s has more than one identifier, cannot remove", device_entry.id)
+            return False
+        _, id_string = next(iter(device_entry.identifiers))
         data = {
             **self.entry.data,
             CONF_DEVICES: {
@@ -185,53 +154,19 @@ class Gateway:
                 if device_config_id != id_string
             },
         }
-        self.hass.config_entries.async_update_entry(entry=self.entry, data=data)
-        _LOGGER.debug(
-            "Device %s removed",
-            id_string,
-        )
+        updated = self.hass.config_entries.async_update_entry(entry=self.entry, data=data)
+        _LOGGER.debug("Device %s %s", id_string, "removed" if updated else "not removed")
+        return updated
 
-    @callback
-    def _updated_rf_device(self, event: Event[EventDeviceRegistryUpdatedData]) -> None:
-        if event.data["action"] != "remove":
-            if self.verbose:
-                _LOGGER.debug("Doing nothing on action %s", event.data["action"])
-            return
-        device_entry = self.device_registry.deleted_devices[event.data[ATTR_DEVICE_ID]]
-        if self.entry.entry_id not in device_entry.config_entries:
-            _LOGGER.debug("Entry id %s is not a deleted device", self.entry.entry_id)
-            return
-        id_string = get_device_id_string_from_identifiers(device_entry.identifiers)
-        if id_string:
-            self._remove_rf_device(id_string)
-        else:
-            _LOGGER.warning("Invalid device identifiers %s", device_entry.identifiers)
-
-    async def _connect_gateway(self):
+    async def _connect_gateway(self) -> None:
         """Set up connection and hook it into HA for reconnect/shutdown."""
         _LOGGER.debug("Initiating RFPlayer connection")
 
-        client = self._get_client()
-        try:
-            async with asyncio.timeout(CONNECTION_TIMEOUT):
-                await client.connect()
-
-        except (
-            RfPlayerException,
-            TimeoutError,
-        ) as exc:
-            reconnect_interval = self.config[CONF_RECONNECT_INTERVAL]
-            _LOGGER.exception("Error connecting to RfPlayer, reconnecting in %s", reconnect_interval)
-            # Connection to RfPlayer gateway is lost, make entities unavailable
-            async_dispatcher_send(self.hass, SIGNAL_RFPLAYER_AVAILABILITY, False)  # type: ignore[has-type]
-
-            async def connect_target(when: datetime) -> None:
-                await self._connect_gateway()
-
-            reconnect_job = HassJob(target=connect_target, name="RfPlayer reconnect", cancel_on_shutdown=True)
-            async_call_later(self.hass, reconnect_interval, reconnect_job)
-
-            raise ConfigEntryNotReady(f"Failed to connect gateway: {exc!s}") from exc
+        if self.is_stopping():
+            _LOGGER.debug("Not connecting to RFPlayer because HA is stopping")
+            return
+        connect_task = self.hass.async_create_task(self.client.connect())
+        await asyncio.wait_for(connect_task, timeout=CONNECTION_TIMEOUT)
 
         # There is a valid connection to a RfPlayer gateway now so
         # mark entities as available
@@ -243,39 +178,73 @@ class Gateway:
     def _reconnect_gateway(self, exc: Exception | None = None) -> None:
         """Schedule reconnect after connection has been unexpectedly lost."""
         if exc:
-            _LOGGER.warning("Connection lost due to error %s", exc)
+            _LOGGER.warning("Connection error %s", exc)
         else:
             _LOGGER.info("Connection explicitly closed")
 
-        async_dispatcher_send(self.hass, SIGNAL_RFPLAYER_AVAILABILITY, False)  # type: ignore[has-type]
+        # Connection to RfPlayer gateway is lost, make entities unavailable
+        async_dispatcher_send(self.hass, SIGNAL_RFPLAYER_AVAILABILITY, False)
 
         # If HA is not stopping, initiate new connection
-        if self.hass.state is not CoreState.stopping:
-            _LOGGER.warning("Disconnected from RfPlayer, reconnecting")
-            self.hass.async_create_task(self._connect_gateway(), eager_start=False)
+        if self.is_stopping():
+            return
 
-    async def _send_raw_command(self, call: ServiceCall) -> None:
-        client = self._get_client()
-        if not client.connected:
+        # Do not schedule a new reconnect if one is already scheduled and not done yet
+        if self._reconnect_task is not None and not self._reconnect_task.done():
+            return
+
+        self._reconnect_task = self.hass.async_create_task(
+            self._reconnect_after_delay(),
+        )
+
+    async def _reconnect_after_delay(self) -> None:
+        """Reconnect after the configured delay."""
+        try:
+            while not self.is_stopping():
+                await asyncio.sleep(self.config[CONF_RECONNECT_INTERVAL])
+
+                if self.is_stopping():
+                    return
+
+                try:
+                    await self._connect_gateway()
+                except (RfPlayerException, TimeoutError) as exc:
+                    _LOGGER.warning("Reconnect failed: %s", exc)
+                    continue
+
+                return
+        except asyncio.CancelledError:
+            _LOGGER.debug("Reconnect task cancelled")
+        finally:
+            self._reconnect_task = None
+
+    async def _cancel_reconnect_task(self) -> None:
+        """Cancel any scheduled reconnect task."""
+        if self._reconnect_task is not None and not self._reconnect_task.done():
+            self._reconnect_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await self._reconnect_task
+            self._reconnect_task = None
+
+    async def async_send_raw_command(self, call: ServiceCall) -> None:
+        """Send a raw command to the RfPlayer gateway."""
+        if not self.client.connected:
             raise PlatformNotReady("RfPlayer not connected")
 
         command = call.data[ATTR_COMMAND]
-        await client.send_raw_command(command)
+        await self.client.send_raw_command(command)
 
-    async def _send_pairing_command(self, call: ServiceCall) -> None:
-        client = self._get_client()
-        if not client.connected:
+    async def async_send_pairing_command(self, call: ServiceCall) -> None:
+        """Send a pairing command to the RfPlayer gateway."""
+        if not self.client.connected:
             raise PlatformNotReady("RfPlayer not connected")
 
         device_id = RfDeviceId(protocol=call.data[CONF_PROTOCOL], address=call.data[CONF_ADDRESS])
-        await client.send_raw_command(f"ASSOC {device_id.protocol} ID {device_id.integer_address}")
+        await self.client.send_raw_command(f"ASSOC {device_id.protocol} ID {device_id.integer_address}")
 
-    async def _simulate_event(self, call: ServiceCall) -> None:
-        client = self._get_client()
-        if not client.connected:
+    async def async_simulate_event(self, call: ServiceCall) -> None:
+        """Simulate an event from a device."""
+        if not self.client.connected:
             raise PlatformNotReady("RfPlayer not connected")
 
-        await client.simulate_event(call.data[ATTR_EVENT_DATA])
-
-    def _get_client(self) -> RfPlayerClient:
-        return cast(RfPlayerClient, self.hass.data[DOMAIN][RFPLAYER_CLIENT])
+        await self.client.simulate_event(call.data[ATTR_EVENT_DATA])

@@ -4,9 +4,9 @@ requires-python = ">= 3.14.2"
 dynamic = ["version"]
 dependencies = [
     "homeassistant~=2026.9",
-    "pydantic~=2.12",
-    "jsonpath-ng~=1.7",
-    "serialx>=1.8.2",
+    "pydantic~=2.13",
+    "jsonpath-ng~=1.8",
+    "serialx>=1.10",
 ]
 classifiers = [
   # How mature is this project? Common values are

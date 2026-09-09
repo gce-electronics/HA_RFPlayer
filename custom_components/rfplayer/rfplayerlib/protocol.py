@@ -30,7 +30,6 @@ class RfplayerProtocol(asyncio.Protocol):
 
     def __init__(
         self,
-        loop: asyncio.AbstractEventLoop,
         event_callback: Callable[[RfPlayerEventData], None],
         disconnect_callback: Callable[[Exception | None], None],
         init_script: list[str] | None,
@@ -38,7 +37,6 @@ class RfplayerProtocol(asyncio.Protocol):
     ) -> None:
         """Initialize class."""
 
-        self.loop = loop
         self.transport: asyncio.WriteTransport | None = None
         self.event_callback = event_callback
         self.disconnect_callback = disconnect_callback
@@ -56,7 +54,7 @@ class RfplayerProtocol(asyncio.Protocol):
         """Just logging for now."""
         self.transport = cast(asyncio.WriteTransport, transport)
         for command in self.init_script:
-            task = self.loop.create_task(self.send_raw_command(command))
+            task = asyncio.create_task(self.send_raw_command(command))
             self._init_tasks.add(task)
             task.add_done_callback(self._init_tasks.discard)
 

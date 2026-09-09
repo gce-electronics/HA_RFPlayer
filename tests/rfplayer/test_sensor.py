@@ -1,12 +1,10 @@
 import json
-from typing import cast
 from unittest.mock import Mock
 
 import pytest
 from pytest_homeassistant_custom_component.common import mock_restore_cache
 
-from custom_components.rfplayer.const import ATTR_EVENT_DATA, DOMAIN, RFPLAYER_CLIENT
-from custom_components.rfplayer.rfplayerlib import RfPlayerClient
+from custom_components.rfplayer.const import ATTR_EVENT_DATA
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
 from homeassistant.const import (
@@ -48,9 +46,9 @@ async def test_sensor(serial_connection_mock: Mock, hass: HomeAssistant):
 
 @pytest.mark.asyncio
 async def test_automatic_add(serial_connection_mock: Mock, hass: HomeAssistant):
-    await setup_rfplayer_test_cfg(hass, device="/dev/serial/by-id/usb-rfplayer-port0", automatic_add=True)
+    entry = await setup_rfplayer_test_cfg(hass, device="/dev/serial/by-id/usb-rfplayer-port0", automatic_add=True)
 
-    client = cast(RfPlayerClient, hass.data[DOMAIN][RFPLAYER_CLIENT])
+    client = entry.runtime_data.gateway.client
     client.event_callback(
         RfDeviceEvent(
             device=RfDeviceId(protocol="OREGON", address=OREGON_ADDRESS),

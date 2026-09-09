@@ -2,6 +2,8 @@
 
 from custom_components.rfplayer.rfplayerlib import RECEIVER_MODES
 
+DOMAIN = "rfplayer"
+
 CONF_RECONNECT_INTERVAL = "reconnect_interval"
 CONF_VERBOSE_MODE = "verbose_mode"
 
@@ -29,10 +31,6 @@ SERVICE_SEND_RAW_COMMAND = "send_raw_command"
 SERVICE_SEND_PAIRING_COMMAND = "send_pairing_command"
 SERVICE_SIMULATE_EVENT = "simulate_event"
 
-RFPLAYER_CLIENT = "rfplayer_client"
-RFPLAYER_GATEWAY = "rfplayer_gateway"
-
-DOMAIN = "rfplayer"
 SIGNAL_RFPLAYER_EVENT = f"{DOMAIN}_event"
 SIGNAL_RFPLAYER_AVAILABILITY = f"{DOMAIN}_availability"
 

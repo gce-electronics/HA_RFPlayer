@@ -3,19 +3,19 @@
 import logging
 
 from custom_components.rfplayer.const import COMMAND_GROUP_LIST, COMMAND_OFF_LIST, COMMAND_ON_LIST
-from custom_components.rfplayer.device_profiles import AnyRfpPlatformConfig, RfpPlatformConfig, RfpSensorConfig
+from custom_components.rfplayer.device_profiles import AnyRfpPlatformConfig, RfpSensorConfig
 from custom_components.rfplayer.entity import RfDeviceEntity, async_setup_platform_entry
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
+from custom_components.rfplayer.runtime import RfPlayerConfigEntry
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
     BinarySensorEntityDescription,
 )
-from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import Entity
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 
 _LOGGER = logging.getLogger(__name__)
@@ -32,20 +32,21 @@ def _get_entity_description(
 
 
 def _builder(
-    device: RfDeviceId,
+    config_entry: RfPlayerConfigEntry,
+    device_entry: dr.DeviceEntry,
+    rf_device_id: RfDeviceId,
     platform_configs: list[AnyRfpPlatformConfig],
     event_data: RfPlayerEventData | None,
-    verbose: bool,
-) -> list[Entity]:
+) -> list[RfDeviceEntity]:
     return [
-        RfPlayerBinarySensor(device, _get_entity_description(config), config, event_data=event_data, verbose=verbose)
+        RfPlayerBinarySensor(config_entry, device_entry, rf_device_id, config, event_data=event_data)
         for config in platform_configs
     ]
 
 
 async def async_setup_entry(
     hass: HomeAssistant,
-    config_entry: ConfigEntry,
+    config_entry: RfPlayerConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up config rf device entry."""
@@ -65,17 +66,23 @@ class RfPlayerBinarySensor(RfDeviceEntity, BinarySensorEntity):
     _attr_force_update = True
     _attr_name = None
 
-    def __init__(
+    def __init__(  # noqa: PLR0913, PLR0917
         self,
-        device: RfDeviceId,
-        entity_description: BinarySensorEntityDescription,
-        platform_config: RfpPlatformConfig,
+        config_entry: RfPlayerConfigEntry,
+        device_entry: dr.DeviceEntry,
+        rf_device_id: RfDeviceId,
+        platform_config: AnyRfpPlatformConfig,
         event_data: RfPlayerEventData | None,
-        verbose: bool,
     ) -> None:
         """Initialize the RfPlayer sensor."""
-        super().__init__(device_id=device, profile_name=platform_config.name, event_data=event_data, verbose=verbose)
-        self.entity_description = entity_description
+        super().__init__(
+            config_entry=config_entry,
+            device_entry=device_entry,
+            rf_device_id=rf_device_id,
+            profile_name=platform_config.name,
+            event_data=event_data,
+        )
+        self.entity_description = _get_entity_description(platform_config)
         assert isinstance(platform_config, RfpSensorConfig)
         self._config = platform_config
         self._event_data = event_data

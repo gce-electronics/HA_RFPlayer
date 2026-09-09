@@ -22,7 +22,7 @@ from custom_components.rfplayer.const import (
 )
 from custom_components.rfplayer.rfplayerlib import RfPlayerClient, RfplayerProtocol
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent
-from homeassistant.config_entries import ConfigEntry
+from custom_components.rfplayer.runtime import RfPlayerConfigEntry
 from homeassistant.const import CONF_DEVICE, CONF_DEVICES
 from homeassistant.core import HomeAssistant
 
@@ -40,11 +40,9 @@ def test_protocol() -> RfplayerProtocol:
     transport = Mock(spec=asyncio.WriteTransport)
     event_callback = Mock(spec=callable)
     disconnect_callback = Mock(spec=callable)
-    loop = asyncio.get_event_loop()
     protocol = RfplayerProtocol(
         event_callback=event_callback,
         disconnect_callback=disconnect_callback,
-        loop=loop,
         init_script=["LEDACTIVITY 0", "JAMMING 10"],
         verbose=True,
     )
@@ -65,9 +63,9 @@ def serial_connection_mock(mocker: MockerFixture, test_protocol: RfplayerProtoco
 @pytest.fixture
 def tcp_connection_mock(mocker: MockerFixture, test_client: RfPlayerClient, test_protocol: RfplayerProtocol) -> Mock:
     """Patch create_tcp_connection to return mock protocol."""
-
+    loop = asyncio.get_event_loop()
     test_transport = Mock(spec=asyncio.WriteTransport)
-    return mocker.patch.object(test_client.loop, "create_connection", return_value=(test_transport, test_protocol))
+    return mocker.patch.object(loop, "create_connection", return_value=(test_transport, test_protocol))
 
 
 @pytest.fixture
@@ -77,7 +75,6 @@ def test_client(serial_connection_mock: Mock, test_protocol: RfplayerProtocol) -
     return RfPlayerClient(
         event_callback=cast(Callable[[RfDeviceEvent], None], test_protocol.event_callback),
         disconnect_callback=test_protocol.disconnect_callback,
-        loop=Mock(spec=asyncio.AbstractEventLoop),
         port="/dev/ttyUSB0",
         receiver_protocols=["X2D", "RTS"],
         init_commands=["PING", "HELLO"],
@@ -99,7 +96,7 @@ def create_rfplayer_test_cfg(
         CONF_RECEIVER_PROTOCOLS: protocols or [],
         CONF_INIT_COMMANDS: init_commands,
         CONF_VERBOSE_MODE: True,
-        CONF_RECONNECT_INTERVAL: 10,
+        CONF_RECONNECT_INTERVAL: 0.05,
         CONF_DEVICES: devices or {},
         CONF_REDIRECT_ADDRESS: {},
     }
@@ -114,7 +111,7 @@ async def setup_rfplayer_test_cfg(  # noqa: PLR0913
     protocols: list[str] | None = None,
     init_commands: str | None = INIT_COMMANDS_EMPTY,
     minor_version=2,
-) -> ConfigEntry:
+) -> RfPlayerConfigEntry:
     """Construct a rfplayer config entry."""
     entry_data = create_rfplayer_test_cfg(
         device=device, automatic_add=automatic_add, devices=devices, protocols=protocols, init_commands=init_commands

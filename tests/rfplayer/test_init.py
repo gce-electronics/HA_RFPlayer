@@ -4,17 +4,24 @@ from __future__ import annotations
 
 import json
 from typing import cast
-from unittest.mock import ANY, Mock
+from unittest.mock import ANY, AsyncMock, Mock, patch
 
 import pytest
 from pytest_homeassistant_custom_component.typing import WebSocketGenerator
 from pytest_mock import MockerFixture
 from serialx import SerialException
 
-from custom_components.rfplayer.const import DOMAIN, RFPLAYER_CLIENT, SIGNAL_RFPLAYER_EVENT
-from custom_components.rfplayer.rfplayerlib import RfPlayerClient
+from custom_components.rfplayer import async_unload_entry
+from custom_components.rfplayer.const import (
+    DOMAIN,
+    SERVICE_SEND_PAIRING_COMMAND,
+    SERVICE_SEND_RAW_COMMAND,
+    SERVICE_SIMULATE_EVENT,
+    SIGNAL_RFPLAYER_EVENT,
+)
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData, RfplayerProtocol
+from custom_components.rfplayer.runtime import RfPlayerRuntimeData
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant, callback
@@ -38,6 +45,184 @@ from .conftest import setup_rfplayer_test_cfg
 
 
 @pytest.mark.asyncio
+async def test_setup_populates_runtime_data(
+    serial_connection_mock: Mock,
+    hass: HomeAssistant,
+) -> None:
+    """Test setup stores the gateway in config entry runtime data."""
+    entry = await setup_rfplayer_test_cfg(hass)
+
+    assert isinstance(entry.runtime_data, RfPlayerRuntimeData)
+    assert entry.runtime_data.gateway is not None
+    assert entry.runtime_data.gateway.entry is entry
+
+
+async def test_unload_entry_closes_gateway(
+    hass: HomeAssistant,
+) -> None:
+    """Test unloading closes the gateway."""
+
+    config_entry = await setup_rfplayer_test_cfg(
+        hass, device="/dev/serial/by-id/usb-rfplayer-port0", automatic_add=True
+    )
+
+    gateway = config_entry.runtime_data.gateway
+
+    with patch.object(
+        gateway,
+        "async_unload",
+        AsyncMock(),
+    ) as unload:
+        assert await async_unload_entry(hass, config_entry)
+
+    unload.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_setup_registers_services(
+    serial_connection_mock: Mock,
+    hass: HomeAssistant,
+) -> None:
+    """Test setup registers all RFPlayer services."""
+    await setup_rfplayer_test_cfg(hass)
+
+    assert hass.services.has_service(
+        DOMAIN,
+        SERVICE_SEND_RAW_COMMAND,
+    )
+    assert hass.services.has_service(
+        DOMAIN,
+        SERVICE_SEND_PAIRING_COMMAND,
+    )
+    assert hass.services.has_service(
+        DOMAIN,
+        SERVICE_SIMULATE_EVENT,
+    )
+
+
+@pytest.mark.asyncio
+async def test_unload_removes_services(
+    serial_connection_mock: Mock,
+    hass: HomeAssistant,
+) -> None:
+    """Test unloading removes all RFPlayer services."""
+    entry = await setup_rfplayer_test_cfg(hass)
+
+    assert hass.services.has_service(DOMAIN, SERVICE_SEND_RAW_COMMAND)
+    assert hass.services.has_service(DOMAIN, SERVICE_SEND_PAIRING_COMMAND)
+    assert hass.services.has_service(DOMAIN, SERVICE_SIMULATE_EVENT)
+
+    assert await hass.config_entries.async_unload(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert not hass.services.has_service(DOMAIN, SERVICE_SEND_RAW_COMMAND)
+    assert not hass.services.has_service(DOMAIN, SERVICE_SEND_PAIRING_COMMAND)
+    assert not hass.services.has_service(DOMAIN, SERVICE_SIMULATE_EVENT)
+
+
+@pytest.mark.asyncio
+async def test_unload_closes_client(
+    serial_connection_mock: Mock,
+    hass: HomeAssistant,
+) -> None:
+    """Test unloading closes the RFPlayer client."""
+    entry = await setup_rfplayer_test_cfg(hass)
+
+    client = entry.runtime_data.gateway.client
+    assert client.connected
+
+    with patch.object(client, "close", Mock()) as close:
+        assert await hass.config_entries.async_unload(entry.entry_id)
+
+    close.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_unload_does_not_schedule_reconnect(
+    serial_connection_mock: Mock,
+    hass: HomeAssistant,
+) -> None:
+    """Test unloading prevents reconnect scheduling."""
+    entry = await setup_rfplayer_test_cfg(hass)
+
+    gateway = entry.runtime_data.gateway
+
+    with patch.object(
+        gateway.client,
+        "connect",
+        AsyncMock(),
+    ) as connect:
+        await gateway.async_unload()
+
+        # Simulate disconnect callback call to ensure we don't
+        # schedule a reconnect when the gateway is unloaded.
+        gateway.client.disconnect_callback(None)
+
+        await hass.async_block_till_done()
+
+    connect.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_disconnect_schedules_reconnect(
+    serial_connection_mock: Mock,
+    hass: HomeAssistant,
+) -> None:
+    """Test an unexpected disconnect schedules a reconnect."""
+    entry = await setup_rfplayer_test_cfg(hass)
+
+    gateway = entry.runtime_data.gateway
+
+    with patch.object(
+        gateway.client,
+        "connect",
+        AsyncMock(),
+    ) as connect:
+        gateway.client.disconnect_callback(RuntimeError("connection lost"))
+
+        await hass.async_block_till_done()
+
+    connect.assert_awaited_once()
+
+
+async def test_disconnect_only_schedules_one_reconnect(
+    serial_connection_mock: Mock,
+    hass: HomeAssistant,
+) -> None:
+    """Test concurrent disconnects only schedule one reconnect."""
+    entry = await setup_rfplayer_test_cfg(hass)
+    gateway = entry.runtime_data.gateway
+
+    with patch.object(gateway.client, "connect", AsyncMock()) as connect:
+        gateway.client.disconnect_callback(ConnectionError())
+        gateway.client.disconnect_callback(ConnectionError())
+        gateway.client.disconnect_callback(ConnectionError())
+
+        await hass.async_block_till_done()
+
+    connect.assert_awaited_once()
+
+
+async def test_unload_cancels_pending_reconnect(
+    serial_connection_mock: Mock,
+    hass: HomeAssistant,
+) -> None:
+    entry = await setup_rfplayer_test_cfg(hass)
+    gateway = entry.runtime_data.gateway
+
+    with patch.object(gateway.client, "connect", AsyncMock()) as connect:
+        gateway.client.disconnect_callback(ConnectionError())
+
+        assert gateway._reconnect_task is not None  # noqa: SLF001
+
+        await gateway.async_unload()
+
+        await hass.async_block_till_done()
+
+    connect.assert_not_awaited()
+
+
+@pytest.mark.asyncio
 async def test_fire_event(
     serial_connection_mock: Mock,
     hass: HomeAssistant,
@@ -55,7 +240,7 @@ async def test_fire_event(
 
     async_dispatcher_connect(hass, SIGNAL_RFPLAYER_EVENT, record_event)  # type: ignore[has-type]
 
-    client = cast(RfPlayerClient, hass.data[DOMAIN][RFPLAYER_CLIENT])
+    client = entry.runtime_data.gateway.client
 
     client.event_callback(
         RfDeviceEvent(
@@ -220,7 +405,7 @@ async def test_connect(serial_connection_mock: Mock, hass: HomeAssistant) -> Non
     """Test that we attempt to connect to the device."""
 
     config_entry = await setup_rfplayer_test_cfg(hass, device="/dev/ttyUSBfake")
-    client = cast(RfPlayerClient, hass.data[DOMAIN][RFPLAYER_CLIENT])
+    client = config_entry.runtime_data.gateway.client
 
     serial_connection_mock.assert_called_once_with(hass.loop, ANY, "/dev/ttyUSBfake", 115200)
     assert client.receiver_protocols == []
@@ -242,7 +427,7 @@ async def test_connect_with_protocols(serial_connection_mock: Mock, hass: HomeAs
     """Test that we attempt to set protocols."""
 
     config_entry = await setup_rfplayer_test_cfg(hass, device="/dev/ttyUSBfake", protocols=SOME_PROTOCOLS)
-    client = cast(RfPlayerClient, hass.data[DOMAIN][RFPLAYER_CLIENT])
+    client = config_entry.runtime_data.gateway.client
 
     serial_connection_mock.assert_called_once_with(hass.loop, ANY, "/dev/ttyUSBfake", 115200)
 
@@ -253,7 +438,7 @@ async def test_connect_with_protocols(serial_connection_mock: Mock, hass: HomeAs
 @pytest.mark.asyncio
 async def test_connect_with_init_commands(serial_connection_mock: Mock, hass: HomeAssistant) -> None:
     config_entry = await setup_rfplayer_test_cfg(hass, device="/dev/ttyUSBfake", init_commands=SOME_INIT_COMMANDS)
-    client = cast(RfPlayerClient, hass.data[DOMAIN][RFPLAYER_CLIENT])
+    client = config_entry.runtime_data.gateway.client
 
     assert client.init_commands == ["PING", "HELLO"]
     assert config_entry.state is ConfigEntryState.LOADED
@@ -263,7 +448,7 @@ async def test_connect_with_init_commands(serial_connection_mock: Mock, hass: Ho
 async def test_connect_timeout(serial_connection_mock: Mock, mocker: MockerFixture, hass: HomeAssistant) -> None:
     """Test that we attempt to connect to the device."""
 
-    mocker.patch("custom_components.rfplayer.gateway.asyncio.timeout").side_effect = TimeoutError
+    mocker.patch("custom_components.rfplayer.gateway.asyncio.wait_for").side_effect = TimeoutError
 
     config_entry = await setup_rfplayer_test_cfg(hass, device="/dev/ttyUSBfake")
 
@@ -277,7 +462,7 @@ async def test_connect_failed(serial_connection_mock: Mock, hass: HomeAssistant)
     serial_connection_mock.side_effect = SerialException
 
     config_entry = await setup_rfplayer_test_cfg(hass, device="/dev/ttyUSBfake")
-    serial_connection_mock.assert_called_once_with(hass.loop, ANY, "/dev/ttyUSBfake", 115200)
+    serial_connection_mock.assert_called_with(hass.loop, ANY, "/dev/ttyUSBfake", 115200)
 
     assert config_entry.state is ConfigEntryState.SETUP_RETRY
 
@@ -288,7 +473,7 @@ async def test_reconnect(serial_connection_mock, hass: HomeAssistant) -> None:
 
     # GIVEN
     config_entry = await setup_rfplayer_test_cfg(hass, device="/dev/ttyUSBfake")
-    client = cast(RfPlayerClient, hass.data[DOMAIN][RFPLAYER_CLIENT])
+    client = config_entry.runtime_data.gateway.client
 
     assert client is not None
     assert config_entry.state is ConfigEntryState.LOADED
