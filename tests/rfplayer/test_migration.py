@@ -13,7 +13,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import slugify
-from tests.rfplayer.conftest import create_rfplayer_test_cfg, setup_rfplayer_test_cfg
+from tests.rfplayer.conftest import create_rfplayer_test_options, setup_rfplayer_test_cfg
 from tests.rfplayer.constants import (
     BLYSS_ID_STRING,
     BLYSS_MOTION_DEVICE_INFO,
@@ -33,7 +33,7 @@ async def test_async_migrate_version_from_1_1(
 ) -> None:
 
     # Create a mock config entry with version 1.1
-    entry_data = create_rfplayer_test_cfg(
+    entry_data = create_rfplayer_test_options(
         devices={
             OREGON_ID_STRING: OREGON_DEVICE_INFO,
             slugify(BLYSS_MOTION_ID_STRING): BLYSS_MOTION_DEVICE_INFO,

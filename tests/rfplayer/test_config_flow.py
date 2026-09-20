@@ -19,7 +19,7 @@ from homeassistant.const import STATE_OFF, STATE_OPEN, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import device_registry as dr
-from tests.rfplayer.conftest import create_rfplayer_test_cfg
+from tests.rfplayer.conftest import create_rfplayer_test_options
 from tests.rfplayer.constants import (
     CHACON_BINARY_SENSOR_DEVICE_INFO,
     OREGON_ADDRESS,
@@ -108,7 +108,6 @@ async def test_setup_serial(serial_connection_mock: Mock, hass: HomeAssistant) -
         "init_commands": "",
         "verbose_mode": False,
         "devices": {},
-        "redirect_address": {},
     }
 
 
@@ -134,7 +133,6 @@ async def test_setup_serial_simulator(serial_connection_mock: Mock, hass: HomeAs
         "init_commands": "",
         "verbose_mode": False,
         "devices": {},
-        "redirect_address": {},
     }
 
 
@@ -162,7 +160,6 @@ async def test_setup_tcp(serial_connection_mock: Mock, hass: HomeAssistant) -> N
         "init_commands": "",
         "verbose_mode": False,
         "devices": {},
-        "redirect_address": {},
     }
 
 
@@ -190,7 +187,7 @@ async def test_options_gateway(serial_connection_mock: Mock, hass: HomeAssistant
 
     entry = MockConfigEntry(
         domain=DOMAIN,
-        data=create_rfplayer_test_cfg(),
+        data=create_rfplayer_test_options(),
         unique_id=DOMAIN,
     )
     result = await start_options_flow(hass, entry)
@@ -234,7 +231,7 @@ async def test_options_gateway_no_receiver_protocols(serial_connection_mock: Moc
 
     entry = MockConfigEntry(
         domain=DOMAIN,
-        data=create_rfplayer_test_cfg(),
+        data=create_rfplayer_test_options(),
         unique_id=DOMAIN,
     )
     result = await start_options_flow(hass, entry)
@@ -271,7 +268,7 @@ async def test_options_gateway_init_commands(serial_connection_mock: Mock, hass:
 
     entry = MockConfigEntry(
         domain=DOMAIN,
-        data=create_rfplayer_test_cfg(),
+        data=create_rfplayer_test_options(),
         unique_id=DOMAIN,
     )
     result = await start_options_flow(hass, entry)
@@ -313,7 +310,7 @@ async def test_options_add_rf_device(serial_connection_mock: Mock, hass: HomeAss
 
     entry = MockConfigEntry(
         domain=DOMAIN,
-        data=create_rfplayer_test_cfg(),
+        data=create_rfplayer_test_options(),
         unique_id=DOMAIN,
     )
     result = await start_options_flow(hass, entry)
@@ -354,7 +351,7 @@ async def test_options_add_rf_device(serial_connection_mock: Mock, hass: HomeAss
 async def test_options_add_rf_device_bad_protocol(serial_connection_mock: Mock, hass: HomeAssistant) -> None:
     entry = MockConfigEntry(
         domain=DOMAIN,
-        data=create_rfplayer_test_cfg(),
+        data=create_rfplayer_test_options(),
         unique_id=DOMAIN,
     )
     result = await start_options_flow(hass, entry)
@@ -385,7 +382,7 @@ async def test_options_add_rf_device_bad_protocol(serial_connection_mock: Mock, 
 async def test_options_add_rf_device_bad_address(serial_connection_mock: Mock, hass: HomeAssistant) -> None:
     entry = MockConfigEntry(
         domain=DOMAIN,
-        data=create_rfplayer_test_cfg(),
+        data=create_rfplayer_test_options(),
         unique_id=DOMAIN,
     )
     result = await start_options_flow(hass, entry)
@@ -417,11 +414,11 @@ async def test_options_add_rf_device_bad_address(serial_connection_mock: Mock, h
 async def test_options_configure_rf_device(
     serial_connection_mock: Mock, hass: HomeAssistant, device_registry: dr.DeviceRegistry
 ) -> None:
-    """Test we can configure a device."""
+    """Test we can configure an already created device."""
 
     entry = MockConfigEntry(
         domain=DOMAIN,
-        data=create_rfplayer_test_cfg(devices={OREGON_ID_STRING: OREGON_DEVICE_INFO}),
+        data=create_rfplayer_test_options(devices={OREGON_ID_STRING: OREGON_DEVICE_INFO}),
         unique_id=DOMAIN,
     )
     result = await start_options_flow(hass, entry)

@@ -82,13 +82,13 @@ def test_client(serial_connection_mock: Mock, test_protocol: RfplayerProtocol) -
     )
 
 
-def create_rfplayer_test_cfg(
+def create_rfplayer_test_options(
     device: str = "/dev/tty123",
     automatic_add: bool = False,
     protocols: list[str] | None = None,
     init_commands: str | None = INIT_COMMANDS_EMPTY,
     devices: dict[str, dict] | None = None,
-):
+) -> dict:
     """Create rfplayer config entry data."""
     return {
         CONF_DEVICE: device,
@@ -98,7 +98,7 @@ def create_rfplayer_test_cfg(
         CONF_VERBOSE_MODE: True,
         CONF_RECONNECT_INTERVAL: 0.05,
         CONF_DEVICES: devices or {},
-        CONF_REDIRECT_ADDRESS: {},
+        CONF_REDIRECT_ADDRESS: {},  # Legacy persisted address redirection map. Now computed so must be ignored.
     }
 
 
@@ -113,11 +113,11 @@ async def setup_rfplayer_test_cfg(  # noqa: PLR0913
     minor_version=2,
 ) -> RfPlayerConfigEntry:
     """Construct a rfplayer config entry."""
-    entry_data = create_rfplayer_test_cfg(
+    serialized_options = create_rfplayer_test_options(
         device=device, automatic_add=automatic_add, devices=devices, protocols=protocols, init_commands=init_commands
     )
     mock_entry = MockConfigEntry(
-        domain="rfplayer", unique_id="a_player", data=entry_data, version=1, minor_version=minor_version
+        domain="rfplayer", unique_id="a_player", data=serialized_options, version=1, minor_version=minor_version
     )
     mock_entry.supports_remove_device = True
     mock_entry.add_to_hass(hass)
