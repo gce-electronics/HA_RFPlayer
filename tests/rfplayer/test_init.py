@@ -12,16 +12,15 @@ from pytest_mock import MockerFixture
 from serialx import SerialException
 
 from custom_components.rfplayer import async_unload_entry
-from custom_components.rfplayer.const import (
-    DOMAIN,
-    SERVICE_SEND_PAIRING_COMMAND,
-    SERVICE_SEND_RAW_COMMAND,
-    SERVICE_SIMULATE_EVENT,
-    SIGNAL_RFPLAYER_EVENT,
-)
+from custom_components.rfplayer.const import DOMAIN, SIGNAL_RFPLAYER_EVENT
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData, RfplayerProtocol
 from custom_components.rfplayer.runtime import RfPlayerRuntimeData
+from custom_components.rfplayer.services import (
+    SERVICE_SEND_PAIRING_COMMAND,
+    SERVICE_SEND_RAW_COMMAND,
+    SERVICE_SIMULATE_EVENT,
+)
 from homeassistant.config_entries import ConfigEntryState
 from homeassistant.const import STATE_UNAVAILABLE, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant, callback
@@ -33,7 +32,6 @@ from tests.rfplayer.constants import (
     BLYSS_ID_STRING,
     BLYSS_OFF_EVENT_DATA,
     JAMMING_BINARY_SENSOR_ENTITY_ID,
-    JAMMING_ID_STRING,
     OREGON_ADDRESS,
     OREGON_EVENT_DATA,
     OREGON_ID_STRING,
@@ -377,6 +375,8 @@ async def test_ws_device_remove(
         },
     )
 
+    assert len(mock_entry.data["devices"]) == 1
+
     device_entry = device_registry.async_get_device_by_identifier(
         identifier=("rfplayer", BLYSS_ID_STRING), config_entry_id=mock_entry.entry_id
     )
@@ -396,8 +396,7 @@ async def test_ws_device_remove(
     )
 
     # Verify that the config entry has removed the device
-    assert len(mock_entry.data["devices"]) == 1
-    assert JAMMING_ID_STRING in mock_entry.data["devices"]
+    assert len(mock_entry.data["devices"]) == 0
 
 
 @pytest.mark.asyncio

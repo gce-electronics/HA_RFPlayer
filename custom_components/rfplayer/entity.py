@@ -6,22 +6,13 @@ import json
 import logging
 from typing import cast
 
-from custom_components.rfplayer.device_profiles import (
-    UNDEFINED_PROFILE,
-    AnyRfpPlatformConfig,
-    ProfileRegistry,
-    async_get_profile_registry,
-)
-from custom_components.rfplayer.helpers import (
-    build_device_id_from_device_info,
-    build_device_info_from_event,
-    build_event_data_from_device_info,
-    get_identifiers_from_device_id,
-)
+from custom_components.rfplayer.config_options import RfPlayerDeviceInfo, RfPlayerOptions
+from custom_components.rfplayer.device_profiles import AnyRfpPlatformConfig, ProfileRegistry, async_get_profile_registry
+from custom_components.rfplayer.helpers import build_event_data_from_device_info, get_identifiers_from_device_id
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
 from custom_components.rfplayer.runtime import RfPlayerConfigEntry
-from homeassistant.const import CONF_DEVICES, CONF_PROFILE_NAME, Platform
+from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
@@ -29,15 +20,11 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import slugify
 
-from .const import (
-    ATTR_EVENT_DATA,
-    CONF_AUTOMATIC_ADD,
-    CONF_VERBOSE_MODE,
-    SIGNAL_RFPLAYER_AVAILABILITY,
-    SIGNAL_RFPLAYER_EVENT,
-)
+from .const import ATTR_EVENT_DATA, CONF_VERBOSE_MODE, SIGNAL_RFPLAYER_AVAILABILITY, SIGNAL_RFPLAYER_EVENT
 
 _LOGGER = logging.getLogger(__name__)
+
+DEFAULT_DEVICES = {"JAMMING_0": RfPlayerDeviceInfo(protocol="JAMMING", address="0", profile_name="Jamming Detector")}
 
 type RfDeviceEntityBuilder = Callable[
     [
@@ -59,16 +46,14 @@ async def async_setup_platform_entry(
     builder: RfDeviceEntityBuilder,
 ) -> None:
     """Set up config entry."""
-    entry_data = config_entry.data
-    verbose = entry_data.get(CONF_VERBOSE_MODE, False)
-    automatic_add = entry_data.get(CONF_AUTOMATIC_ADD, False)
+    options = RfPlayerOptions.from_json(config_entry.data)
 
     device_registry = dr.async_get(hass)
-    profile_registry = await async_get_profile_registry(hass, verbose)
+    profile_registry = await async_get_profile_registry(hass, options.verbose_mode)
 
     entity_manager = RfPlayerPlatformEntityManager(config_entry, device_registry, profile_registry, platform, builder)
-    entity_manager.add_config_entities(async_add_entities, verbose)
-    if automatic_add:
+    entity_manager.add_config_entities(async_add_entities, options.verbose_mode)
+    if options.automatic_add:
         config_entry.async_on_unload(
             async_dispatcher_connect(
                 hass,
@@ -76,7 +61,7 @@ async def async_setup_platform_entry(
                 partial(
                     entity_manager.async_listen_for_new_entities,
                     async_add_entities=async_add_entities,
-                    verbose=verbose,
+                    verbose=options.verbose_mode,
                 ),
             )  # type: ignore[has-type]
         )
@@ -216,19 +201,14 @@ class RfPlayerPlatformEntityManager:
     def add_config_entities(self, async_add_entities: AddEntitiesCallback, verbose: bool) -> None:
         """Add entities to the manager."""
         entities = []
-        entry_data = self.config_entry.data
-        for id_string, device_info in entry_data[CONF_DEVICES].items():
-            if id_string in self.rf_device_ids:
-                _LOGGER.info(
-                    "Device %s already configured for platform %s",
-                    id_string,
-                    self.platform,
-                )
-                continue
-
+        options = RfPlayerOptions.from_json(self.config_entry.data)
+        devices = dict(options.devices)
+        devices.update(DEFAULT_DEVICES)
+        for device_info in devices.values():
             event_data = build_event_data_from_device_info(device_info)
             self.build_entities(device_info, event_data, async_add_entities, verbose)
 
+        self.rf_device_ids = set(devices.keys())
         async_add_entities(entities)
 
     async def async_listen_for_new_entities(
@@ -243,34 +223,33 @@ class RfPlayerPlatformEntityManager:
         # regardless of whether the platform is supported or not
         self.rf_device_ids.add(event.device.id_string)
 
-        device_info = build_device_info_from_event(self.profile_registry, event)
+        profile_name = self.profile_registry.get_profile_name_from_event(event.data)
+        device_info = RfPlayerDeviceInfo.from_event(profile_name, event)
 
         self.build_entities(device_info, event.data, async_add_entities, verbose)
 
     def build_entities(
         self,
-        device_info: dict,
+        device_info: RfPlayerDeviceInfo,
         event_data: RfPlayerEventData | None,
         async_add_entities: AddEntitiesCallback,
         verbose: bool,
     ) -> None:
         """Build entities for a given device info and event data."""
-        rf_device_id = build_device_id_from_device_info(device_info)
-        profile_name = device_info.get(CONF_PROFILE_NAME, UNDEFINED_PROFILE)
-        platform_config = self.profile_registry.get_platform_config(profile_name, self.platform)
+        platform_config = self.profile_registry.get_platform_config(device_info.profile_name, self.platform)
         if not platform_config:
-            _LOGGER.debug("Device %s does not support platform %s", rf_device_id.id_string, self.platform)
+            _LOGGER.debug("Device %s does not support platform %s", device_info.rf_device_id.id_string, self.platform)
             return
 
         device_entry = self.device_registry.async_get_or_create(  # TODO: need to run this in the hass event loop
             config_entry_id=self.config_entry.entry_id,
-            identifiers={get_identifiers_from_device_id(rf_device_id)},
-            manufacturer=rf_device_id.protocol,
-            model=rf_device_id.model,
-            name=f"{rf_device_id.protocol} {rf_device_id.model} {rf_device_id.address}"
-            if rf_device_id.model
-            else f"{rf_device_id.protocol} {rf_device_id.address}",
+            identifiers={get_identifiers_from_device_id(device_info.rf_device_id)},
+            manufacturer=device_info.protocol,
+            model=device_info.model or "",
+            name=f"{device_info.protocol} {device_info.model} {device_info.address}"
+            if device_info.model
+            else f"{device_info.protocol} {device_info.address}",
             # TODO add via_device to link to the gateway device entry
         )
-        entities = self.builder(self.config_entry, device_entry, rf_device_id, platform_config, event_data)
+        entities = self.builder(self.config_entry, device_entry, device_info.rf_device_id, platform_config, event_data)
         async_add_entities(entities)

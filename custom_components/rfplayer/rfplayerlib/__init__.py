@@ -1,11 +1,11 @@
 """Async RfPlayer client."""
 
 import asyncio
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from functools import partial
 import logging
-from typing import cast
+from typing import Any, cast
 
 from serialx import SerialException, create_serial_connection
 
@@ -156,7 +156,7 @@ class RfPlayerClient:
 
         return await self._protocol.send_raw_request(command)
 
-    async def simulate_event(self, event_data: dict) -> None:
+    async def simulate_event(self, event_data: Mapping[str, Any]) -> None:
         """Send an event to the client callback."""
         if not self.connected:
             raise RfPlayerException("Not connected")

@@ -2,11 +2,10 @@
 
 import json
 
-from custom_components.rfplayer.const import CONF_REDIRECT_ADDRESS, DOMAIN
-from custom_components.rfplayer.device_profiles import ProfileRegistry
-from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
+from custom_components.rfplayer.config_options import RfPlayerDeviceInfo
+from custom_components.rfplayer.const import DOMAIN
+from custom_components.rfplayer.rfplayerlib.device import RfDeviceId
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
-from homeassistant.const import CONF_ADDRESS, CONF_EVENT_DATA, CONF_MODEL, CONF_PROFILE_NAME, CONF_PROTOCOL
 
 
 def get_device_id_string_from_identifiers(
@@ -23,28 +22,7 @@ def get_identifiers_from_device_id(
     return (DOMAIN, device.id_string)
 
 
-def build_device_id_from_device_info(device_info: dict) -> RfDeviceId:
+def build_event_data_from_device_info(device_info: RfPlayerDeviceInfo) -> RfPlayerEventData | None:
     """Create an RF device event from a device info map."""
-    protocol = device_info[CONF_PROTOCOL]
-    address = device_info[CONF_ADDRESS]
-    model = device_info.get(CONF_MODEL)
-    return RfDeviceId(protocol=protocol, address=address, model=model)
-
-
-def build_event_data_from_device_info(device_info: dict) -> RfPlayerEventData | None:
-    """Create an RF device event from a device info map."""
-    event_json_data = device_info.get(CONF_EVENT_DATA)
+    event_json_data = device_info.event_data
     return RfPlayerEventData(json.loads(event_json_data)) if event_json_data else None
-
-
-def build_device_info_from_event(profile_registy: ProfileRegistry, event: RfDeviceEvent) -> dict[str, str]:
-    """Create a device info map from a RF device event."""
-
-    device_info: dict[str, str] = {}
-    device_info[CONF_PROTOCOL] = event.device.protocol
-    device_info[CONF_ADDRESS] = event.device.address
-    device_info[CONF_MODEL] = event.device.model or ""
-    device_info[CONF_REDIRECT_ADDRESS] = ""
-    device_info[CONF_PROFILE_NAME] = profile_registy.get_profile_name_from_event(event.data)
-    device_info[CONF_EVENT_DATA] = json.dumps(event.data)
-    return device_info
