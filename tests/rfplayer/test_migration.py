@@ -13,7 +13,7 @@ from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
 from homeassistant.util import slugify
-from tests.rfplayer.conftest import create_rfplayer_test_options, setup_rfplayer_test_cfg
+from tests.rfplayer.conftest import create_rfplayer_test_options, rfplayer_config_entry
 from tests.rfplayer.constants import (
     BLYSS_ID_STRING,
     BLYSS_MOTION_DEVICE_INFO,
@@ -25,10 +25,10 @@ from tests.rfplayer.constants import (
 )
 
 
-@pytest.mark.asyncio
+@pytest.mark.integration
 async def test_async_migrate_version_from_1_1(
     hass: HomeAssistant,
-    serial_connection_mock: Mock,
+    mock_serial_connection: Mock,
     mocker: MockerFixture,
 ) -> None:
 
@@ -101,16 +101,16 @@ async def test_async_migrate_version_from_1_1(
     assert mock_entry.minor_version == 2
 
 
-@pytest.mark.asyncio
+@pytest.mark.integration
 async def test_async_migrate_version_from_1_2(
     hass: HomeAssistant,
-    serial_connection_mock: Mock,
+    mock_serial_connection: Mock,
     mocker: MockerFixture,
 ) -> None:
 
     migrate_mock = mocker.patch("custom_components.rfplayer.migration.async_migrate_version_1_2")
 
-    await setup_rfplayer_test_cfg(
+    await rfplayer_config_entry(
         hass,
         devices={
             OREGON_ID_STRING: OREGON_DEVICE_INFO,

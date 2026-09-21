@@ -77,6 +77,10 @@ filterwarnings = [
     "ignore:Unknown pytest.mark.dataset:pytest.PytestUnknownMarkWarning:tests.components.screenlogic",
 
 ]
+markers = [
+    "unit: isolated tests without Home Assistant or external I/O",
+    "integration: tests exercising Home Assistant or multiple components",
+]
 
 [tool.ruff]
 required-version = ">=0.4.8"

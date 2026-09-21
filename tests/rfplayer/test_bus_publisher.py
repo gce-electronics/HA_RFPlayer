@@ -7,7 +7,7 @@ from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDevic
 from homeassistant.core import EventBus, HomeAssistant
 
 
-@pytest.mark.asyncio
+@pytest.mark.unit
 async def test_bus_publisher():
     """Test the BusPublisher."""
 

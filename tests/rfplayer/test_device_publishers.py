@@ -6,7 +6,7 @@ from custom_components.rfplayer.device_publishers import EdisioHandler
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
 from homeassistant.core import Event, HomeAssistant
-from tests.rfplayer.conftest import setup_rfplayer_test_cfg
+from tests.rfplayer.conftest import rfplayer_config_entry
 
 EMITRBTN = {
     "frame": {
@@ -36,6 +36,7 @@ EMITRBTN = {
 }
 
 
+@pytest.mark.unit
 def test_edisio_handler():
     """Test the EdisioHandler."""
 
@@ -59,9 +60,9 @@ def test_edisio_handler():
     assert event_data["add1"] == "1"
 
 
-@pytest.mark.asyncio
-async def test_gateway_publisher(serial_connection_mock: Mock, hass: HomeAssistant):
-    entry = await setup_rfplayer_test_cfg(
+@pytest.mark.integration
+async def test_gateway_publisher(mock_serial_connection: Mock, hass: HomeAssistant):
+    entry = await rfplayer_config_entry(
         hass,
     )
     events_received: list[Event] = []

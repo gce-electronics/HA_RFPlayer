@@ -1,8 +1,12 @@
 from typing import cast
 from unittest.mock import Mock
 
+import pytest
+
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceEventAdapter, RfDeviceId
 from tests.rfplayer.constants import BLYSS_ADDRESS, BLYSS_OFF_EVENT_DATA, OREGON_ADDRESS, OREGON_EVENT_DATA
+
+pytestmark = pytest.mark.unit
 
 
 def test_raw_event_callback_oregon():

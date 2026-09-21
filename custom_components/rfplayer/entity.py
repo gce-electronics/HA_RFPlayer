@@ -24,8 +24,6 @@ from .const import ATTR_EVENT_DATA, CONF_VERBOSE_MODE, SIGNAL_RFPLAYER_AVAILABIL
 
 _LOGGER = logging.getLogger(__name__)
 
-DEFAULT_DEVICES = {"JAMMING_0": RfPlayerDeviceInfo(protocol="JAMMING", address="0", profile_name="Jamming Detector")}
-
 type RfDeviceEntityBuilder = Callable[
     [
         RfPlayerConfigEntry,
@@ -202,8 +200,7 @@ class RfPlayerPlatformEntityManager:
         """Add entities to the manager."""
         entities = []
         options = RfPlayerOptions.from_json(self.config_entry.data)
-        devices = dict(options.devices)
-        devices.update(DEFAULT_DEVICES)
+        devices = dict(options.effective_devices)
         for device_info in devices.values():
             event_data = build_event_data_from_device_info(device_info)
             self.build_entities(device_info, event_data, async_add_entities, verbose)
