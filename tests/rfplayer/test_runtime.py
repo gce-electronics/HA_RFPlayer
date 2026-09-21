@@ -3,17 +3,15 @@ import pytest
 from custom_components.rfplayer.runtime import Gateway, RfPlayerRuntimeData
 from homeassistant.core import HomeAssistant
 
-from .conftest import setup_rfplayer_test_cfg
+from .conftest import rfplayer_config_entry
 
 
-@pytest.mark.asyncio
+@pytest.mark.integration
 async def test_setup_entry_stores_runtime_data(
     hass: HomeAssistant,
 ) -> None:
     """Test runtime data is stored on the config entry."""
-    config_entry = await setup_rfplayer_test_cfg(
-        hass, device="/dev/serial/by-id/usb-rfplayer-port0", automatic_add=True
-    )
+    config_entry = await rfplayer_config_entry(hass, automatic_add=True)
 
     assert isinstance(
         config_entry.runtime_data,

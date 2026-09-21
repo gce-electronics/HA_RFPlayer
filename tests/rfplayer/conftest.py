@@ -23,8 +23,8 @@ from custom_components.rfplayer.const import (
 from custom_components.rfplayer.rfplayerlib import RfPlayerClient, RfplayerProtocol
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent
 from custom_components.rfplayer.runtime import RfPlayerConfigEntry
-from homeassistant.const import CONF_DEVICE, CONF_DEVICES
-from homeassistant.core import HomeAssistant
+from homeassistant.const import ATTR_FRIENDLY_NAME, CONF_DEVICE, CONF_DEVICES
+from homeassistant.core import HomeAssistant, State
 
 
 @pytest.fixture(autouse=True)
@@ -51,7 +51,7 @@ def test_protocol() -> RfplayerProtocol:
 
 
 @pytest.fixture
-def serial_connection_mock(mocker: MockerFixture, test_protocol: RfplayerProtocol) -> Mock:
+def mock_serial_connection(mocker: MockerFixture, test_protocol: RfplayerProtocol) -> Mock:
     """Patch create_serial_connection to return mock protocol."""
 
     return mocker.patch(
@@ -61,7 +61,7 @@ def serial_connection_mock(mocker: MockerFixture, test_protocol: RfplayerProtoco
 
 
 @pytest.fixture
-def tcp_connection_mock(mocker: MockerFixture, test_client: RfPlayerClient, test_protocol: RfplayerProtocol) -> Mock:
+def mock_tcp_connection(mocker: MockerFixture, test_client: RfPlayerClient, test_protocol: RfplayerProtocol) -> Mock:
     """Patch create_tcp_connection to return mock protocol."""
     loop = asyncio.get_event_loop()
     test_transport = Mock(spec=asyncio.WriteTransport)
@@ -69,7 +69,7 @@ def tcp_connection_mock(mocker: MockerFixture, test_client: RfPlayerClient, test
 
 
 @pytest.fixture
-def test_client(serial_connection_mock: Mock, test_protocol: RfplayerProtocol) -> RfPlayerClient:
+def test_client(mock_serial_connection: Mock, test_protocol: RfplayerProtocol) -> RfPlayerClient:
     """Create a rfclient with patch serial connection."""
 
     return RfPlayerClient(
@@ -102,9 +102,9 @@ def create_rfplayer_test_options(
     }
 
 
-async def setup_rfplayer_test_cfg(  # noqa: PLR0913
+async def rfplayer_config_entry(  # noqa: PLR0913
     hass: HomeAssistant,
-    device: str = "abcd",
+    device: str = "/dev/ttyUSBfake",
     *,
     automatic_add: bool = False,
     devices: dict[str, dict] | None = None,
@@ -127,3 +127,14 @@ async def setup_rfplayer_test_cfg(  # noqa: PLR0913
     await hass.async_start()
     await hass.async_block_till_done()
     return mock_entry
+
+
+def assert_entity_state(
+    hass: HomeAssistant, entity_id: str, expected_state: str, expected_friendly_name: str | None = None
+) -> State:
+    state = hass.states.get(entity_id)
+    assert state
+    assert state.state == expected_state
+    if expected_friendly_name:
+        assert state.attributes.get(ATTR_FRIENDLY_NAME) == expected_friendly_name
+    return state

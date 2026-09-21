@@ -140,7 +140,7 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
 
             if not errors:
                 # Finalize
-                return self._save_and_finish(options.update_from_json(user_input))
+                return self._save_and_finish(options.with_updated_options_from_user_input(user_input))
 
         return self.async_show_form(
             step_id="configure_gateway", data_schema=self._gateway_schema(options), errors=errors
@@ -194,7 +194,7 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
 
             if not errors and id_string:
                 # Finalize
-                return self._save_and_finish(options.update_device_from_json(id_string, cleaned_user_input))
+                return self._save_and_finish(options.with_updated_device_from_user_input(id_string, cleaned_user_input))
 
         return self.async_show_form(
             step_id="configure_rf_device", data_schema=vol.Schema(self._rf_device_schema()), errors=errors
@@ -227,7 +227,7 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
             if not errors:
                 id_string = RfDeviceId(protocol=user_input[CONF_PROTOCOL], address=user_input[CONF_ADDRESS]).id_string
 
-                return self._save_and_finish(options.add_device_from_json(id_string, user_input))
+                return self._save_and_finish(options.with_added_device_from_user_input(id_string, user_input))
 
         data_schema = self._new_rf_device_schema(None, profile_registry)
         return self.async_show_form(step_id="add_rf_device", data_schema=vol.Schema(data_schema), errors=errors)

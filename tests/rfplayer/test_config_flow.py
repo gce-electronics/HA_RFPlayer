@@ -78,9 +78,9 @@ async def start_options_flow(hass: HomeAssistant, entry: MockConfigEntry) -> Con
     return await hass.config_entries.options.async_init(entry.entry_id)
 
 
-@pytest.mark.asyncio
+@pytest.mark.integration
 @patch("serialx.tools.list_ports.comports", return_value=[com_port()])
-async def test_setup_serial(serial_connection_mock: Mock, hass: HomeAssistant) -> None:
+async def test_setup_serial(mock_serial_connection: Mock, hass: HomeAssistant) -> None:
     """Test we can setup serial."""
     port = com_port()
 
@@ -111,8 +111,8 @@ async def test_setup_serial(serial_connection_mock: Mock, hass: HomeAssistant) -
     }
 
 
-@pytest.mark.asyncio
-async def test_setup_serial_simulator(serial_connection_mock: Mock, hass: HomeAssistant) -> None:
+@pytest.mark.integration
+async def test_setup_serial_simulator(mock_serial_connection: Mock, hass: HomeAssistant) -> None:
     """Test we can setup serial with manual entry."""
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
 
@@ -136,8 +136,8 @@ async def test_setup_serial_simulator(serial_connection_mock: Mock, hass: HomeAs
     }
 
 
-@pytest.mark.asyncio
-async def test_setup_tcp(serial_connection_mock: Mock, hass: HomeAssistant) -> None:
+@pytest.mark.integration
+async def test_setup_tcp(mock_serial_connection: Mock, hass: HomeAssistant) -> None:
     """Test we can setup serial with manual entry."""
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
 
@@ -163,8 +163,8 @@ async def test_setup_tcp(serial_connection_mock: Mock, hass: HomeAssistant) -> N
     }
 
 
-@pytest.mark.asyncio
-async def test_setup_duplicate(serial_connection_mock: Mock, hass: HomeAssistant) -> None:
+@pytest.mark.integration
+async def test_setup_duplicate(mock_serial_connection: Mock, hass: HomeAssistant) -> None:
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
 
     assert result["type"] is FlowResultType.FORM
@@ -181,8 +181,8 @@ async def test_setup_duplicate(serial_connection_mock: Mock, hass: HomeAssistant
     assert result["reason"] == "single_instance_allowed"
 
 
-@pytest.mark.asyncio
-async def test_options_gateway(serial_connection_mock: Mock, hass: HomeAssistant) -> None:
+@pytest.mark.integration
+async def test_options_gateway(mock_serial_connection: Mock, hass: HomeAssistant) -> None:
     """Test if we can set global options."""
 
     entry = MockConfigEntry(
@@ -225,8 +225,8 @@ async def test_options_gateway(serial_connection_mock: Mock, hass: HomeAssistant
     assert entry.data["verbose_mode"] is True
 
 
-@pytest.mark.asyncio
-async def test_options_gateway_no_receiver_protocols(serial_connection_mock: Mock, hass: HomeAssistant) -> None:
+@pytest.mark.integration
+async def test_options_gateway_no_receiver_protocols(mock_serial_connection: Mock, hass: HomeAssistant) -> None:
     """Test we set protocols to None if none are selected."""
 
     entry = MockConfigEntry(
@@ -262,8 +262,8 @@ async def test_options_gateway_no_receiver_protocols(serial_connection_mock: Moc
     assert result["errors"] == {"receiver_protocols": "no_receiver_protocol"}
 
 
-@pytest.mark.asyncio
-async def test_options_gateway_init_commands(serial_connection_mock: Mock, hass: HomeAssistant) -> None:
+@pytest.mark.integration
+async def test_options_gateway_init_commands(mock_serial_connection: Mock, hass: HomeAssistant) -> None:
     """Test we set protocols to None if none are selected."""
 
     entry = MockConfigEntry(
@@ -304,8 +304,8 @@ async def test_options_gateway_init_commands(serial_connection_mock: Mock, hass:
     assert entry.data["init_commands"] == "PING,HELLO"
 
 
-@pytest.mark.asyncio
-async def test_options_add_rf_device(serial_connection_mock: Mock, hass: HomeAssistant) -> None:
+@pytest.mark.integration
+async def test_options_add_rf_device(mock_serial_connection: Mock, hass: HomeAssistant) -> None:
     """Test we can add a device."""
 
     entry = MockConfigEntry(
@@ -347,8 +347,8 @@ async def test_options_add_rf_device(serial_connection_mock: Mock, hass: HomeAss
     assert state.attributes.get("friendly_name") == RTS_FRIENDLY_NAME
 
 
-@pytest.mark.asyncio
-async def test_options_add_rf_device_bad_protocol(serial_connection_mock: Mock, hass: HomeAssistant) -> None:
+@pytest.mark.integration
+async def test_options_add_rf_device_bad_protocol(mock_serial_connection: Mock, hass: HomeAssistant) -> None:
     entry = MockConfigEntry(
         domain=DOMAIN,
         data=create_rfplayer_test_options(),
@@ -378,8 +378,8 @@ async def test_options_add_rf_device_bad_protocol(serial_connection_mock: Mock, 
     assert result["errors"] == {"protocol": "incompatible_protocol"}
 
 
-@pytest.mark.asyncio
-async def test_options_add_rf_device_bad_address(serial_connection_mock: Mock, hass: HomeAssistant) -> None:
+@pytest.mark.integration
+async def test_options_add_rf_device_bad_address(mock_serial_connection: Mock, hass: HomeAssistant) -> None:
     entry = MockConfigEntry(
         domain=DOMAIN,
         data=create_rfplayer_test_options(),
@@ -410,9 +410,9 @@ async def test_options_add_rf_device_bad_address(serial_connection_mock: Mock, h
     assert result["errors"] == {"address": "invalid_address"}
 
 
-@pytest.mark.asyncio
+@pytest.mark.integration
 async def test_options_configure_rf_device(
-    serial_connection_mock: Mock, hass: HomeAssistant, device_registry: dr.DeviceRegistry
+    mock_serial_connection: Mock, hass: HomeAssistant, device_registry: dr.DeviceRegistry
 ) -> None:
     """Test we can configure an already created device."""
 
@@ -500,6 +500,7 @@ async def test_options_configure_rf_device(
     assert entry.data["devices"][OREGON_ID_STRING]["profile_name"] == OREGON_DEVICE_INFO["profile_name"]
 
 
+@pytest.mark.unit
 def test_get_serial_by_id_no_dir() -> None:
     """Test serial by id conversion if there's no /dev/serial/by-id."""
     p1 = patch("os.path.isdir", MagicMock(return_value=False))
@@ -511,6 +512,7 @@ def test_get_serial_by_id_no_dir() -> None:
         assert scan_mock.call_count == 0
 
 
+@pytest.mark.unit
 def test_get_serial_by_id() -> None:
     """Test serial by id conversion."""
     p1 = patch("os.path.isdir", MagicMock(return_value=True))

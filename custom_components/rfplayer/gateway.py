@@ -90,7 +90,7 @@ class Gateway:
         if self.options.verbose_mode:
             _LOGGER.debug("Event data %s", json.dumps(event.data))
 
-        if event.device.id_string not in self.options.devices and self.options.automatic_add:
+        if self.options.automatic_add and not self.options.has_device(event.device.id_string):
             self._add_rf_device(event)
             # Still send event for group events
 
@@ -129,8 +129,8 @@ class Gateway:
             _LOGGER.warning("Device %s has more than one identifier, cannot remove", device_entry.id)
             return False
         _, id_string = next(iter(device_entry.identifiers))
-        new_options = self.options.remove_device(id_string)
-        updated = save_options(self.hass, self.entry, new_options)
+        self.options = self.options.with_removed_device(id_string)
+        updated = save_options(self.hass, self.entry, self.options)
         _LOGGER.debug("Device %s %s", id_string, "removed" if updated else "not removed")
         return updated
 

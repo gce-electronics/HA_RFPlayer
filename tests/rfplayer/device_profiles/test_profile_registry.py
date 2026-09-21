@@ -1,3 +1,5 @@
+import pytest
+
 from custom_components.rfplayer.device_profiles import (
     AnyRfpPlatformConfig,
     ClimateEventTypes,
@@ -11,6 +13,8 @@ from custom_components.rfplayer.device_profiles import (
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
 from homeassistant.const import Platform
 from tests.rfplayer.device_profiles.conftest import AnyTest, ClimateTest, FrameExpectation, SensorTest, StateTest
+
+pytestmark = pytest.mark.unit
 
 
 def _get_config(all_config: list[AnyRfpPlatformConfig], name: str) -> AnyRfpPlatformConfig:

@@ -10,8 +10,9 @@ from pytest_mock import MockerFixture
 
 from custom_components.rfplayer.rfplayerlib.protocol import RfplayerProtocol
 
+pytestmark = pytest.mark.unit
 
-@pytest.mark.asyncio
+
 async def test_init_script(test_protocol: RfplayerProtocol):
     # GIVEN
     assert test_protocol.init_script == [
@@ -91,7 +92,6 @@ def test_received_invalid(test_protocol: RfplayerProtocol):
     cb.assert_not_called()
 
 
-@pytest.mark.asyncio
 async def test_send_command(test_protocol: RfplayerProtocol):
     body = "FORMAT JSON"
     await test_protocol.send_raw_command(body)
@@ -100,7 +100,6 @@ async def test_send_command(test_protocol: RfplayerProtocol):
     tr.write.assert_called_once_with(f"ZIA++{body}\n\r".encode())
 
 
-@pytest.mark.asyncio
 async def test_send_command_error(test_protocol: RfplayerProtocol, mocker: MockerFixture):
     logger_mock = mocker.patch("custom_components.rfplayer.rfplayerlib.protocol._LOGGER")
     tr = cast(Mock, test_protocol.transport)
@@ -117,7 +116,6 @@ async def test_send_command_error(test_protocol: RfplayerProtocol, mocker: Mocke
     logger_mock.warning.assert_called()
 
 
-@pytest.mark.asyncio
 async def test_send_request(test_protocol: RfplayerProtocol):
     tr = cast(Mock, test_protocol.transport)
 
@@ -135,7 +133,6 @@ async def test_send_request(test_protocol: RfplayerProtocol):
     assert actual == expected
 
 
-@pytest.mark.asyncio
 async def test_send_request_error(test_protocol: RfplayerProtocol, mocker: MockerFixture):
     logger_mock = mocker.patch("custom_components.rfplayer.rfplayerlib.protocol._LOGGER")
     tr = cast(Mock, test_protocol.transport)

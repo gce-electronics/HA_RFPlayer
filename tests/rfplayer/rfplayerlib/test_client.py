@@ -12,12 +12,13 @@ from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDevic
 from custom_components.rfplayer.rfplayerlib.protocol import RfplayerProtocol
 from tests.rfplayer.constants import OREGON_ADDRESS, OREGON_EVENT_DATA
 
+pytestmark = pytest.mark.unit
 
-@pytest.mark.asyncio
+
 async def test_connect_serial(
     test_client: RfPlayerClient,
     test_protocol: RfplayerProtocol,
-    serial_connection_mock: Mock,
+    mock_serial_connection: Mock,
 ):
     # GIVEN
     test_client.port = "/dev/ttyUSB0"
@@ -28,14 +29,13 @@ async def test_connect_serial(
     # THEN
     assert test_client.protocol == test_protocol
     assert test_client.connected
-    serial_connection_mock.assert_called_with(asyncio.get_running_loop(), ANY, "/dev/ttyUSB0", 115200)
+    mock_serial_connection.assert_called_with(asyncio.get_running_loop(), ANY, "/dev/ttyUSB0", 115200)
 
 
-@pytest.mark.asyncio
 async def test_connect_tcp(
     test_client: RfPlayerClient,
     test_protocol: RfplayerProtocol,
-    tcp_connection_mock: Mock,
+    mock_tcp_connection: Mock,
 ):
     # GIVEN
     test_client.port = "tcp://localhost:1234"
@@ -46,7 +46,7 @@ async def test_connect_tcp(
     # THEN
     assert test_client.protocol == test_protocol
     assert test_client.connected
-    tcp_connection_mock.assert_called_once_with(ANY, "localhost", 1234)
+    mock_tcp_connection.assert_called_once_with(ANY, "localhost", 1234)
 
 
 def test_disconnect_callback_closes_client(
@@ -65,7 +65,6 @@ def test_disconnect_callback_closes_client(
     callback.assert_called_once_with(None)
 
 
-@pytest.mark.asyncio
 async def test_simulator(mocker: MockerFixture):
     # GIVEN
     logger_mock = mocker.patch("custom_components.rfplayer.rfplayerlib._LOGGER")
@@ -94,11 +93,10 @@ async def test_simulator(mocker: MockerFixture):
     assert event.data == OREGON_EVENT_DATA
 
 
-@pytest.mark.asyncio
 async def test_receiver_protocols(
     test_client: RfPlayerClient,
     test_protocol: RfplayerProtocol,
-    serial_connection_mock: Mock,
+    mock_serial_connection: Mock,
 ):
     # GIVEN
     # test_client
@@ -107,12 +105,11 @@ async def test_receiver_protocols(
     await test_client.connect()
 
     # THEN
-    protocol_factory = serial_connection_mock.call_args[0][1]
+    protocol_factory = mock_serial_connection.call_args[0][1]
     protocol = protocol_factory()
     assert protocol.init_script == ["FORMAT JSON", "RECEIVER -* +X2D +RTS", "PING", "HELLO"]
 
 
-@pytest.mark.asyncio
 async def test_send_command_connected(test_client: RfPlayerClient, test_protocol: RfplayerProtocol):
     # GIVEN
     await test_client.connect()
@@ -126,7 +123,6 @@ async def test_send_command_connected(test_client: RfPlayerClient, test_protocol
     tr.write.assert_called_once_with(b"ZIA++FORMAT JSON\n\r")
 
 
-@pytest.mark.asyncio
 async def test_send_command_disconnected(test_client: RfPlayerClient):
     # GIVEN
     assert not test_client.connected
@@ -138,7 +134,6 @@ async def test_send_command_disconnected(test_client: RfPlayerClient):
         # THEN raise
 
 
-@pytest.mark.asyncio
 async def test_send_request_connected(test_client: RfPlayerClient, test_protocol: RfplayerProtocol):
     # GIVEN
     await test_client.connect()
@@ -152,7 +147,6 @@ async def test_send_request_connected(test_client: RfPlayerClient, test_protocol
     tr.write.assert_called_once_with(b"ZIA++HELLO\n\r")
 
 
-@pytest.mark.asyncio
 async def test_send_request_disconnected(test_client: RfPlayerClient):
     # GIVEN
     assert not test_client.connected
