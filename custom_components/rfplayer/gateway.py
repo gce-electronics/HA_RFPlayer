@@ -86,16 +86,16 @@ class Gateway:
     def _async_handle_receive(self, event: RfDeviceEvent) -> None:
         """Event handler connected to the client."""
 
-        _LOGGER.debug("Received event from %s", event.device.id_string)
+        _LOGGER.debug("Received event from %s", event.device.canonical_id)
         if self.options.verbose_mode:
             _LOGGER.debug("Event data %s", json.dumps(event.data))
 
-        if self.options.automatic_add and not self.options.has_device(event.device.id_string):
+        if self.options.automatic_add and not self.options.has_device(event.device.canonical_id):
             self._add_rf_device(event)
             # Still send event for group events
 
         # Replace event address if device has redirect configuration
-        device_info = self.options.get_redirected_device(event.device.id_string)
+        device_info = self.options.get_redirected_device(event.device.canonical_id)
         if device_info:
             event.device.address = device_info.address
 
@@ -108,16 +108,18 @@ class Gateway:
     def _add_rf_device(self, event: RfDeviceEvent) -> None:
         profile_name = self.profile_registry.get_profile_name_from_event(event.data)
         if profile_name == UNDEFINED_PROFILE:
-            _LOGGER.debug("No matching profile for device %s event %s", event.device.id_string, json.dumps(event.data))
+            _LOGGER.debug(
+                "No matching profile for device %s event %s", event.device.canonical_id, json.dumps(event.data)
+            )
             return
         device_info = RfPlayerDeviceInfo.from_event(profile_name, event)
 
-        self.options = self.options.with_updated_device(event.device.id_string, device_info)
+        self.options = self.options.with_updated_device(event.device.canonical_id, device_info)
         save_options(self.hass, self.entry, self.options, reload=False)
 
         _LOGGER.debug(
             "Device %s added (Proto: %s Addr: %s Model: %s)",
-            event.device.id_string,
+            event.device.canonical_id,
             event.device.protocol,
             event.device.address,
             event.device.model,
@@ -128,10 +130,10 @@ class Gateway:
         if len(device_entry.identifiers) != 1:
             _LOGGER.warning("Device %s has more than one identifier, cannot remove", device_entry.id)
             return False
-        _, id_string = next(iter(device_entry.identifiers))
-        self.options = self.options.with_removed_device(id_string)
+        _, canonical_id = next(iter(device_entry.identifiers))
+        self.options = self.options.with_removed_device(canonical_id)
         updated = save_options(self.hass, self.entry, self.options)
-        _LOGGER.debug("Device %s %s", id_string, "removed" if updated else "not removed")
+        _LOGGER.debug("Device %s %s", canonical_id, "removed" if updated else "not removed")
         return updated
 
     async def _connect_gateway(self) -> None:

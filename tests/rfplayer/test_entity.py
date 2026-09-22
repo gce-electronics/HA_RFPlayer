@@ -18,7 +18,7 @@ def test_unique_id_normalization() -> None:
         config_entry=Mock(),
         device_entry=Mock(),
         rf_device_id=device,
-        profile_name="Motion Detector",
+        entity_name="Motion Detector",
         event_data=None,
     )
 

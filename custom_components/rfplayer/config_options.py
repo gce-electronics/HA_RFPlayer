@@ -91,10 +91,10 @@ class RfPlayerOptions:
         # Defaults win, matching the previous startup behaviour.
         return {**self.devices, **DEFAULT_DEVICES}
 
-    def has_device(self, id_string: str) -> bool:
+    def has_device(self, canonical_id: str) -> bool:
         """Check if a device id string is already known."""
         # Fast lookup compared to using effective_devices aggregation
-        return id_string in self.devices or id_string in DEFAULT_DEVICES
+        return canonical_id in self.devices or canonical_id in DEFAULT_DEVICES
 
     def to_json(self) -> dict[str, Any]:
         """Convert to JSON-serializable for HA persistence."""
@@ -104,37 +104,37 @@ class RfPlayerOptions:
         """Update gateway options from JSON-serializable data."""
         return replace(self, **data)
 
-    def with_updated_device_from_user_input(self, id_string: str, data: Mapping[str, Any]) -> RfPlayerOptions:
+    def with_updated_device_from_user_input(self, canonical_id: str, data: Mapping[str, Any]) -> RfPlayerOptions:
         """Replace gateway device options from JSON-serializable data."""
-        device_info = self.devices[id_string].update_from_json(data)
-        return replace(self, devices={**self.devices, id_string: device_info})
+        device_info = self.devices[canonical_id].update_from_json(data)
+        return replace(self, devices={**self.devices, canonical_id: device_info})
 
-    def with_added_device_from_user_input(self, id_string: str, data: Mapping[str, Any]) -> RfPlayerOptions:
+    def with_added_device_from_user_input(self, canonical_id: str, data: Mapping[str, Any]) -> RfPlayerOptions:
         """Add a new rf device to the gateway."""
         device_info = RfPlayerDeviceInfo.from_json(data)
-        return replace(self, devices={**self.devices, id_string: device_info})
+        return replace(self, devices={**self.devices, canonical_id: device_info})
 
-    def with_updated_device(self, id_string: str, device_info: RfPlayerDeviceInfo) -> RfPlayerOptions:
+    def with_updated_device(self, canonical_id: str, device_info: RfPlayerDeviceInfo) -> RfPlayerOptions:
         """Replace gateway device options."""
-        devices = {**self.devices, id_string: device_info}
+        devices = {**self.devices, canonical_id: device_info}
         return replace(self, devices=devices)
 
-    def with_removed_device(self, id_string: str) -> RfPlayerOptions:
+    def with_removed_device(self, canonical_id: str) -> RfPlayerOptions:
         """Remove device from gateway."""
-        devices = {k: v for k, v in self.devices.items() if k != id_string}
+        devices = {k: v for k, v in self.devices.items() if k != canonical_id}
         return replace(self, devices=devices)
 
-    def get_redirected_device(self, id_string: str) -> RfPlayerDeviceInfo | None:
+    def get_redirected_device(self, canonical_id: str) -> RfPlayerDeviceInfo | None:
         """Return device info with device id redirection if configured."""
-        redirected_id_string = self._redirect_addresses.get(id_string, id_string)
+        redirected_id_string = self._redirect_addresses.get(canonical_id, canonical_id)
         return self.devices.get(redirected_id_string)
 
     @property  # Property not cached in case device is mutated. Assume number of devices is low.
     def _redirect_addresses(self) -> dict[str, str]:
         """Map a redirected device id to its configured device id."""
         return {
-            RfDeviceId(protocol=device.protocol, address=device.redirect_address).id_string: id_string
-            for id_string, device in self.devices.items()
+            RfDeviceId(protocol=device.protocol, address=device.redirect_address).canonical_id: canonical_id
+            for canonical_id, device in self.devices.items()
             if device.redirect_address
         }
 

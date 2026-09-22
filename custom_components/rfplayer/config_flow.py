@@ -20,7 +20,7 @@ from custom_components.rfplayer.const import (
     DOMAIN,
 )
 from custom_components.rfplayer.device_profiles import ProfileRegistry, async_get_profile_registry
-from custom_components.rfplayer.helpers import get_device_id_string_from_identifiers
+from custom_components.rfplayer.helpers import get_device_canonical_id_from_identifiers
 from custom_components.rfplayer.rfplayerlib import DEVICE_PROTOCOLS, RECEIVER_MODES, SIMULATOR_PORT
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceId
 from homeassistant.config_entries import HANDLERS, ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
@@ -183,18 +183,20 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
             if not entry:
                 errors[CONF_DEVICE] = "unknown_device"
             else:
-                id_string = get_device_id_string_from_identifiers(entry.identifiers)
-                if not id_string:
+                canonical_id = get_device_canonical_id_from_identifiers(entry.identifiers)
+                if not canonical_id:
                     errors[CONF_DEVICE] = "unknown_device"
-                if id_string and id_string not in options.devices:
+                if canonical_id and canonical_id not in options.devices:
                     errors[CONF_DEVICE] = "unknown_device"
 
             # Remove CONF_DEVICE and set CONF_REDIRECT_ADDRESS to None if omitted
             cleaned_user_input = {CONF_REDIRECT_ADDRESS: user_input.get(CONF_REDIRECT_ADDRESS)}
 
-            if not errors and id_string:
+            if not errors and canonical_id:
                 # Finalize
-                return self._save_and_finish(options.with_updated_device_from_user_input(id_string, cleaned_user_input))
+                return self._save_and_finish(
+                    options.with_updated_device_from_user_input(canonical_id, cleaned_user_input)
+                )
 
         return self.async_show_form(
             step_id="configure_rf_device", data_schema=vol.Schema(self._rf_device_schema()), errors=errors
@@ -211,7 +213,7 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
     async def async_step_add_rf_device(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Add manuall a RF device."""
         errors: dict[str, Any] = {}
-        id_string = None
+        canonical_id = None
         options = RfPlayerOptions.from_json(self.config_entry.data)
 
         profile_registry = await async_get_profile_registry(self.hass, False)
@@ -225,14 +227,15 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
                 errors[CONF_ADDRESS] = "invalid_address"
 
             if not errors:
-                id_string = RfDeviceId(protocol=user_input[CONF_PROTOCOL], address=user_input[CONF_ADDRESS]).id_string
+                canonical_id = RfDeviceId(
+                    protocol=user_input[CONF_PROTOCOL], address=user_input[CONF_ADDRESS]
+                ).canonical_id
 
-                return self._save_and_finish(options.with_added_device_from_user_input(id_string, user_input))
+                return self._save_and_finish(options.with_added_device_from_user_input(canonical_id, user_input))
 
         data_schema = self._new_rf_device_schema(None, profile_registry)
         return self.async_show_form(step_id="add_rf_device", data_schema=vol.Schema(data_schema), errors=errors)
 
-    @callback
     def _new_rf_device_schema(
         self, options: RfPlayerDeviceInfo | None, profile_registry: ProfileRegistry
     ) -> vol.Schema:
@@ -251,10 +254,9 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
         save_options(self.hass, self.config_entry, options)
         return self.async_create_entry(title="", data={})
 
-    @callback
     def _list_rf_devices(self) -> dict[str, str]:
         device_entries = dr.async_entries_for_config_entry(self.device_registry, self.config_entry.entry_id)
-
+        # TODO should remove jamming device
         return {entry.id: self._get_device_name(entry) for entry in device_entries}
 
     def _get_device_name(self, entry: DeviceEntry) -> str:

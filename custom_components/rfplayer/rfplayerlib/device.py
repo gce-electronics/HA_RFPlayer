@@ -51,7 +51,7 @@ class RfDeviceId:
         return self._integer_address
 
     @property
-    def id_string(self) -> str:
+    def canonical_id(self) -> str:
         """Build a unique device id for the device."""
 
         return f"{self.protocol}-{self.integer_address}"

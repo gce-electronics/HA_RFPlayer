@@ -38,12 +38,12 @@ class DeviceMetadata(TypedDict):
 def assert_device_metadata(
     device_registry: dr.DeviceRegistry,
     config_entry: ConfigEntry,
-    id_string: str,
+    canonical_id: str,
     *,
     expected: DeviceMetadata,
 ):
     device = device_registry.async_get_device_by_identifier(
-        identifier=(DOMAIN, id_string), config_entry_id=config_entry.entry_id
+        identifier=(DOMAIN, canonical_id), config_entry_id=config_entry.entry_id
     )
     assert device is not None
     assert device.model == expected["model"]
@@ -52,10 +52,10 @@ def assert_device_metadata(
 
 
 def assert_device_exists(
-    device_registry: dr.DeviceRegistry, config_entry: ConfigEntry, id_string: str, *, exists: bool
+    device_registry: dr.DeviceRegistry, config_entry: ConfigEntry, canonical_id: str, *, exists: bool
 ) -> DeviceEntry | None:
     device = device_registry.async_get_device_by_identifier(
-        identifier=(DOMAIN, id_string), config_entry_id=config_entry.entry_id
+        identifier=(DOMAIN, canonical_id), config_entry_id=config_entry.entry_id
     )
     assert device is not None if exists else device is None
     return device
@@ -224,6 +224,6 @@ async def test_fire_event(
         },
     )
 
-    assert calls[0].device.id_string == OREGON_ID_STRING
-    assert calls[1].device.id_string == BLYSS_ID_STRING
-    assert calls[2].device.id_string == BLYSS_ID_STRING
+    assert calls[0].device.canonical_id == OREGON_ID_STRING
+    assert calls[1].device.canonical_id == BLYSS_ID_STRING
+    assert calls[2].device.canonical_id == BLYSS_ID_STRING
