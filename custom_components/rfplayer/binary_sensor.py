@@ -79,7 +79,7 @@ class RfPlayerBinarySensor(RfDeviceEntity, BinarySensorEntity):
             config_entry=config_entry,
             device_entry=device_entry,
             rf_device_id=rf_device_id,
-            profile_name=platform_config.name,
+            entity_name=platform_config.name,
             event_data=event_data,
         )
         self.entity_description = _get_entity_description(platform_config)

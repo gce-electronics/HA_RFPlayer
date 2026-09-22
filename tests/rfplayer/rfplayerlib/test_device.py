@@ -47,27 +47,27 @@ def test_valid_address():
 def test_integer_address():
     device = RfDeviceId(protocol="X2D", address="123456789")
     assert device.integer_address == 123456789
-    assert device.id_string == "X2D-123456789"
+    assert device.canonical_id == "X2D-123456789"
 
     device = RfDeviceId(protocol="X2D", address="xABCD1234")
     assert device.integer_address == 0xABCD1234
-    assert device.id_string == "X2D-2882343476"
+    assert device.canonical_id == "X2D-2882343476"
 
     device = RfDeviceId(protocol="X2D", address="A1")
     assert device.integer_address == 0
-    assert device.id_string == "X2D-0"
+    assert device.canonical_id == "X2D-0"
 
     device = RfDeviceId(protocol="X2D", address="A16")
     assert device.integer_address == 15
-    assert device.id_string == "X2D-15"
+    assert device.canonical_id == "X2D-15"
 
     device = RfDeviceId(protocol="X2D", address="P16")
     assert device.integer_address == 255
-    assert device.id_string == "X2D-255"
+    assert device.canonical_id == "X2D-255"
 
     device.address = "P1"
     assert device.integer_address == 240
-    assert device.id_string == "X2D-240"
+    assert device.canonical_id == "X2D-240"
 
 
 def test_group_unit_code():
