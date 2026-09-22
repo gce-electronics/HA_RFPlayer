@@ -8,7 +8,11 @@ from typing import cast
 
 from custom_components.rfplayer.config_options import RfPlayerDeviceInfo, RfPlayerOptions
 from custom_components.rfplayer.device_profiles import AnyRfpPlatformConfig, ProfileRegistry, async_get_profile_registry
-from custom_components.rfplayer.helpers import build_event_data_from_device_info, get_identifiers_from_device_id
+from custom_components.rfplayer.helpers import (
+    build_event_data_from_device_info,
+    get_gateway_identifiers,
+    get_rf_device_identifiers,
+)
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
 from custom_components.rfplayer.runtime import RfPlayerConfigEntry
@@ -236,15 +240,23 @@ class RfPlayerPlatformEntityManager:
             )
             return
 
+        gateway_entry = self.device_registry.async_get_or_create(
+            config_entry_id=self.config_entry.entry_id,
+            identifiers=get_gateway_identifiers(self.config_entry),
+            manufacturer="GCE Electronics",
+            model="RFPlayer",
+            name="RFPlayer",
+        )
+
         device_entry = self.device_registry.async_get_or_create(  # TODO: need to run this in the hass event loop
             config_entry_id=self.config_entry.entry_id,
-            identifiers={get_identifiers_from_device_id(device_info.rf_device_id)},
+            identifiers=get_rf_device_identifiers(device_info.rf_device_id),
             manufacturer=device_info.protocol,
             model=device_info.model or "",
             name=f"{device_info.protocol} {device_info.model} {device_info.address}"
             if device_info.model
             else f"{device_info.protocol} {device_info.address}",
-            # TODO add via_device to link to the gateway device entry
+            via_device_id=gateway_entry.id,
         )
         entities = self.builder(self.config_entry, device_entry, device_info.rf_device_id, platform_config, event_data)
         async_add_entities(entities)

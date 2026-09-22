@@ -9,7 +9,7 @@ from pytest_homeassistant_custom_component.common import MockConfigEntry
 
 from custom_components.rfplayer import config_flow
 from custom_components.rfplayer.const import DOMAIN, INIT_COMMANDS_EMPTY
-from custom_components.rfplayer.helpers import get_identifiers_from_device_id
+from custom_components.rfplayer.helpers import get_rf_device_identifiers
 from custom_components.rfplayer.rfplayerlib import RfPlayerClient
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
@@ -19,6 +19,7 @@ from homeassistant.const import STATE_OFF, STATE_OPEN, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers.device_registry import DeviceEntry
 from tests.rfplayer.conftest import create_rfplayer_test_options
 from tests.rfplayer.constants import (
     CHACON_BINARY_SENSOR_DEVICE_INFO,
@@ -66,6 +67,16 @@ def com_port():
     port.description = "Some serial port"
 
     return port
+
+
+def assert_device_exists(
+    device_registry: dr.DeviceRegistry, config_entry: MockConfigEntry, rf_device_id: RfDeviceId
+) -> DeviceEntry:
+    device_entry = device_registry.async_get_device_by_identifier(
+        identifier=list(get_rf_device_identifiers(rf_device_id))[0], config_entry_id=config_entry.entry_id
+    )
+    assert device_entry
+    return device_entry
 
 
 async def start_options_flow(hass: HomeAssistant, entry: MockConfigEntry) -> ConfigFlowResult:
@@ -435,10 +446,7 @@ async def test_options_configure_rf_device(
     assert result["step_id"] == "configure_rf_device"
 
     device_id = RfDeviceId(protocol="OREGON", address=OREGON_ADDRESS)
-    device_entry = device_registry.async_get_device_by_identifier(
-        identifier=get_identifiers_from_device_id(device_id), config_entry_id=entry.entry_id
-    )
-    assert device_entry
+    device_entry = assert_device_exists(device_registry, entry, device_id)
 
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
@@ -472,9 +480,7 @@ async def test_options_configure_rf_device(
 
     # ----------------------------------------------------------------------------------
 
-    device_entries = dr.async_entries_for_config_entry(device_registry, entry.entry_id)
-
-    assert device_entries[0].id
+    device_entry = assert_device_exists(device_registry, entry, device_id)
 
     result = await hass.config_entries.options.async_init(entry.entry_id)
 
@@ -488,7 +494,7 @@ async def test_options_configure_rf_device(
     result = await hass.config_entries.options.async_configure(
         result["flow_id"],
         user_input={
-            "device": device_entries[0].id,
+            "device": device_entry.id,
         },
     )
 

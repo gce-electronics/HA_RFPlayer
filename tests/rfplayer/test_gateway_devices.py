@@ -61,7 +61,34 @@ def assert_device_exists(
     return device
 
 
-pytestmark = pytest.mark.integration
+def assert_device_count(device_registry: dr.DeviceRegistry, config_entry: ConfigEntry, count: int):
+    device_entries = dr.async_entries_for_config_entry(device_registry, config_entry.entry_id)
+    assert len(device_entries) == count
+
+
+@pytest.mark.integration
+async def test_via_gateway(
+    mock_serial_connection: Mock,
+    hass: HomeAssistant,
+    device_registry: dr.DeviceRegistry,
+) -> None:
+    """Test fire event."""
+    config_entry = await rfplayer_config_entry(hass, automatic_add=True)
+
+    # Ensure Gateway + Jamming is present
+    assert_device_count(device_registry, config_entry, 2)
+    # Gateway
+    gateway = assert_device_exists(device_registry, config_entry, config_entry.entry_id, exists=True)
+    assert gateway
+    assert gateway.manufacturer == "GCE Electronics"
+    assert gateway.model == "RFPlayer"
+    assert gateway.via_device_id is None
+    # Jamming
+    rf_device = assert_device_exists(device_registry, config_entry, "JAMMING-0", exists=True)
+    assert rf_device
+    assert rf_device.manufacturer == "JAMMING"
+    assert rf_device.model == ""
+    assert rf_device.via_device_id == gateway.id
 
 
 @pytest.mark.integration
@@ -71,14 +98,13 @@ async def test_device_discovery(
     device_registry: dr.DeviceRegistry,
 ) -> None:
     """Test fire event."""
-    entry = await rfplayer_config_entry(hass, automatic_add=True)
+    config_entry = await rfplayer_config_entry(hass, automatic_add=True)
 
-    client = entry.runtime_data.gateway.client
+    client = config_entry.runtime_data.gateway.client
 
-    # Ensure only Jamming is present
-    device_entries = dr.async_entries_for_config_entry(device_registry, entry.entry_id)
-    assert len(device_entries) == 1
-    assert_device_exists(device_registry, entry, "JAMMING-0", exists=True)
+    # Ensure Gateway + Jamming is present
+    assert_device_count(device_registry, config_entry, 2)
+    assert_device_exists(device_registry, config_entry, "JAMMING-0", exists=True)
 
     with patch.object(hass.config_entries, "async_reload", new_callable=AsyncMock) as async_reload:
         client.event_callback(
@@ -89,15 +115,15 @@ async def test_device_discovery(
         )
         await hass.async_block_till_done()
 
+    # Discovery must not reload the config entry when the device is added
     async_reload.assert_not_awaited()
 
     # Ensure Oregon is added automatically
-    device_entries = dr.async_entries_for_config_entry(device_registry, entry.entry_id)
-    assert len(device_entries) == 2
+    assert_device_count(device_registry, config_entry, 3)
 
     assert_device_metadata(
         device_registry,
-        entry,
+        config_entry,
         OREGON_ID_STRING,
         expected={
             "model": "PCR800",
@@ -117,7 +143,7 @@ async def test_remove_device(
     """Test removing a device through device registry."""
     assert await async_setup_component(hass, "config", {})
 
-    mock_entry = await rfplayer_config_entry(
+    config_entry = await rfplayer_config_entry(
         hass,
         devices={
             BLYSS_ID_STRING: {
@@ -129,9 +155,9 @@ async def test_remove_device(
         },
     )
 
-    assert len(mock_entry.data["devices"]) == 1
+    assert_device_count(device_registry, config_entry, 3)
 
-    device = assert_device_exists(device_registry, mock_entry, BLYSS_ID_STRING, exists=True)
+    device = assert_device_exists(device_registry, config_entry, BLYSS_ID_STRING, exists=True)
     assert device
 
     # Ask to remove existing device
@@ -140,10 +166,10 @@ async def test_remove_device(
     assert response["success"]
 
     # Verify device entry is removed
-    assert_device_exists(device_registry, mock_entry, BLYSS_ID_STRING, exists=False)
+    assert_device_exists(device_registry, config_entry, BLYSS_ID_STRING, exists=False)
 
     # Verify that the config entry has removed the device
-    assert len(mock_entry.data["devices"]) == 0
+    assert len(config_entry.data["devices"]) == 0
 
 
 @pytest.mark.integration
@@ -153,7 +179,7 @@ async def test_fire_event(
     device_registry: dr.DeviceRegistry,
 ) -> None:
     """Test fire event."""
-    entry = await rfplayer_config_entry(hass, automatic_add=True)
+    config_entry = await rfplayer_config_entry(hass, automatic_add=True)
 
     calls: list[RfDeviceEvent] = []
 
@@ -164,7 +190,7 @@ async def test_fire_event(
 
     async_dispatcher_connect(hass, SIGNAL_RFPLAYER_EVENT, record_event)  # type: ignore[has-type]
 
-    client = entry.runtime_data.gateway.client
+    client = config_entry.runtime_data.gateway.client
 
     client.event_callback(
         RfDeviceEvent(
@@ -188,12 +214,12 @@ async def test_fire_event(
     )
 
     # Ensure blyss is not duplicated
-    device_entries = dr.async_entries_for_config_entry(device_registry, entry.entry_id)
-    assert len(device_entries) == 3
+    # Gateway + Jammin + Blyss + Oregon
+    assert_device_count(device_registry, config_entry, 4)
 
     assert_device_metadata(
         device_registry,
-        entry,
+        config_entry,
         "JAMMING-0",
         expected={
             "model": "",
@@ -204,7 +230,7 @@ async def test_fire_event(
 
     assert_device_metadata(
         device_registry,
-        entry,
+        config_entry,
         OREGON_ID_STRING,
         expected={
             "model": "PCR800",
@@ -215,7 +241,7 @@ async def test_fire_event(
 
     assert_device_metadata(
         device_registry,
-        entry,
+        config_entry,
         BLYSS_ID_STRING,
         expected={
             "model": "",

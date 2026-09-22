@@ -6,6 +6,7 @@ from custom_components.rfplayer.config_options import RfPlayerDeviceInfo
 from custom_components.rfplayer.const import DOMAIN
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceId
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
+from custom_components.rfplayer.runtime import RfPlayerConfigEntry
 
 
 def get_device_canonical_id_from_identifiers(
@@ -15,11 +16,18 @@ def get_device_canonical_id_from_identifiers(
     return next((x[1] for x in identifiers if x[0] == DOMAIN), None)
 
 
-def get_identifiers_from_device_id(
+def get_rf_device_identifiers(
     device: RfDeviceId,
-) -> tuple[str, str]:
+) -> set[tuple[str, str]]:
     """Calculate the device identifier from a device id."""
-    return (DOMAIN, device.canonical_id)
+    return {(DOMAIN, device.canonical_id)}
+
+
+def get_gateway_identifiers(
+    config_entry: RfPlayerConfigEntry,
+) -> set[tuple[str, str]]:
+    """Calculate the device identifier from a device id."""
+    return {(DOMAIN, config_entry.entry_id)}
 
 
 def build_event_data_from_device_info(device_info: RfPlayerDeviceInfo) -> RfPlayerEventData | None:
