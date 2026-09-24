@@ -37,7 +37,7 @@ dev = [
     "colorlog~=6.8",
     "ruff<1.0",
     "types-PyYAML~=6.0",
-    "ty>=0.0.61",
+    "ty>=0.0.82",
 ]
 
 [build-system]
