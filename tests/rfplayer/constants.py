@@ -300,3 +300,123 @@ RTS_DEVICE_INFO = {
     "address": RTS_X10_ADDRESS,
     "profile_name": "RTS Shutter",
 }
+
+
+SYSTEM_STATUS = {
+    "systemStatus": {
+        "reqNum": "1234",
+        "info": [
+            {"n": "Version", "v": "1.17", "unit": "", "c": ""},
+            {"n": "Time", "v": "313", "unit": "s", "c": ""},
+            {"n": "Mac", "v": "0xFD0CBA71", "unit": "", "c": ""},
+            {"n": "LBT", "v": "16", "unit": "dBm", "c": ""},
+            {"n": "Factory", "v": "1488874419", "unit": "", "c": ""},
+            {"n": "ClusterID", "v": "0", "unit": "", "c": ""},
+            {"n": "RTdenials", "v": "0", "unit": "", "c": ""},
+            {"n": "MaskT", "v": "0xFFBF8FF9", "unit": "", "c": ""},
+            {"n": "MaskA", "v": "0x3FFFFFFE", "unit": "", "c": ""},
+            {
+                "transmitter": {
+                    "available": {
+                        "p": [
+                            "VISONIC433",
+                            "VISONIC868",
+                            "CHACON",
+                            "DOMIA",
+                            "X10",
+                            "X2D433",
+                            "X2D868",
+                            "X2DSHUTTER",
+                            "X2DELEC",
+                            "X2DGAS",
+                            "RTS",
+                            "BLYSS",
+                            "PARROT",
+                            "KD101",
+                        ]
+                    }
+                }
+            },
+            {
+                "receiver": {
+                    "available": {
+                        "p": [
+                            "X10",
+                            "RTS",
+                            "VISONIC",
+                            "BLYSS",
+                            "CHACON",
+                            "OREGONV1",
+                            "OREGONV2",
+                            "OREGONV3/OWL",
+                            "DOMIA",
+                            "X2D",
+                            "KD101",
+                            "PARROT",
+                        ]
+                    }
+                }
+            },
+            {
+                "receiver": {
+                    "enabled": {
+                        "p": [
+                            "X10",
+                            "RTS",
+                            "VISONIC",
+                            "BLYSS",
+                            "CHACON",
+                            "OREGONV1",
+                            "OREGONV2",
+                            "OREGONV3/OWL",
+                            "DOMIA",
+                            "X2D",
+                            "KD101",
+                            "PARROT",
+                        ]
+                    }
+                }
+            },
+            {
+                "repeater": {
+                    "available": {
+                        "p": [
+                            "X10",
+                            "RTS",
+                            "VISONIC",
+                            "BLYSS",
+                            "CHACON",
+                            "OREGONV1",
+                            "OREGONV2",
+                            "OREGONV3/OWL",
+                            "DOMIA",
+                            "X2D",
+                            "KD101",
+                            "PARROT",
+                        ]
+                    }
+                }
+            },
+            {
+                "repeater": {
+                    "enabled": {
+                        "p": [
+                            "X10",
+                            "RTS",
+                            "VISONIC",
+                            "BLYSS",
+                            "CHACON",
+                            "OREGONV1",
+                            "OREGONV2",
+                            "OREGONV3/OWL",
+                            "DOMIA",
+                            "X2D",
+                            "KD101",
+                            "PARROT",
+                        ]
+                    }
+                }
+            },
+        ],
+    }
+}

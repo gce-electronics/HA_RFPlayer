@@ -108,7 +108,8 @@ async def test_unload_cancels_pending_reconnect(
     with patch.object(gateway.client, "connect", AsyncMock()) as connect:
         gateway.client.disconnect_callback(ConnectionError())
 
-        assert gateway._reconnect_task is not None  # noqa: SLF001
+        assert gateway._session  # noqa: SLF001
+        assert gateway._session._reconnect_task is not None  # noqa: SLF001
 
         await gateway.async_unload()
 
@@ -165,7 +166,7 @@ async def test_connect_with_init_commands(mock_serial_connection: Mock, hass: Ho
 async def test_connect_timeout(mock_serial_connection: Mock, mocker: MockerFixture, hass: HomeAssistant) -> None:
     """Test that we attempt to connect to the device."""
 
-    mocker.patch("custom_components.rfplayer.gateway.asyncio.wait_for").side_effect = TimeoutError
+    mocker.patch("custom_components.rfplayer.session.asyncio.wait_for").side_effect = TimeoutError
 
     config_entry = await rfplayer_config_entry(hass)
 

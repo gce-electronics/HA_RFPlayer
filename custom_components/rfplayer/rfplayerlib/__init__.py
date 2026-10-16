@@ -5,6 +5,7 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from functools import partial
 import logging
+import random
 from typing import Any, cast
 
 from serialx import SerialException, create_serial_connection
@@ -83,6 +84,10 @@ COMMAND_PROTOCOLS = [
 RFPLAYER_BAUD_RATE = 115200
 
 
+def _request_id_generator() -> int:
+    return random.randint(0, 9999)
+
+
 class RfPlayerException(Exception):
     """Generic RfPlayer exception."""
 
@@ -154,7 +159,11 @@ class RfPlayerClient:
         if not self._protocol or not self._protocol.transport:
             raise RfPlayerException("Not connected")
 
-        return await self._protocol.send_raw_request(command)
+        try:
+            return await self._protocol.send_raw_request(command)
+
+        except TimeoutError as e:
+            raise RfPlayerException("Request failed with timeout") from e
 
     async def simulate_event(self, event_data: Mapping[str, Any]) -> None:
         """Send an event to the client callback."""

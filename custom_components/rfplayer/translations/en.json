@@ -3,18 +3,36 @@
     "step": {
       "user": {
         "title": "GCE RfPlayer",
-        "description": "Select RfPlayer device",
-        "data": {
-          "device_serial": "USB devices found",
-          "ip_address": "IP address (if serial device not used)",
-          "port": "Port",
-          "device_simulator": "Use RfPlayer simulator"
+        "description": "Choose how to connect to the RFPlayer.",
+        "menu_options": {
+          "serial": "Serial device",
+          "network": "Network device",
+          "simulator": "Simulator"
         }
+      },
+      "serial": {
+        "title": "Serial connection",
+        "data": {
+          "device_serial": "USB device"
+        }
+      },
+      "network": {
+        "title": "Network connection",
+        "data": {
+          "ip_address": "IP address",
+          "port": "Port"
+        }
+      },
+      "simulator": {
+        "title": "Simulator connection",
+        "description": "Connect to the RFPlayer simulator."
       }
     },
     "error": {
       "device_missing": "Unable to connect to the specified device",
-      "multiple_device": "Select either a serial device or an IP address/port."
+      "multiple_device": "Select either a serial device or an IP address/port.",
+      "invalid_ip_address": "Enter a valid IP address.",
+      "cannot_connect": "Cannot connect to RFPlayer"
     },
     "abort": {
       "single_instance_allowed": "Already configured. Only a single configuration possible.",
@@ -23,6 +41,37 @@
   },
   "options": {
     "step": {
+      "discover_rf_devices": {
+        "title": "Discover sensors",
+        "description": "Listen for sensors that transmit an RF event. You can add a detected sensor or replace an existing sensor if its RF ID changed."
+      },
+      "finish_discovery": {
+        "title": "Listening for sensors",
+        "description": "Transmit from the sensor now, then continue within 60 seconds to review detected sensors."
+      },
+      "select_discovered_device": {
+        "title": "Discovered sensors",
+        "data": {
+          "discovered_device": "Device"
+        }
+      },
+      "discovered_device_action": {
+        "title": "Configure discovered device",
+        "menu_options": {
+          "add_discovered_device": "Add as new device",
+          "replace_device": "Replace an existing device"
+        }
+      },
+      "add_discovered_device": {
+        "title": "Add discovered sensor"
+      },
+      "replace_device": {
+        "title": "Replace RF device",
+        "description": "Map this detected ID to an existing device to keep its entities and history.",
+        "data": {
+          "existing_device": "Existing device"
+        }
+      },
       "configure_gateway": {
         "title": "RFPlayer Options",
         "data": {
@@ -34,7 +83,8 @@
         }
       },
       "add_rf_device": {
-        "title": "Add RF device",
+        "title": "Add RF device manually",
+        "description": "Enter a device's protocol, address, and profile manually. Use this for devices that transmit infrequently or are quiet when you configure them.",
         "data": {
           "protocol": "Device protocol",
           "address": "Device address",
@@ -54,12 +104,19 @@
       }
     },
     "error": {
-      "incompatible_protocol": "Procotol and device profile are incompatible",
+      "incompatible_protocol": "Protocol and device profile are incompatible",
       "invalid_address": "Address must be a positive integer, a X10 address (e.g. A1) or an hexadecimal value prefixed with x (e.g. xBEEF)",
       "no_receiver_protocol": "At least one receiver protocol must be selected",
       "pairing_not_supported": "The RfPlayer cannot send pairing commands with this protocol",
       "cannot_connect": "RfPlayer is not connected: the pairing command could not be sent",
-      "unknown_device": "Unknown device"
+      "unknown_device": "Unknown device",
+      "cannot_connect": "Cannot connect to RFPlayer",
+      "duplicate_redirect": "This detected ID is already assigned to another device",
+      "duplicate_device": "A device with this protocol and address is already configured"
+    },
+    "abort": {
+      "no_devices_found": "No supported RF devices were detected",
+      "no_compatible_devices": "No compatible existing device was found"
     }
   },
   "services": {

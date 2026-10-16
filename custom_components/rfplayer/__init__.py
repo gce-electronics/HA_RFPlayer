@@ -1,7 +1,7 @@
 """Support for RfPlayer gateway."""
 
 from custom_components.rfplayer.gateway import Gateway
-from custom_components.rfplayer.migration import async_migrate_version_1_2
+from custom_components.rfplayer.migration import async_migrate_version_1_2, async_migrate_version_2_0
 from custom_components.rfplayer.runtime import RfPlayerConfigEntry, RfPlayerRuntimeData
 from custom_components.rfplayer.services import async_setup_services, async_unload_services
 from homeassistant.const import Platform
@@ -45,6 +45,11 @@ async def async_remove_config_entry_device(
 
 async def async_migrate_entry(hass: HomeAssistant, entry: RfPlayerConfigEntry) -> bool:
     """Migrate old entry."""
-    if entry.version == 1 and entry.minor_version <= 3:
-        return await async_migrate_version_1_2(hass, entry)
+    if entry.version == 1:
+        if entry.minor_version < 2 and not await async_migrate_version_1_2(hass, entry):
+            return False
+
+        # Continue from 1.2 to 2.0 in the same setup pass.
+        return await async_migrate_version_2_0(hass, entry)
+
     return True

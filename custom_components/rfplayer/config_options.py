@@ -26,6 +26,23 @@ DEFAULT_VALID_ADDRESS = "0"
 
 
 @dataclass(frozen=True)
+class RfPlayerConfigData:
+    """Immutable connection configuration stored in entry.data."""
+
+    device: str
+
+    def to_json(self) -> dict[str, Any]:
+        """Convert to JSON-serializable for HA persistence."""
+        return asdict(self)
+
+    @classmethod
+    def from_json(cls, data: Mapping[str, Any] | None) -> RfPlayerConfigData:
+        """Load connection configuration, accepting old combined entries during migration."""
+        data = data or {}
+        return cls(device=data.get(CONF_DEVICE, ""))
+
+
+@dataclass(frozen=True)
 class RfPlayerDeviceInfo:
     """Immutable configurable RfPlayer device info."""
 
@@ -78,7 +95,6 @@ DEFAULT_DEVICES = {"JAMMING_0": RfPlayerDeviceInfo(protocol="JAMMING", address="
 class RfPlayerOptions:
     """Immutable configuration options for a RFPlayer gateway."""
 
-    device: str
     automatic_add: bool = True
     reconnect_interval: int = DEFAULT_RECONNECT_INTERVAL
     receiver_protocols: list[str] = field(
@@ -144,10 +160,10 @@ class RfPlayerOptions:
         }
 
     @classmethod
-    def from_json(cls, data: Mapping[str, Any]) -> RfPlayerOptions:
+    def from_json(cls, data: Mapping[str, Any] | None) -> RfPlayerOptions:
         """Load gateway options from JSON-serializable data."""
+        data = data or {}
         return cls(
-            device=data[CONF_DEVICE],
             automatic_add=data.get(CONF_AUTOMATIC_ADD, True),
             reconnect_interval=data.get(CONF_RECONNECT_INTERVAL, DEFAULT_RECONNECT_INTERVAL),
             receiver_protocols=data.get(CONF_RECEIVER_PROTOCOLS, DEFAULT_RECEIVER_PROTOCOLS),
@@ -161,19 +177,13 @@ class RfPlayerOptions:
 
 
 def load_options(config_entry: ConfigEntry) -> RfPlayerOptions:
-    """Load gateway options from a config entry persisted data."""
-    return RfPlayerOptions.from_json(config_entry.data)
+    """Load gateway options from a config entry persisted options."""
+    return RfPlayerOptions.from_json(config_entry.options)
 
 
-def save_options(
-    hass: HomeAssistant, config_entry: ConfigEntry, options: RfPlayerOptions, *, reload: bool = True
-) -> bool:
-    """Persist gateway options into config entry and reload it."""
-
-    updated = hass.config_entries.async_update_entry(
+def save_options(hass: HomeAssistant, config_entry: ConfigEntry, options: RfPlayerOptions) -> bool:
+    """Persist gateway options into config entry."""
+    return hass.config_entries.async_update_entry(
         config_entry,
-        data=options.to_json(),
+        options=options.to_json(),
     )
-    if updated and reload:
-        hass.async_create_task(hass.config_entries.async_reload(config_entry.entry_id))
-    return updated

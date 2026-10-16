@@ -2,6 +2,8 @@
 
 import logging
 
+from custom_components.rfplayer.config_options import RfPlayerConfigData, RfPlayerOptions
+from custom_components.rfplayer.probe import async_get_rfplayer_unique_id
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import entity_registry as er
@@ -51,7 +53,28 @@ async def async_migrate_version_1_2(hass: HomeAssistant, entry: ConfigEntry) -> 
         "Migrated %d/%d entities for config entry %s (errors: %d)", count, len(entries), entry.entry_id, error_count
     )
 
-    # Update config entry version to 1.2
-    hass.config_entries.async_update_entry(entry, version=1, minor_version=2)
+    # The caller continues directly to the 2.0 migration, which updates the
+    # entry once with the final version and migrated data/options.
+    return True
+
+
+async def async_migrate_version_2_0(hass: HomeAssistant, entry: ConfigEntry) -> bool:
+    """Move gateway options out of entry.data and add a missing unique id."""
+    if entry.unique_id is None:
+        device = RfPlayerConfigData.from_json(entry.data).device
+        unique_id = await async_get_rfplayer_unique_id(device)
+    else:
+        # Version prior to 2.0 is not supposed to have a unique id
+        unique_id = entry.unique_id
+
+    options = RfPlayerOptions.from_json(entry.data)
+    hass.config_entries.async_update_entry(
+        entry,
+        data=RfPlayerConfigData.from_json(entry.data).to_json(),
+        options=options.to_json(),
+        unique_id=unique_id,
+        version=2,
+        minor_version=0,
+    )
 
     return True

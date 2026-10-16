@@ -82,8 +82,11 @@ def test_client(mock_serial_connection: Mock, test_protocol: RfplayerProtocol) -
     )
 
 
+def create_rfplayer_test_config():
+    return {CONF_DEVICE: "/dev/ttyUSBfake"}
+
+
 def create_rfplayer_test_options(
-    device: str = "/dev/tty123",
     automatic_add: bool = False,
     protocols: list[str] | None = None,
     init_commands: str | None = INIT_COMMANDS_EMPTY,
@@ -91,7 +94,6 @@ def create_rfplayer_test_options(
 ) -> dict:
     """Create rfplayer config entry data."""
     return {
-        CONF_DEVICE: device,
         CONF_AUTOMATIC_ADD: automatic_add,
         CONF_RECEIVER_PROTOCOLS: protocols or [],
         CONF_INIT_COMMANDS: init_commands,
@@ -110,14 +112,22 @@ async def rfplayer_config_entry(  # noqa: PLR0913
     devices: dict[str, dict] | None = None,
     protocols: list[str] | None = None,
     init_commands: str | None = INIT_COMMANDS_EMPTY,
-    minor_version=2,
+    unique_id: str | None = "rfplayer_fd0cba71",
+    version: int = 2,
+    minor_version: int = 0,
 ) -> RfPlayerConfigEntry:
     """Construct a rfplayer config entry."""
+    serialized_config_data = {CONF_DEVICE: device}
     serialized_options = create_rfplayer_test_options(
-        device=device, automatic_add=automatic_add, devices=devices, protocols=protocols, init_commands=init_commands
+        automatic_add=automatic_add, devices=devices, protocols=protocols, init_commands=init_commands
     )
     mock_entry = MockConfigEntry(
-        domain="rfplayer", unique_id="a_player", data=serialized_options, version=1, minor_version=minor_version
+        domain="rfplayer",
+        unique_id=unique_id,
+        data=serialized_config_data,
+        options=serialized_options,
+        version=version,
+        minor_version=minor_version,
     )
     mock_entry.supports_remove_device = True
     mock_entry.add_to_hass(hass)

@@ -19,7 +19,7 @@
   "requirements": [
     "pydantic~=2.13",
     "jsonpath-ng~=1.8",
-    "serialx>=1.10"
+    "serialx>=1.9"
   ],
   "version": "1.6.0-rc1"
 }

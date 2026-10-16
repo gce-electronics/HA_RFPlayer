@@ -15,7 +15,7 @@ def test_unique_id_normalization() -> None:
     """Test that unique_id follows Home Assistant 2026.2+ requirements."""
     device = RfDeviceId(protocol="BLYSS", address="4261483730")
     entity = RfDeviceEntity(
-        config_entry=Mock(),
+        config_entry=Mock(options={"verbose": False}),
         device_entry=Mock(),
         rf_device_id=device,
         entity_name="Motion Detector",

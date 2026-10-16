@@ -6,9 +6,9 @@ import json
 import logging
 from typing import cast
 
-from custom_components.rfplayer.config_options import RfPlayerDeviceInfo, RfPlayerOptions
+from custom_components.rfplayer.config_options import RfPlayerDeviceInfo, load_options
 from custom_components.rfplayer.device_profiles import AnyRfpPlatformConfig, ProfileRegistry, async_get_profile_registry
-from custom_components.rfplayer.helpers import build_event_data_from_device_info, get_identifiers_from_device_id
+from custom_components.rfplayer.helpers import build_event_data_from_device_info, get_rf_device_identifiers
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
 from custom_components.rfplayer.runtime import RfPlayerConfigEntry
@@ -20,7 +20,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.restore_state import RestoreEntity
 from homeassistant.util import slugify
 
-from .const import ATTR_EVENT_DATA, CONF_VERBOSE_MODE, SIGNAL_RFPLAYER_AVAILABILITY, SIGNAL_RFPLAYER_EVENT
+from .const import ATTR_EVENT_DATA, SIGNAL_RFPLAYER_AVAILABILITY, SIGNAL_RFPLAYER_EVENT
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ async def async_setup_platform_entry(
     builder: RfDeviceEntityBuilder,
 ) -> None:
     """Set up config entry."""
-    options = RfPlayerOptions.from_json(config_entry.data)
+    options = load_options(config_entry)
 
     device_registry = dr.async_get(hass)
     profile_registry = await async_get_profile_registry(hass, options.verbose_mode)
@@ -96,7 +96,7 @@ class RfDeviceEntity(RestoreEntity):
         # HA will generate the entity_id
         self._event_data = event_data
         self.rf_device_id = rf_device_id
-        self._verbose = config_entry.data.get(CONF_VERBOSE_MODE, False)
+        self._verbose = load_options(config_entry).verbose_mode
 
     async def async_added_to_hass(self) -> None:
         """Restore RfPlayer device from last event stored in attributes."""
@@ -164,7 +164,7 @@ class RfDeviceEntity(RestoreEntity):
 
     async def _send_command(self, command: str) -> None:
         """Send a command to the RfPlayer gateway."""
-        await self.gateway.client.send_raw_command(command)
+        await self.gateway.async_send_raw_command(command)
 
     def _command_parameters(self, **kwargs) -> dict:
         params = {
@@ -199,7 +199,7 @@ class RfPlayerPlatformEntityManager:
     def add_config_entities(self, async_add_entities: AddEntitiesCallback) -> None:
         """Add entities to the manager at startup."""
         entities = []
-        options = RfPlayerOptions.from_json(self.config_entry.data)
+        options = load_options(self.config_entry)
         devices = dict(options.effective_devices)
         for device_info in devices.values():
             event_data = build_event_data_from_device_info(device_info)
@@ -239,13 +239,12 @@ class RfPlayerPlatformEntityManager:
 
         device_entry = self.device_registry.async_get_or_create(  # TODO: need to run this in the hass event loop
             config_entry_id=self.config_entry.entry_id,
-            identifiers={get_identifiers_from_device_id(device_info.rf_device_id)},
+            identifiers=get_rf_device_identifiers(device_info.rf_device_id),
             manufacturer=device_info.protocol,
             model=device_info.model or "",
             name=f"{device_info.protocol} {device_info.model} {device_info.address}"
             if device_info.model
             else f"{device_info.protocol} {device_info.address}",
-            # TODO add via_device to link to the gateway device entry
         )
         entities = self.builder(self.config_entry, device_entry, device_info.rf_device_id, platform_config, event_data)
         async_add_entities(entities)
