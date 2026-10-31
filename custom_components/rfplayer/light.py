@@ -9,8 +9,8 @@ from custom_components.rfplayer.entity import RfDeviceEntity, async_setup_platfo
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
 from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
 from custom_components.rfplayer.runtime import RfPlayerConfigEntry
-from homeassistant.components.light import ATTR_BRIGHTNESS, STATE_ON, ColorMode, LightEntity, LightEntityDescription
-from homeassistant.const import Platform
+from homeassistant.components.light import ATTR_BRIGHTNESS, ColorMode, LightEntity, LightEntityDescription
+from homeassistant.const import STATE_ON, Platform
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
