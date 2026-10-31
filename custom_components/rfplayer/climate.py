@@ -63,7 +63,12 @@ class RfPlayerClimate(RfDeviceEntity, ClimateEntity):
         ClimateEntityFeature.PRESET_MODE | ClimateEntityFeature.TURN_OFF | ClimateEntityFeature.TURN_ON
     )
     _attr_name = None
-    _attr_temperature_unit = UnitOfTemperature.CELSIUS
+    # HA 2026.11 deprecates _attr_temperature_unit in favor of _attr_native_temperature_unit.
+    # Drop the fallback once the minimum supported HA version is 2026.11.
+    if hasattr(ClimateEntity, "native_temperature_unit"):
+        _attr_native_temperature_unit = UnitOfTemperature.CELSIUS
+    else:
+        _attr_temperature_unit = UnitOfTemperature.CELSIUS
     _attr_max_temp = 30.0
     _attr_min_temp = 0.0
     _attr_hvac_mode = HVACMode.HEAT
