@@ -29,7 +29,7 @@ async def async_setup_services(hass: HomeAssistant, gateway: Gateway) -> None:
     async def async_send_pairing_command(call: ServiceCall) -> None:
         """Send a pairing command to the RfPlayer gateway."""
         device_id = RfDeviceId(protocol=call.data[CONF_PROTOCOL], address=call.data[CONF_ADDRESS])
-        await gateway.async_send_raw_command(f"ASSOC {device_id.protocol} ID {device_id.integer_address}")
+        await gateway.async_send_pairing_command(device_id)
 
     async def async_simulate_event(call: ServiceCall) -> None:
         """Simulate an event from a device."""

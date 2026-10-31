@@ -62,6 +62,8 @@ By default, RF device are added automatically to HomeAssitant upon receipt of _R
 
 Automatic device creation is mostly useful for sensors because most actuators are only receivers and cannot send events. In that case, the RF device must be declared manually from the _RF Player_ configuration menu.
 
+When declaring an actuator manually, check _Send pairing command_ to pair it with the _RF Player_ in the same step: put the device in pairing mode first, then submit the form. The _RF Player_ sends an `ASSOC` command with the device protocol and address. This option is only available for protocols the _RF Player_ can transmit, and the device is not added if the command cannot be sent.
+
 Some generic RF devices can match several device profiles (e.g. Blyss devices). If you want to assign a more specific profile, you need to disable automatic device creation, delete the device that was automatically created and re-create it manually with the profile of your choice.
 
 ### Device replacement

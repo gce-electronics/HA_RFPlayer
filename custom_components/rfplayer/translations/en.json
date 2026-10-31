@@ -38,7 +38,11 @@
         "data": {
           "protocol": "Device protocol",
           "address": "Device address",
-          "profile_name": "Device profile"
+          "profile_name": "Device profile",
+          "send_pairing_command": "Send pairing command"
+        },
+        "data_description": {
+          "send_pairing_command": "Put the device in pairing mode first. The RfPlayer then sends an ASSOC command so the device learns this address. Only available for protocols the RfPlayer can transmit."
         }
       },
       "configure_rf_device": {
@@ -53,6 +57,8 @@
       "incompatible_protocol": "Procotol and device profile are incompatible",
       "invalid_address": "Address must be a positive integer, a X10 address (e.g. A1) or an hexadecimal value prefixed with x (e.g. xBEEF)",
       "no_receiver_protocol": "At least one receiver protocol must be selected",
+      "pairing_not_supported": "The RfPlayer cannot send pairing commands with this protocol",
+      "cannot_connect": "RfPlayer is not connected: the pairing command could not be sent",
       "unknown_device": "Unknown device"
     }
   },

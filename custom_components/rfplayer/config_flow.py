@@ -1,8 +1,9 @@
 """Config flow for RfPlayer integration."""
 
 import ipaddress
+import logging
 import os
-from typing import Any
+from typing import TYPE_CHECKING, Any, cast
 
 from serialx.tools import list_ports
 import voluptuous as vol
@@ -16,19 +17,39 @@ from custom_components.rfplayer.const import (
     CONF_RECEIVER_PROTOCOLS,
     CONF_RECONNECT_INTERVAL,
     CONF_REDIRECT_ADDRESS,
+    CONF_SEND_PAIRING_COMMAND,
     CONF_VERBOSE_MODE,
     DOMAIN,
 )
 from custom_components.rfplayer.device_profiles import ProfileRegistry, async_get_profile_registry
 from custom_components.rfplayer.helpers import get_device_id_string_from_identifiers
-from custom_components.rfplayer.rfplayerlib import DEVICE_PROTOCOLS, RECEIVER_MODES, SIMULATOR_PORT
+from custom_components.rfplayer.rfplayerlib import (
+    COMMAND_PROTOCOLS,
+    DEVICE_PROTOCOLS,
+    RECEIVER_MODES,
+    SIMULATOR_PORT,
+    RfPlayerException,
+)
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceId
-from homeassistant.config_entries import HANDLERS, ConfigEntry, ConfigFlow, ConfigFlowResult, OptionsFlow
+from homeassistant.config_entries import (
+    HANDLERS,
+    ConfigEntry,
+    ConfigEntryState,
+    ConfigFlow,
+    ConfigFlowResult,
+    OptionsFlow,
+)
 from homeassistant.const import CONF_ADDRESS, CONF_DEVICE, CONF_IP_ADDRESS, CONF_PORT, CONF_PROFILE_NAME, CONF_PROTOCOL
 from homeassistant.core import callback
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import device_registry as dr
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.device_registry import DeviceEntry
+
+if TYPE_CHECKING:
+    from custom_components.rfplayer.runtime import RfPlayerConfigEntry
+
+_LOGGER = logging.getLogger(__name__)
 
 SELECT_DEVICE_EXCLUSION = "select_device"
 DEFAULT_VALID_ADDRESS = "0"
@@ -211,23 +232,36 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
     async def async_step_add_rf_device(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Add manuall a RF device."""
         errors: dict[str, Any] = {}
-        id_string = None
         options = RfPlayerOptions.from_json(self.config_entry.data)
 
         profile_registry = await async_get_profile_registry(self.hass, False)
 
         if user_input is not None:
+            # The pairing flag is an action, not a device option: keep it out of the saved device info
+            device_input = {k: v for k, v in user_input.items() if k != CONF_SEND_PAIRING_COMMAND}
+            send_pairing_command = user_input.get(CONF_SEND_PAIRING_COMMAND, False)
+
             # New device
-            if not profile_registry.is_valid_protocol(user_input[CONF_PROFILE_NAME], user_input[CONF_PROTOCOL]):
+            if not profile_registry.is_valid_protocol(device_input[CONF_PROFILE_NAME], device_input[CONF_PROTOCOL]):
                 errors[CONF_PROTOCOL] = "incompatible_protocol"
 
-            if not RfDeviceId.is_valid_address(user_input[CONF_ADDRESS]):
+            if not RfDeviceId.is_valid_address(device_input[CONF_ADDRESS]):
                 errors[CONF_ADDRESS] = "invalid_address"
 
-            if not errors:
-                id_string = RfDeviceId(protocol=user_input[CONF_PROTOCOL], address=user_input[CONF_ADDRESS]).id_string
+            if send_pairing_command and device_input[CONF_PROTOCOL] not in COMMAND_PROTOCOLS:
+                errors[CONF_SEND_PAIRING_COMMAND] = "pairing_not_supported"
 
-                return self._save_and_finish(options.with_added_device_from_user_input(id_string, user_input))
+            if not errors:
+                device_id = RfDeviceId(protocol=device_input[CONF_PROTOCOL], address=device_input[CONF_ADDRESS])
+
+                # Pair before saving: saving the options reloads the gateway connection
+                if send_pairing_command:
+                    errors.update(await self._async_send_pairing_command(device_id))
+
+                if not errors:
+                    return self._save_and_finish(
+                        options.with_added_device_from_user_input(device_id.id_string, device_input)
+                    )
 
         data_schema = self._new_rf_device_schema(None, profile_registry)
         return self.async_show_form(step_id="add_rf_device", data_schema=vol.Schema(data_schema), errors=errors)
@@ -243,8 +277,22 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
                 vol.Required(CONF_PROFILE_NAME, default=options.profile_name if options else None): vol.In(
                     profile_registry.get_profile_names()
                 ),
+                vol.Optional(CONF_SEND_PAIRING_COMMAND, default=False): bool,
             }
         )
+
+    async def _async_send_pairing_command(self, device_id: RfDeviceId) -> dict[str, str]:
+        """Send the pairing command and return the form errors."""
+        if self.config_entry.state is not ConfigEntryState.LOADED:
+            return {"base": "cannot_connect"}
+
+        gateway = cast("RfPlayerConfigEntry", self.config_entry).runtime_data.gateway
+        try:
+            await gateway.async_send_pairing_command(device_id)
+        except (HomeAssistantError, RfPlayerException) as exc:
+            _LOGGER.warning("Unable to send pairing command to %s: %s", device_id.id_string, exc)
+            return {"base": "cannot_connect"}
+        return {}
 
     @callback
     def _save_and_finish(self, options: RfPlayerOptions) -> ConfigFlowResult:
