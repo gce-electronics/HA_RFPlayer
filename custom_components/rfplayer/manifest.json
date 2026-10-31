@@ -1,6 +1,9 @@
 {
   "domain": "rfplayer",
   "name": "GCE RF Player",
+  "after_dependencies": [
+    "usb"
+  ],
   "codeowners": [
     "@racletteparty",
     "@Aohzan"
