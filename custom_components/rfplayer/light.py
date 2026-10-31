@@ -56,7 +56,7 @@ class RfPlayerLight(RfDeviceEntity, LightEntity):
 
     _attr_color_mode = ColorMode.BRIGHTNESS
     _attr_supported_color_modes = {ColorMode.BRIGHTNESS}
-    _attr_brightness: int = 0
+    _attr_brightness: int | None = 0
     _attr_name = None
 
     def __init__(  # noqa: PLR0913, PLR0917

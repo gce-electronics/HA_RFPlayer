@@ -6,7 +6,12 @@ import os
 from typing import TYPE_CHECKING, Any, cast
 
 from serialx.tools import list_ports
-import voluptuous as vol
+
+if TYPE_CHECKING:
+    # HA 2026.10+ types its APIs with probatio and aliases voluptuous to it at runtime
+    import probatio as vol
+else:
+    import voluptuous as vol
 
 from custom_components.rfplayer.config_options import RfPlayerDeviceInfo, RfPlayerOptions, save_options
 from custom_components.rfplayer.const import (

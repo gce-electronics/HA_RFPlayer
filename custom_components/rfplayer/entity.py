@@ -120,8 +120,9 @@ class RfDeviceEntity(RestoreEntity):
             )
         )
 
+    # HA declares it as a cached_property, which ty treats as writable, but it is meant to be overridden
     @property
-    def extra_state_attributes(self) -> dict[str, str] | None:
+    def extra_state_attributes(self) -> dict[str, str] | None:  # ty: ignore[invalid-property-type-override]
         """Return the device state attributes."""
         if not self._event_data:
             return None
