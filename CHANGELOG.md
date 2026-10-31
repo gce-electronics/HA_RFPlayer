@@ -1,3 +1,17 @@
+# [1.6.0](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.5.0...v1.6.0) (2026-10-31)
+
+
+### Bug Fixes
+
+* declare usb dependency so the serial port is attributed to the integration ([dee399c](https://github.com/gce-electronics/HA_RFPlayer/commit/dee399c6766ac6778d5de29a75ecf378c1c71221))
+* import UnitOfTemperature and STATE_ON from homeassistant.const ([2efcd6d](https://github.com/gce-electronics/HA_RFPlayer/commit/2efcd6d679be1802179a582a300a473a21af9eda))
+* use native temperature unit on climate entity with HA 2026.11+ ([bbaaab2](https://github.com/gce-electronics/HA_RFPlayer/commit/bbaaab260c8414b6072400b344104ab380567136))
+
+
+### Features
+
+* optionally send a pairing command when adding a RF device manually ([2f1a4ce](https://github.com/gce-electronics/HA_RFPlayer/commit/2f1a4ce1e041d5fa74a19a234d9466ecac6434a9)), closes [#109](https://github.com/gce-electronics/HA_RFPlayer/issues/109)
+
 # [1.5.0](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.4.0...v1.5.0) (2026-07-05)
 
 
