@@ -1,6 +1,12 @@
 """HA services for the RfPlayer gateway."""
 
-import voluptuous as vol
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    # HA 2026.10+ types its APIs with probatio and aliases voluptuous to it at runtime
+    import probatio as vol
+else:
+    import voluptuous as vol
 
 from custom_components.rfplayer.const import ATTR_COMMAND, ATTR_EVENT_DATA, DOMAIN
 from custom_components.rfplayer.gateway import Gateway
