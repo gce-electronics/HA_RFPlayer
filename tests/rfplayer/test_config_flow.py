@@ -2,17 +2,18 @@
 
 import os
 from typing import cast
-from unittest.mock import MagicMock, Mock, patch, sentinel
+from unittest.mock import MagicMock, Mock, PropertyMock, patch, sentinel
 
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
+from pytest_mock import MockerFixture
 
 from custom_components.rfplayer import config_flow
 from custom_components.rfplayer.const import DOMAIN, INIT_COMMANDS_EMPTY
 from custom_components.rfplayer.helpers import get_identifiers_from_device_id
 from custom_components.rfplayer.rfplayerlib import RfPlayerClient
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
-from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData
+from custom_components.rfplayer.rfplayerlib.protocol import RfPlayerEventData, RfplayerProtocol
 from homeassistant import config_entries
 from homeassistant.config_entries import ConfigFlowResult
 from homeassistant.const import STATE_OFF, STATE_OPEN, STATE_UNKNOWN
@@ -408,6 +409,81 @@ async def test_options_add_rf_device_bad_address(mock_serial_connection: Mock, h
 
     assert result["type"] is FlowResultType.FORM
     assert result["errors"] == {"address": "invalid_address"}
+
+
+async def start_add_rf_device_form(hass: HomeAssistant, entry: MockConfigEntry) -> ConfigFlowResult:
+    """Open the options flow on the add RF device form."""
+    result = await start_options_flow(hass, entry)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={"next_step_id": "add_rf_device"},
+    )
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == "add_rf_device"
+    return result
+
+
+@pytest.mark.integration
+async def test_options_add_rf_device_with_pairing(
+    mock_serial_connection: Mock, hass: HomeAssistant, test_protocol: RfplayerProtocol
+) -> None:
+    """Test adding a device sends the pairing command and does not store the pairing flag."""
+    entry = MockConfigEntry(domain=DOMAIN, data=create_rfplayer_test_options(), unique_id=DOMAIN)
+    result = await start_add_rf_device_form(hass, entry)
+    tr = cast(Mock, test_protocol.transport)
+    tr.write.reset_mock()
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={**RTS_DEVICE_INFO, "send_pairing_command": True},
+    )
+
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    await hass.async_block_till_done()
+
+    integer_address = RfDeviceId(protocol="RTS", address=RTS_DEVICE_INFO["address"]).integer_address
+    tr.write.assert_called_once_with(bytearray(f"ZIA++ASSOC RTS ID {integer_address}\n\r".encode()))
+    assert "send_pairing_command" not in entry.data["devices"][RTS_ID_STRING]
+
+
+@pytest.mark.integration
+async def test_options_add_rf_device_pairing_not_supported(
+    mock_serial_connection: Mock, hass: HomeAssistant, test_protocol: RfplayerProtocol
+) -> None:
+    """Test pairing is refused for a receive-only protocol."""
+    entry = MockConfigEntry(domain=DOMAIN, data=create_rfplayer_test_options(), unique_id=DOMAIN)
+    result = await start_add_rf_device_form(hass, entry)
+    tr = cast(Mock, test_protocol.transport)
+    tr.write.reset_mock()
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={**OREGON_DEVICE_INFO, "send_pairing_command": True},
+    )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"send_pairing_command": "pairing_not_supported"}
+    tr.write.assert_not_called()
+    assert OREGON_ID_STRING not in entry.data["devices"]
+
+
+@pytest.mark.integration
+async def test_options_add_rf_device_pairing_disconnected(
+    mock_serial_connection: Mock, hass: HomeAssistant, mocker: MockerFixture
+) -> None:
+    """Test the device is not saved when the pairing command cannot be sent."""
+    entry = MockConfigEntry(domain=DOMAIN, data=create_rfplayer_test_options(), unique_id=DOMAIN)
+    result = await start_add_rf_device_form(hass, entry)
+    mocker.patch.object(RfPlayerClient, "connected", new_callable=PropertyMock, return_value=False)
+
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"],
+        user_input={**RTS_DEVICE_INFO, "send_pairing_command": True},
+    )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"base": "cannot_connect"}
+    assert RTS_ID_STRING not in entry.data["devices"]
 
 
 @pytest.mark.integration

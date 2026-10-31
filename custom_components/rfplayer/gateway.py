@@ -18,7 +18,7 @@ from custom_components.rfplayer.const import (
 from custom_components.rfplayer.device_profiles import UNDEFINED_PROFILE, async_get_profile_registry
 from custom_components.rfplayer.device_publishers import get_bus_publisher
 from custom_components.rfplayer.rfplayerlib import RfPlayerClient, RfPlayerException
-from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent
+from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
 from homeassistant.core import CoreState, HomeAssistant, callback
 from homeassistant.exceptions import ConfigEntryNotReady, PlatformNotReady
 from homeassistant.helpers import device_registry as dr
@@ -208,6 +208,10 @@ class Gateway:
             raise PlatformNotReady("RfPlayer not connected")
 
         await self.client.send_raw_command(command)
+
+    async def async_send_pairing_command(self, device_id: RfDeviceId) -> None:
+        """Send an association command so the RF device learns the RfPlayer address."""
+        await self.async_send_raw_command(f"ASSOC {device_id.protocol} ID {device_id.integer_address}")
 
     async def async_simulate_event(self, event_data: Mapping[str, Any]) -> None:
         """Send a raw command to the RfPlayer gateway."""
