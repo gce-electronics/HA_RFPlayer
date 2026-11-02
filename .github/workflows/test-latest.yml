@@ -13,19 +13,17 @@ jobs:
       - name: "Checkout the repository"
         uses: "actions/checkout@v7"
 
-      - name: "Set up Python"
-        uses: actions/setup-python@v7
-        with:
-          python-version: "3.13"
-
       - uses: astral-sh/setup-uv@v7
         with:
           enable-cache: true
           cache-dependency-glob: |
             **/uv.lock
 
-      - name: "Tests against latest home assistant"
+      - name: Tests against latest Home Assistant
         run: |
-          uv lock --prerelease=allow -P homeassistant -P pytest-homeassistant-custom-component
+          uv lock --prerelease=allow \
+            -P homeassistant \
+            -P pytest-homeassistant-custom-component
+
           uv sync --frozen
-          uv run pytest tests/
+          uv run --no-sync pytest tests/
