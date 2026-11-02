@@ -1,3 +1,10 @@
+## [1.6.2](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.6.1...v1.6.2) (2026-11-02)
+
+
+### Bug Fixes
+
+* incompatible serialx version with ha ([9cdede2](https://github.com/gce-electronics/HA_RFPlayer/commit/9cdede2d6dc22db681e764c11a709f5948faa953))
+
 ## [1.6.1](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.6.0...v1.6.1) (2026-11-02)
 
 
