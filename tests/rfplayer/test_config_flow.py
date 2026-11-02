@@ -4,6 +4,7 @@ import os
 from typing import cast
 from unittest.mock import MagicMock, Mock, PropertyMock, patch, sentinel
 
+import probatio
 import pytest
 from pytest_homeassistant_custom_component.common import MockConfigEntry
 from pytest_mock import MockerFixture
@@ -20,6 +21,7 @@ from homeassistant.const import STATE_OFF, STATE_OPEN, STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import device_registry as dr
+import homeassistant.helpers.config_validation as cv
 from tests.rfplayer.conftest import create_rfplayer_test_options
 from tests.rfplayer.constants import (
     CHACON_BINARY_SENSOR_DEVICE_INFO,
@@ -180,6 +182,26 @@ async def test_setup_duplicate(mock_serial_connection: Mock, hass: HomeAssistant
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
     assert result["type"] is FlowResultType.ABORT
     assert result["reason"] == "single_instance_allowed"
+
+
+@pytest.mark.integration
+@pytest.mark.parametrize("step_id", ["configure_gateway", "add_rf_device", "configure_rf_device"])
+async def test_options_form_schema_serializable(
+    mock_serial_connection: Mock, hass: HomeAssistant, step_id: str
+) -> None:
+    """Test options forms can be serialized for the frontend like the HA flow API does."""
+
+    entry = MockConfigEntry(
+        domain=DOMAIN,
+        data=create_rfplayer_test_options(devices={OREGON_ID_STRING: OREGON_DEVICE_INFO}),
+        unique_id=DOMAIN,
+    )
+    result = await start_options_flow(hass, entry)
+    result = await hass.config_entries.options.async_configure(result["flow_id"], user_input={"next_step_id": step_id})
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["step_id"] == step_id
+    assert probatio.to_field_list(result["data_schema"], custom_serializer=cv.custom_serializer)
 
 
 @pytest.mark.integration

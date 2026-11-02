@@ -222,9 +222,7 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
                 # Finalize
                 return self._save_and_finish(options.with_updated_device_from_user_input(id_string, cleaned_user_input))
 
-        return self.async_show_form(
-            step_id="configure_rf_device", data_schema=vol.Schema(self._rf_device_schema()), errors=errors
-        )
+        return self.async_show_form(step_id="configure_rf_device", data_schema=self._rf_device_schema(), errors=errors)
 
     def _rf_device_schema(self) -> vol.Schema:
         return vol.Schema(
@@ -269,7 +267,7 @@ class RfPlayerOptionsFlowHandler(OptionsFlow):
                     )
 
         data_schema = self._new_rf_device_schema(None, profile_registry)
-        return self.async_show_form(step_id="add_rf_device", data_schema=vol.Schema(data_schema), errors=errors)
+        return self.async_show_form(step_id="add_rf_device", data_schema=data_schema, errors=errors)
 
     @callback
     def _new_rf_device_schema(
