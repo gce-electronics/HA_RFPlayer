@@ -6,7 +6,7 @@ dependencies = [
     "homeassistant~=2026.10",
     "pydantic~=2.13",
     "jsonpath-ng~=1.10",
-    "serialx>=1.13.0",
+    "serialx>=1.11.0",
 ]
 classifiers = [
   # How mature is this project? Common values are
@@ -47,6 +47,8 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 packages = ["custom_components"]
 
+[tool.uv]
+python-downloads = "automatic"
 
 [tool.pytest.ini_options]
 testpaths = [
