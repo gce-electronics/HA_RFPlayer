@@ -1,7 +1,7 @@
 ---
 name: "Feature request"
 description: "Suggest an idea for this project"
-labels: "Feature+Request"
+labels: ["enhancement"]
 body:
 - type: markdown
   attributes:
@@ -14,7 +14,7 @@ body:
         required: true
       - label: This only contains 1 feature request (if you have multiple feature requests, open one feature request for each feature request).
         required: true
-      - label: This issue is not a duplicate feature request of [previous feature requests](https://github.com/ludeeus/integration_blueprint/issues?q=is%3Aissue+label%3A%22Feature+Request%22+).
+      - label: This issue is not a duplicate feature request of [previous feature requests](https://github.com/gce-electronics/HA_RFPlayer/issues?q=is%3Aissue+label%3Aenhancement).
         required: true
 
 - type: textarea
@@ -45,3 +45,21 @@ body:
     description: "Add any other context or screenshots about the feature request here."
   validations:
     required: true
+
+- type: dropdown
+  id: ai-usage
+  attributes:
+    label: "AI assistance"
+    description: "Did you use an AI tool (Claude, ChatGPT, Copilot...) to analyze the problem or write this issue?"
+    options:
+      - "No"
+      - "Yes"
+  validations:
+    required: true
+
+- type: input
+  id: ai-details
+  attributes:
+    label: "AI tool, model and effort"
+    description: "Required if AI was used: the tool, the model, the reasoning effort (if the tool exposes it) and what the AI did."
+    placeholder: "Claude Code, Claude Opus 5.5, effort high: root cause analysis"
