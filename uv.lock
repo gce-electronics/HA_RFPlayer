@@ -1,5 +1,5 @@
 version = 1
-revision = 5
+revision = 3
 requires-python = ">=3.14.2"
 
 [[package]]
@@ -2777,7 +2777,7 @@ requires-dist = [
     { name = "homeassistant", specifier = "~=2026.10" },
     { name = "jsonpath-ng", specifier = "~=1.10" },
     { name = "pydantic", specifier = "~=2.13" },
-    { name = "serialx", specifier = ">=1.13.0" },
+    { name = "serialx", specifier = ">=1.11.0" },
 ]
 
 [package.metadata.requires-dev]
