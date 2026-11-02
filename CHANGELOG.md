@@ -1,3 +1,11 @@
+## [1.6.1](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.6.0...v1.6.1) (2026-11-02)
+
+
+### Bug Fixes
+
+* do not wrap RF device options form schemas twice ([13ce506](https://github.com/gce-electronics/HA_RFPlayer/commit/13ce506d187fa4544271bb5d283ac9c5ed2329ae)), closes [#195](https://github.com/gce-electronics/HA_RFPlayer/issues/195)
+* ignore unknown keys in persisted RF device config ([ccb663e](https://github.com/gce-electronics/HA_RFPlayer/commit/ccb663eca0c8400090392dde146eb02ac02b8ce5)), closes [#195](https://github.com/gce-electronics/HA_RFPlayer/issues/195)
+
 # [1.6.0](https://github.com/gce-electronics/HA_RFPlayer/compare/v1.5.0...v1.6.0) (2026-10-31)
 
 
