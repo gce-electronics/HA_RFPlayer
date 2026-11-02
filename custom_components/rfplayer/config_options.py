@@ -1,7 +1,7 @@
 """Config flow for RfPlayer integration."""
 
 from collections.abc import Mapping
-from dataclasses import asdict, dataclass, field, replace
+from dataclasses import asdict, dataclass, field, fields, replace
 import json
 from typing import Any
 
@@ -51,8 +51,13 @@ class RfPlayerDeviceInfo:
 
     @classmethod
     def from_json(cls, data: Mapping[str, Any]) -> RfPlayerDeviceInfo:
-        """Load device info from JSON-serializable data."""
-        return cls(**data)
+        """Load device info from JSON-serializable data.
+
+        Unknown keys are ignored: entries persisted by older versions may contain extra keys
+        (e.g. the device registry id stored as "device" by the configure RF device step).
+        """
+        known_fields = {f.name for f in fields(cls)}
+        return cls(**{k: v for k, v in data.items() if k in known_fields})
 
     @classmethod
     def from_event(cls, profile_name: str, event: RfDeviceEvent) -> RfPlayerDeviceInfo:
