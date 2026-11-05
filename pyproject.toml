@@ -5,8 +5,8 @@ dynamic = ["version"]
 dependencies = [
     "homeassistant~=2026.10",
     "pydantic~=2.13",
-    "jsonpath-ng~=1.10",
-    "serialx>=1.11.0",
+    "jsonpath-ng~=1.12",
+    "serialx>=1.14.0",
 ]
 classifiers = [
   # How mature is this project? Common values are
@@ -32,12 +32,12 @@ dev = [
     "pytest~=9.0",
     "pytest-cov~=7.0",
     "pytest-homeassistant-custom-component~=0.13",
-    "pytest-mock~=3.16",
+    "pytest-mock~=3.17",
     "pytest-html~=4.1",
     "colorlog~=6.8",
     "ruff<1.0",
     "types-PyYAML~=6.0",
-    "ty>=0.0.91",
+    "ty>=0.0.95",
 ]
 
 [build-system]
