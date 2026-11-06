@@ -8,6 +8,12 @@ send_raw_command:
       example: "ON A3 RTS QUALIFIER 1"
       selector:
         text:
+    config_entry_id:
+      name: Gateway config entry ID
+      description: Required when more than one RFPlayer gateway is loaded.
+      required: false
+      selector:
+        text:
 send_pairing_command:
   description: Pair a RF device with the RfPlayer gateway.
   fields:
@@ -44,6 +50,12 @@ send_pairing_command:
       example: "2"
       selector:
         text:
+    config_entry_id:
+      name: Gateway config entry ID
+      description: Required when more than one RFPlayer gateway is loaded.
+      required: false
+      selector:
+        text:
 simulate_event:
   description: Simulate a RF device JSON event.
   fields:
@@ -51,5 +63,11 @@ simulate_event:
       name: Event data
       description: The device event in JSON format without the ZIA header.
       required: true
+      selector:
+        text:
+    config_entry_id:
+      name: Gateway config entry ID
+      description: Required when more than one RFPlayer gateway is loaded.
+      required: false
       selector:
         text:

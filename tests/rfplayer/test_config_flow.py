@@ -263,7 +263,7 @@ async def test_unique_id_probe_closes_client() -> None:
 
 
 @pytest.mark.integration
-async def test_setup_duplicate(mock_serial_connection: Mock, hass: HomeAssistant) -> None:
+async def test_duplicate_gateway_mac_is_rejected(mock_serial_connection: Mock, hass: HomeAssistant) -> None:
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
 
     assert result["type"] is FlowResultType.MENU
@@ -275,8 +275,11 @@ async def test_setup_duplicate(mock_serial_connection: Mock, hass: HomeAssistant
     assert result["type"] is FlowResultType.CREATE_ENTRY
 
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": config_entries.SOURCE_USER})
+    assert result["type"] is FlowResultType.MENU
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {"next_step_id": "simulator"})
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], {})
     assert result["type"] is FlowResultType.ABORT
-    assert result["reason"] == "single_instance_allowed"
+    assert result["reason"] == "already_configured"
 
 
 @pytest.mark.integration

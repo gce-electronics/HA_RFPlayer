@@ -35,7 +35,6 @@
       "cannot_connect": "Cannot connect to RFPlayer"
     },
     "abort": {
-      "single_instance_allowed": "Already configured. Only a single configuration possible.",
       "unknown": "Unexpected error"
     }
   },

@@ -30,7 +30,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: RfPlayerConfigEntry) ->
     if not await hass.config_entries.async_unload_platforms(entry, PLATFORMS):
         return False
 
-    await async_unload_services(hass)
+    await async_unload_services(hass, entry.runtime_data.gateway)
     await entry.runtime_data.gateway.async_unload()
 
     return True

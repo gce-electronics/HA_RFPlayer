@@ -71,11 +71,6 @@ class RfplayerConfigFlow(ConfigFlow):
 
     async def async_step_user(self, user_input: dict[str, Any] | None = None) -> ConfigFlowResult:
         """Config flow started from UI."""
-
-        # Only 1 RfPlayer gateway can be configured
-        if self._async_current_entries():
-            return self.async_abort(reason="single_instance_allowed")
-
         return self.async_show_menu(
             step_id="user",
             menu_options={
