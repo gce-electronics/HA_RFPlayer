@@ -56,6 +56,19 @@ class RfDeviceId:
 
         return f"{self.protocol}-{self.integer_address}"
 
+    @classmethod
+    def from_id_string(cls, id_string: str) -> RfDeviceId | None:
+        """Parse a canonical device ID string."""
+        protocol, separator, address = id_string.rpartition("-")
+        if not separator or not protocol or not address.isascii() or not address.isdecimal():
+            return None
+
+        try:
+            device_id = cls(protocol=protocol, address=address)
+        except ValueError:
+            return None
+        return device_id if device_id.id_string == id_string else None
+
     @property
     def group_code(self) -> str | None:
         """Group code extracted from address for protocols supporting group commands."""

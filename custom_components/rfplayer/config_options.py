@@ -3,6 +3,7 @@
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass, field, fields, replace
 import json
+import logging
 from typing import Any
 
 from custom_components.rfplayer.const import (
@@ -18,11 +19,12 @@ from custom_components.rfplayer.const import (
 from custom_components.rfplayer.device_profiles import UNDEFINED_PROFILE
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_DEVICE, CONF_DEVICES
+from homeassistant.const import CONF_ADDRESS, CONF_DEVICE, CONF_DEVICES, CONF_PROTOCOL
 from homeassistant.core import HomeAssistant
 
 SELECT_DEVICE_EXCLUSION = "select_device"
 DEFAULT_VALID_ADDRESS = "0"
+_LOGGER = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -146,6 +148,7 @@ class RfPlayerOptions:
     @classmethod
     def from_json(cls, data: Mapping[str, Any]) -> RfPlayerOptions:
         """Load gateway options from JSON-serializable data."""
+
         return cls(
             device=data[CONF_DEVICE],
             automatic_add=data.get(CONF_AUTOMATIC_ADD, True),
@@ -153,11 +156,41 @@ class RfPlayerOptions:
             receiver_protocols=data.get(CONF_RECEIVER_PROTOCOLS, DEFAULT_RECEIVER_PROTOCOLS),
             init_commands=data.get(CONF_INIT_COMMANDS, INIT_COMMANDS_EMPTY),
             verbose_mode=data.get(CONF_VERBOSE_MODE, False),
-            devices={
-                device_id: RfPlayerDeviceInfo.from_json(device)
-                for device_id, device in data.get(CONF_DEVICES, {}).items()
-            },
+            devices=RfPlayerOptions._recover_legacy_rf_devices(data) if CONF_DEVICES in data else {},
         )
+
+    @classmethod
+    def _recover_legacy_rf_devices(cls, data: Mapping[str, Any]) -> dict[str, RfPlayerDeviceInfo]:
+        """Recover devices from legacy config entry data.
+
+        Legacy config entries stored devices as a list of dicts under the "devices" key.
+        """
+        devices: dict[str, RfPlayerDeviceInfo] = {}
+        for device_id, device in data.get(CONF_DEVICES, {}).items():
+            missing_fields = {CONF_PROTOCOL, CONF_ADDRESS} - device.keys()
+            device_data = device
+            if missing_fields:
+                canonical_id = RfDeviceId.from_id_string(device_id)
+                if canonical_id is None:
+                    _LOGGER.warning(
+                        "Ignoring RF device %s: missing required field(s): %s",
+                        device_id,
+                        ", ".join(sorted(missing_fields)),
+                    )
+                    continue
+                restored_device = {
+                    **device,
+                    CONF_PROTOCOL: canonical_id.protocol,
+                    CONF_ADDRESS: canonical_id.address,
+                }
+                _LOGGER.warning(
+                    "Restoring missing RF device field(s) %s from canonical ID %s",
+                    ", ".join(sorted(missing_fields)),
+                    device_id,
+                )
+                device_data = restored_device
+            devices[device_id] = RfPlayerDeviceInfo.from_json(device_data)
+        return devices
 
 
 def load_options(config_entry: ConfigEntry) -> RfPlayerOptions:
