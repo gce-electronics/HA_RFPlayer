@@ -70,6 +70,13 @@ def test_integer_address():
     assert device.id_string == "X2D-240"
 
 
+def test_from_id_string():
+    assert RfDeviceId.from_id_string("X2D-2882343476") == RfDeviceId(protocol="X2D", address="2882343476")
+    assert RfDeviceId.from_id_string("X2D-xABCD1234") is None
+    assert RfDeviceId.from_id_string("X2D-01") is None
+    assert RfDeviceId.from_id_string("X2D-INVALID") is None
+
+
 def test_group_unit_code():
     device = RfDeviceId(protocol="X2D", address=str(0x7CED0101))
     assert device.group_code == "2095907072"
