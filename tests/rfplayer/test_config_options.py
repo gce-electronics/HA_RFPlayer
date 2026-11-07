@@ -1,6 +1,9 @@
 """Tests for RfPlayer config options persistence."""
 
+import pytest
+
 from custom_components.rfplayer.config_options import RfPlayerDeviceInfo, RfPlayerOptions
+from tests.rfplayer.conftest import rfplayer_config_entry
 
 
 def test_device_info_from_json_ignores_unknown_keys() -> None:
@@ -21,24 +24,34 @@ def test_device_info_from_json_ignores_unknown_keys() -> None:
     assert "device" not in device_info.to_json()
 
 
-def test_options_from_json_with_legacy_device_entry() -> None:
-    """Gateway options load when a device entry contains a legacy key."""
-    options = RfPlayerOptions.from_json(
-        {
-            "device": "/dev/ttyUSB0",
-            "devices": {
-                "x10_1": {
-                    "device": "0123456789abcdef0123456789abcdef",
-                    "protocol": "X10",
-                    "address": "1",
-                    "profile_name": "X10 On/Off",
-                    "redirect_address": None,
-                }
+@pytest.mark.integration
+async def test_setup_entry_updates_legacy_device_entry(hass, mock_serial_connection) -> None:
+    """Gateway setup removes invalid legacy keys from the config entry."""
+    entry = await rfplayer_config_entry(
+        hass,
+        devices={
+            "x10_1": {
+                "device": "0123456789abcdef0123456789abcdef",
+                "protocol": "X10",
+                "address": "1",
+                "profile_name": "X10 On/Off",
+                "redirect_address": None,
             },
-        }
+            "legacy_key": {
+                "profile_name": "X10 On/Off",
+            },
+        },
     )
 
-    assert options.devices["x10_1"] == RfPlayerDeviceInfo(protocol="X10", address="1", profile_name="X10 On/Off")
+    assert entry.data["devices"] == {
+        "x10_1": {
+            "device": "0123456789abcdef0123456789abcdef",
+            "protocol": "X10",
+            "address": "1",
+            "profile_name": "X10 On/Off",
+            "redirect_address": None,
+        }
+    }
 
 
 def test_options_from_json_recovers_missing_identity_and_skips_unusable_id(caplog) -> None:

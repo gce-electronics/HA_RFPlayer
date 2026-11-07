@@ -19,11 +19,12 @@ from custom_components.rfplayer.const import (
 from custom_components.rfplayer.device_profiles import UNDEFINED_PROFILE
 from custom_components.rfplayer.rfplayerlib.device import RfDeviceEvent, RfDeviceId
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import CONF_ADDRESS, CONF_DEVICE, CONF_DEVICES, CONF_PROTOCOL
+from homeassistant.const import CONF_DEVICE, CONF_DEVICES
 from homeassistant.core import HomeAssistant
 
 SELECT_DEVICE_EXCLUSION = "select_device"
 DEFAULT_VALID_ADDRESS = "0"
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -52,14 +53,39 @@ class RfPlayerDeviceInfo:
         return replace(self, **data)
 
     @classmethod
-    def from_json(cls, data: Mapping[str, Any]) -> RfPlayerDeviceInfo:
+    def from_json(cls, data: Mapping[str, Any], *, device_id: str | None = None) -> RfPlayerDeviceInfo | None:
         """Load device info from JSON-serializable data.
 
         Unknown keys are ignored: entries persisted by older versions may contain extra keys
         (e.g. the device registry id stored as "device" by the configure RF device step).
         """
         known_fields = {f.name for f in fields(cls)}
-        return cls(**{k: v for k, v in data.items() if k in known_fields})
+        device_data = {k: v for k, v in data.items() if k in known_fields}
+
+        missing_fields = {"protocol", "address"} - set(device_data)
+        if missing_fields and device_id:
+            canonical_id = RfDeviceId.from_id_string(device_id)
+            if canonical_id is not None:
+                _LOGGER.warning(
+                    "Restoring missing RF device field(s) %s from canonical ID %s",
+                    ", ".join(sorted(missing_fields)),
+                    device_id,
+                )
+                if "protocol" in missing_fields:
+                    device_data["protocol"] = canonical_id.protocol
+                if "address" in missing_fields:
+                    device_data["address"] = canonical_id.address
+                missing_fields = {"protocol", "address"} - set(device_data)
+
+        if missing_fields:
+            _LOGGER.warning(
+                "Ignoring RF device %s: missing required field(s): %s",
+                device_id,
+                ", ".join(sorted(missing_fields)),
+            )
+            return None
+
+        return cls(**device_data)
 
     @classmethod
     def from_event(cls, profile_name: str, event: RfDeviceEvent) -> RfPlayerDeviceInfo:
@@ -148,6 +174,11 @@ class RfPlayerOptions:
     @classmethod
     def from_json(cls, data: Mapping[str, Any]) -> RfPlayerOptions:
         """Load gateway options from JSON-serializable data."""
+        devices = {
+            device_id: device_info
+            for device_id, device in data.get(CONF_DEVICES, {}).items()
+            if (device_info := RfPlayerDeviceInfo.from_json(device, device_id=device_id)) is not None
+        }
 
         return cls(
             device=data[CONF_DEVICE],
@@ -156,41 +187,8 @@ class RfPlayerOptions:
             receiver_protocols=data.get(CONF_RECEIVER_PROTOCOLS, DEFAULT_RECEIVER_PROTOCOLS),
             init_commands=data.get(CONF_INIT_COMMANDS, INIT_COMMANDS_EMPTY),
             verbose_mode=data.get(CONF_VERBOSE_MODE, False),
-            devices=RfPlayerOptions._recover_legacy_rf_devices(data) if CONF_DEVICES in data else {},
+            devices=devices,
         )
-
-    @classmethod
-    def _recover_legacy_rf_devices(cls, data: Mapping[str, Any]) -> dict[str, RfPlayerDeviceInfo]:
-        """Recover devices from legacy config entry data.
-
-        Legacy config entries stored devices as a list of dicts under the "devices" key.
-        """
-        devices: dict[str, RfPlayerDeviceInfo] = {}
-        for device_id, device in data.get(CONF_DEVICES, {}).items():
-            missing_fields = {CONF_PROTOCOL, CONF_ADDRESS} - device.keys()
-            device_data = device
-            if missing_fields:
-                canonical_id = RfDeviceId.from_id_string(device_id)
-                if canonical_id is None:
-                    _LOGGER.warning(
-                        "Ignoring RF device %s: missing required field(s): %s",
-                        device_id,
-                        ", ".join(sorted(missing_fields)),
-                    )
-                    continue
-                restored_device = {
-                    **device,
-                    CONF_PROTOCOL: canonical_id.protocol,
-                    CONF_ADDRESS: canonical_id.address,
-                }
-                _LOGGER.warning(
-                    "Restoring missing RF device field(s) %s from canonical ID %s",
-                    ", ".join(sorted(missing_fields)),
-                    device_id,
-                )
-                device_data = restored_device
-            devices[device_id] = RfPlayerDeviceInfo.from_json(device_data)
-        return devices
 
 
 def load_options(config_entry: ConfigEntry) -> RfPlayerOptions:
