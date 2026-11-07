@@ -39,3 +39,25 @@ def test_options_from_json_with_legacy_device_entry() -> None:
     )
 
     assert options.devices["x10_1"] == RfPlayerDeviceInfo(protocol="X10", address="1", profile_name="X10 On/Off")
+
+
+def test_options_from_json_recovers_missing_identity_and_skips_unusable_id(caplog) -> None:
+    """Recover missing identity from canonical IDs and skip records without one."""
+    options = RfPlayerOptions.from_json(
+        {
+            "device": "/dev/ttyUSB0",
+            "devices": {
+                "X10-0": {
+                    "protocol": "X10",
+                    "profile_name": "X10 On/Off",
+                },
+                "legacy_key": {
+                    "profile_name": "X10 On/Off",
+                },
+            },
+        }
+    )
+
+    assert options.devices == {"X10-0": RfPlayerDeviceInfo(protocol="X10", address="0", profile_name="X10 On/Off")}
+    assert "Restoring missing RF device field(s) address from canonical ID X10-0" in caplog.text
+    assert "Ignoring RF device legacy_key: missing required field(s): address, protocol" in caplog.text
